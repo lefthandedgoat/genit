@@ -1,0 +1,1 @@
+module generated_views
