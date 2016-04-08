@@ -95,7 +95,6 @@ let base_header brand =
             spanClass "icon-bar" [emptyText]
             spanClass "icon-bar" [emptyText]
           ]
-        //imgAttr [ "src", "/robotHead.png"; "class", "pull-left"; "style", "height: 42px;" ]
         navbar_brand [ text brand ]
       ]
       navbar [
@@ -238,5 +237,19 @@ let errored_icon_password_text label' text' icon' errors =
         password_form_control label' label' text'
       ]
       errorsOrEmptyText label' errors
+    ]
+  ]
+
+let common_form decription formElements =
+  container [
+    row [
+      block_flat [
+        header [ h3 decription ]
+        div [
+          form_horizontal [
+            content (formElements @ [form_group [ sm12 [ pull_right [ button_submit ] ] ] ])
+          ]
+        ]
+      ]
     ]
   ]

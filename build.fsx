@@ -112,13 +112,19 @@ Target "Build" (fun _ ->
 // --------------------------------------------------------------------------------------
 // Run the unit tests using test runner
 
-Target "RunExe" (fun _ ->
-  let result =
+Target "RunSite" (fun _ ->
+    ExecProcess
+      (fun info -> info.FileName <- (exe @@ "noname.exe"))
+      (System.TimeSpan.FromMinutes 15.)
+    |> ignore
+)
+
+Target "Generate" (fun _ ->
     ExecProcess (fun info ->
                  info.FileName <- (exe @@ "noname.exe")
-                 ) (System.TimeSpan.FromMinutes 5.)
-
-  if result <> 0 then failwith "Failed result from unit tests"
+                 info.Arguments <- "generate"
+                ) (System.TimeSpan.FromMinutes 15.)
+    |> ignore
 )
 
 // --------------------------------------------------------------------------------------
@@ -130,7 +136,12 @@ Target "All" DoNothing
   ==> "AssemblyInfo"
   ==> "Build"
   ==> "CopyBinaries"
-  ==> "RunExe"
   ==> "All"
 
-RunTargetOrDefault "All"
+"All"
+  ==> "RunSite"
+
+"All"
+  ==> "Generate"
+
+RunTargetOrDefault "RunSite"

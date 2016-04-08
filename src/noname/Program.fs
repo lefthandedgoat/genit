@@ -29,6 +29,7 @@ let grid =
 
 let routes =
   choose
+    (generated_paths.generated_routes @
     [
       GET >=> choose [
         path paths.root >=> OK pages.root
@@ -39,6 +40,9 @@ let routes =
       path paths.form >=> form
 
       pathRegex "(.*)\.(css|png|gif|js|ico|woff|tff)" >=> Files.browseHome
-    ]
+    ])
 
-startWebServer defaultConfig routes
+let args = System.Environment.GetCommandLineArgs()
+if args |> Array.exists (fun arg -> arg = "generate")
+then printfn "generating"
+else startWebServer defaultConfig routes

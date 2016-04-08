@@ -33,20 +33,6 @@ let hello time =
     ]
     scripts.common
 
-let private common_table decription formElements =
-  container [
-    row [
-      block_flat [
-        header [ h3 decription ]
-        div [
-          form_horizontal [
-            content (formElements @ [form_group [ sm12 [ pull_right [ button_submit ] ] ] ])
-          ]
-        ]
-      ]
-    ]
-  ]
-
 let visibilityOptions = ["Public","Public"; "Private","Private"]
 
 let form =
@@ -54,7 +40,7 @@ let form =
     "Form"
     [
       base_header brand
-      common_table
+      common_form
         "Register"
         [
           label_text "First Name" ""
