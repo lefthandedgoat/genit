@@ -105,8 +105,15 @@ let propertyTemplate (page : Page) =
   |> flatten
 
 let formPropertyTemplate (page : Page) =
+  let formName = sprintf "%sForm" (typeFormat page.Name)
   page.Fields
-  |> List.map (fun field -> sprintf """%s : string""" (spaceToNothing field.Name))
+  |> List.map (fun field -> sprintf """%s = %s.%s""" (spaceToNothing field.Name) formName (spaceToNothing field.Name))
+  |> List.map (pad 2)
+  |> flatten
+
+let converterPropertyTemplate (page : Page) =
+  page.Fields
+  |> List.map (fun field -> sprintf """%s : %s""" (spaceToNothing field.Name) (fieldToProperty field.FieldType))
   |> List.map (pad 2)
   |> flatten
 
@@ -118,6 +125,15 @@ let typeTemplate (page : Page) =
   }
   """ typeName (propertyTemplate page)
 
+let converterTemplate (page : Page) =
+  let typeName = typeFormat page.Name |> upperFirst
+  let formName = typeFormat page.Name
+  sprintf """let convert%sForm (%sForm : %sForm) =
+  {
+%s
+  }
+  """ typeName formName typeName (formPropertyTemplate page)
+
 let formTypeTemplate (page : Page) =
   let typeName = typeFormat page.Name |> upperFirst
   let formName = typeFormat page.Name
@@ -127,7 +143,9 @@ let formTypeTemplate (page : Page) =
   }
 
 let %sForm : Form<%sForm> = Form ([],[])
-  """ typeName (propertyTemplate page) formName typeName
+
+%s
+  """ typeName (propertyTemplate page) formName typeName (converterTemplate page)
 
 let generate (site : Site) =
   let html_results = site.Pages |> List.map pageLinkTemplate |> flatten
