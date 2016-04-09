@@ -15,8 +15,11 @@ let destination filename =
   |> (fun path -> sprintf "%s/%s.fs" path filename)
 
 let lower (value : string) = value.ToLower()
+let upperFirst (value : string) = Char.ToUpper(value.[0]).ToString() + value.Substring(1)
 let spaceToUnderscore (value : string) = value.Replace(" ", "_")
+let spaceToNothing (value : string) = value.Replace(" ", "")
 let format = lower >> spaceToUnderscore
+let typeFormat = lower >> spaceToNothing
 let repeat (value : string) times = [1..times] |> List.map (fun _ -> value) |> List.reduce (+)
 let flatten values = values |> List.reduce (fun value1 value2 -> sprintf "%s%s%s" value1 Environment.NewLine value2)
 
@@ -32,7 +35,20 @@ let fieldToHtml field =
   | Name -> sprintf """icon_label_text "%s" "" "user" """ field.Name
   | Phone -> failwith "not done"
   | Password -> sprintf """icon_password_text "%s" "" "lock" """ field.Name
-  | Dropdown options -> failwith "not done"
+  | Dropdown _ -> failwith "not done"
+
+let fieldToProperty field =
+  match field with
+  | Text       -> "string"
+  | Paragraph  -> "string"
+  | Number     -> "int"
+  | Decimal    -> "float"
+  | Date       -> "System.DateTime"
+  | Email      -> "string"
+  | Name       -> "string"
+  | Phone      -> "string"
+  | Password   -> "string"
+  | Dropdown _ -> "int"
 
 let pad tabs field = sprintf "%s%s" (repeat "  " tabs) field
 
@@ -63,7 +79,55 @@ let pathTemplate (page : Page) = sprintf """let path_%s = "/%s" """ (format page
 
 let routeTemplate (page : Page) = sprintf """path path_%s >=> %s""" (format page.Name) (format page.Name) |> pad 2
 
-let handlerTemplate (page : Page) = sprintf """let %s = choose [ GET >=> OK get_%s]""" (format page.Name) (format page.Name)
+let handlerTemplate (page : Page) =
+  let pageName = format page.Name
+  let formName = sprintf "%sForm" pageName
+  let convertName = sprintf "convert%s" (upperFirst formName)
+  match page.PageMode with
+  | Edit -> failwith "not done"
+  | View -> failwith "not done"
+  | List -> failwith "not done"
+  | Create | Submit ->
+    sprintf """let %s =
+  choose
+    [
+      GET >=> OK get_%s
+      POST >=> bindToForm %s (fun %s ->
+        let form = %s %s
+        let message = "Parsed form: \r\n" + (form.ToString())
+        OK message)
+    ]""" pageName pageName formName formName convertName formName
+
+let propertyTemplate (page : Page) =
+  page.Fields
+  |> List.map (fun field -> sprintf """%s : %s""" (spaceToNothing field.Name) (fieldToProperty field.FieldType))
+  |> List.map (pad 2)
+  |> flatten
+
+let formPropertyTemplate (page : Page) =
+  page.Fields
+  |> List.map (fun field -> sprintf """%s : string""" (spaceToNothing field.Name))
+  |> List.map (pad 2)
+  |> flatten
+
+let typeTemplate (page : Page) =
+  let typeName = typeFormat page.Name |> upperFirst
+  sprintf """type %s =
+  {
+%s
+  }
+  """ typeName (propertyTemplate page)
+
+let formTypeTemplate (page : Page) =
+  let typeName = typeFormat page.Name |> upperFirst
+  let formName = typeFormat page.Name
+  sprintf """type %sForm =
+  {
+%s
+  }
+
+let %sForm : Form<%sForm> = Form ([],[])
+  """ typeName (propertyTemplate page) formName typeName
 
 let generate (site : Site) =
   let html_results = site.Pages |> List.map pageLinkTemplate |> flatten
@@ -75,6 +139,12 @@ let generate (site : Site) =
   let handler_results = site.Pages |> List.map handlerTemplate |> flatten
   let generated_handlers_result = generated_handlers_template handler_results
 
+  let forms_results = site.Pages |> List.map formTypeTemplate |> flatten
+  let generated_forms_result = generated_forms_template forms_results
+
+  let types_results = site.Pages |> List.map typeTemplate |> flatten
+  let generated_types_result = generated_types_template types_results
+
   let paths_results = site.Pages |> List.map pathTemplate |> flatten
   let routes_results = site.Pages |> List.map routeTemplate |> flatten
   let generated_paths_result = generated_paths_template paths_results routes_results
@@ -82,4 +152,6 @@ let generate (site : Site) =
   write (destination "generated_html") generated_html_result
   write (destination "generated_views") generated_views_result
   write (destination "generated_handlers") generated_handlers_result
+  write (destination "generated_forms") generated_forms_result
+  write (destination "generated_types") generated_types_result
   write (destination "generated_paths") generated_paths_result

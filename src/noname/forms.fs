@@ -22,40 +22,40 @@ type Visibility =
   | Public
   | Private
 
-type RegisterForm =
-  {
-    FirstName : string
-    LastName : string
-    Email : string
-    Password : string
-    RepeatPassword : string
-    Visibility : string
-    Age : decimal
-  }
-
-type Register =
-  {
-    FirstName : string
-    LastName : string
-    Email : string
-    Password : string
-    RepeatPassword : string
-    Visibility : Visibility
-    Age : int
-  }
-
-let convertRegisterForm (registerForm : RegisterForm) =
-  {
-    FirstName = registerForm.FirstName
-    LastName = registerForm.LastName
-    Email = registerForm.Email
-    Password = registerForm.Password
-    RepeatPassword = registerForm.RepeatPassword
-    Visibility = fromString<Visibility> registerForm.Visibility
-    Age = int registerForm.Age
-  }
-
-let registerForm : Form<RegisterForm> = Form ([],[])
+//type RegisterForm =
+//  {
+//    FirstName : string
+//    LastName : string
+//    Email : string
+//    Password : string
+//    RepeatPassword : string
+//    Visibility : string
+//    Age : decimal
+//  }
+//
+//type Register =
+//  {
+//    FirstName : string
+//    LastName : string
+//    Email : string
+//    Password : string
+//    RepeatPassword : string
+//    Visibility : Visibility
+//    Age : int
+//  }
+//
+//let convertRegisterForm (registerForm : RegisterForm) =
+//  {
+//    FirstName = registerForm.FirstName
+//    LastName = registerForm.LastName
+//    Email = registerForm.Email
+//    Password = registerForm.Password
+//    RepeatPassword = registerForm.RepeatPassword
+//    Visibility = fromString<Visibility> registerForm.Visibility
+//    Age = int registerForm.Age
+//  }
+//
+//let registerForm : Form<RegisterForm> = Form ([],[])
 
 type Car =
   {

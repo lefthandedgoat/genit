@@ -55,6 +55,10 @@ open Suave
 open Suave.Filters
 open Suave.Successful
 open Suave.Operators
+open Suave.Model.Binding
+open Suave.Form
+open Suave.ServerErrors
+open forms
 open generated_handlers
 
 %s
@@ -72,5 +76,21 @@ open Suave.Filters
 open Suave.Successful
 open Suave.Operators
 open generated_views
+open generated_forms
+open generated_types
+open forms
+
+%s""" guts
+
+let generated_types_template guts =
+  sprintf """module generated_types
+
+%s""" guts
+
+let generated_forms_template guts =
+  sprintf """module generated_forms
+
+open Suave.Model.Binding
+open Suave.Form
 
 %s""" guts

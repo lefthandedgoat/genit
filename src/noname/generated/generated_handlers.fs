@@ -5,5 +5,6 @@ open Suave.Filters
 open Suave.Successful
 open Suave.Operators
 open generated_views
-
-let register = choose [ GET >=> OK get_register]
+open generated_forms
+open generated_types
+open forms

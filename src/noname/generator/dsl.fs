@@ -7,8 +7,6 @@ type PageMode =
   | List
   | Submit
 
-let allModes = [Create; Edit; View; List]
-
 type FieldType =
   | Text
   | Paragraph
@@ -45,7 +43,7 @@ let password name = { Name = name; FieldType = Password; Attribute = Required }
 type Page =
   {
     Name : string
-    PageModes : PageMode list
+    PageMode : PageMode
     Fields : Field list
   }
 
@@ -65,8 +63,8 @@ let mutable currentSite = defaultSite
 
 let site name = currentSite <- { currentSite with Name = name }
 
-let page name pageModes fields =
-  let page = { Name = name; PageModes = pageModes; Fields = fields }
+let page name pageMode fields =
+  let page = { Name = name; PageMode = pageMode; Fields = fields }
   currentSite <- { currentSite with Pages = currentSite.Pages @ [page] }
 
 
@@ -78,7 +76,7 @@ type Precanned =
 let registration = Register
 
 let precannedRegister () =
-  page "Register" [Submit]
+  page "Register" Submit
     [
       name "First Name" Required
       name "Last Name" Required
