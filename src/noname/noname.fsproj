@@ -60,6 +60,7 @@
   -->
   <ItemGroup>
     <Compile Include="generator/dsl.fs" />
+    <Compile Include="generator/modules.fs" />
     <Compile Include="generator/generator.fs" />
     <Compile Include="generator/script.fs" />
     <Compile Include="paths.fs" />
@@ -69,11 +70,12 @@
     <Compile Include="scripts.fs" />
     <Compile Include="pages.fs" />
     <Compile Include="database.fs" />
-    <Compile Include="generated/generated_paths.fs" />
-    <Compile Include="generated/generated_views.fs" />
     <Compile Include="generated/generated_types.fs" />
     <Compile Include="generated/generated_forms.fs" />
     <Compile Include="generated/generated_data.fs" />
+    <Compile Include="generated/generated_views.fs" />
+    <Compile Include="generated/generated_handlers.fs" />
+    <Compile Include="generated/generated_paths.fs" />
     <Compile Include="generated/generated_unittests.fs" />
     <Compile Include="generated/generated_uitests.fs" />
     <Compile Include="Program.fs" />

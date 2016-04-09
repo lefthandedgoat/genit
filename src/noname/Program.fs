@@ -44,5 +44,5 @@ let routes =
 
 let args = System.Environment.GetCommandLineArgs()
 if args |> Array.exists (fun arg -> arg = "generate")
-then generator.generate script.someSite
+then generator.generate <| script.someSite()
 else startWebServer defaultConfig routes
