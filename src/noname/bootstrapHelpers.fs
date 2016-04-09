@@ -99,15 +99,15 @@ let base_header brand =
       ]
       navbar [
         navbar_nav [
-          dropdown [
-            dropdown_toggle [text "Stuff "; caret]
-            dropdown_menu [
-              li [ aHref paths.root [text "Home"] ]
-              li [ aHref paths.hello [text "Hello"] ]
-              li [ aHref paths.form [text "Form Example"] ]
-              li [ aHref paths.grid [text "Grid Example"] ]
-            ]
-          ]
+          //dropdown [
+          //  dropdown_toggle [text "Stuff "; caret]
+          //  dropdown_menu [
+          //    li [ aHref paths.root [text "Home"] ]
+          //    li [ aHref paths.hello [text "Hello"] ]
+          //    li [ aHref paths.form [text "Form Example"] ]
+          //    li [ aHref paths.grid [text "Grid Example"] ]
+          //  ]
+          //]
         ]
       ]
     ]
