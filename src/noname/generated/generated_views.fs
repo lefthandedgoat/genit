@@ -14,12 +14,11 @@ let get_register =
       common_form
         "Register"
         [
-          label_text "First Name" ""
-          label_text "Last Name" ""
-          icon_label_text "Email" "" "envelope"
-          icon_password_text "Password" "" "lock"
-          icon_password_text "Repeat Password" "" "lock"
-          label_text "Nickname" ""
+          icon_label_text "First Name" "" "user" 
+          icon_label_text "Last Name" "" "user" 
+          icon_label_text "Email" "" "envelope" 
+          icon_password_text "Password" "" "lock" 
+          icon_password_text "Repeat Password" "" "lock" 
         ]
     ]
     scripts.common

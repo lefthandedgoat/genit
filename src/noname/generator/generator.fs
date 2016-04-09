@@ -29,6 +29,7 @@ let fieldToHtml field =
   | Decimal -> failwith "not done"
   | Date -> failwith "not done"
   | Email -> sprintf """icon_label_text "%s" "" "envelope" """ field.Name
+  | Name -> sprintf """icon_label_text "%s" "" "user" """ field.Name
   | Phone -> failwith "not done"
   | Password -> sprintf """icon_password_text "%s" "" "lock" """ field.Name
   | Dropdown options -> failwith "not done"

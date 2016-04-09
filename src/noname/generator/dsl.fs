@@ -16,6 +16,7 @@ type FieldType =
   | Decimal
   | Date
   | Email
+  | Name
   | Phone
   | Password
   | Dropdown of options:string list
@@ -37,6 +38,7 @@ type Field =
   }
 
 let text name attribute = { Name = name; FieldType = Text; Attribute = attribute }
+let name name attribute = { Name = name; FieldType = Name; Attribute = attribute }
 let email name = { Name = name; FieldType = Email; Attribute = Required }
 let password name = { Name = name; FieldType = Password; Attribute = Required }
 
@@ -78,8 +80,8 @@ let registration = Register
 let precannedRegister () =
   page "Register" [Submit]
     [
-      text "First Name" Required
-      text "Last Name" Required
+      name "First Name" Required
+      name "Last Name" Required
       email "Email"
       password "Password"
       password "Repeat Password"
