@@ -70,6 +70,7 @@
     <Compile Include="scripts.fs" />
     <Compile Include="pages.fs" />
     <Compile Include="database.fs" />
+    <Compile Include="generated/generated_html.fs" />
     <Compile Include="generated/generated_types.fs" />
     <Compile Include="generated/generated_forms.fs" />
     <Compile Include="generated/generated_data.fs" />

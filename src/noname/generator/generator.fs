@@ -57,6 +57,8 @@ let get_%s =
     ]
     scripts.common""" (format page.Name) page.Name page.Name (formatFields page.Fields 5)
 
+let pageLinkTemplate (page : Page) = sprintf """li [ aHref "/%s" [text "%s"] ]""" (format page.Name) page.Name |> pad 7
+
 let pathTemplate (page : Page) = sprintf """let path_%s = "/%s" """ (format page.Name) (format page.Name)
 
 let routeTemplate (page : Page) = sprintf """path path_%s >=> %s""" (format page.Name) (format page.Name) |> pad 2
@@ -64,6 +66,9 @@ let routeTemplate (page : Page) = sprintf """path path_%s >=> %s""" (format page
 let handlerTemplate (page : Page) = sprintf """let %s = choose [ GET >=> OK get_%s]""" (format page.Name) (format page.Name)
 
 let generate (site : Site) =
+  let html_results = site.Pages |> List.map pageLinkTemplate |> flatten
+  let generated_html_result = generated_html_template html_results
+
   let views_results = site.Pages |> List.map formViewTemplate |> flatten
   let generated_views_result = generated_views_template site.Name views_results
 
@@ -74,6 +79,7 @@ let generate (site : Site) =
   let routes_results = site.Pages |> List.map routeTemplate |> flatten
   let generated_paths_result = generated_paths_template paths_results routes_results
 
+  write (destination "generated_html") generated_html_result
   write (destination "generated_views") generated_views_result
   write (destination "generated_handlers") generated_handlers_result
   write (destination "generated_paths") generated_paths_result
