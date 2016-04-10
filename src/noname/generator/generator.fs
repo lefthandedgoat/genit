@@ -109,9 +109,14 @@ let handlerTemplate (page : Page) =
       GET >=> OK get_%s
       POST >=> bindToForm %s (fun %s ->
         let validation = validate%s %s
-        let form = convert%s %s
-        OK "sumitted")
-    ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal
+        if validation = [] then
+          let form = convert%s %s
+          let message = sprintf "form: %s" form
+          OK message
+        else
+          let message = sprintf "validation: %s" validation
+          OK message)
+    ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal "%A" "%A"
 
 let propertyTemplate (page : Page) =
   page.Fields
@@ -168,7 +173,7 @@ let validationTemplate (page : Page) =
   sprintf """let validate%s (%s : %s) =
   [
 %s
-  ]
+  ] |> List.filter invalid
   """ page.AsFormType page.AsFormVal page.AsFormType validations
 
 let generate (site : Site) =
