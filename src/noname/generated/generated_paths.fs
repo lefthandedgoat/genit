@@ -9,3 +9,7 @@ open Suave.Form
 open Suave.ServerErrors
 open forms
 open generated_handlers
+
+let generated_routes =
+  [
+  ]
