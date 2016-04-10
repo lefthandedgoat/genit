@@ -63,7 +63,7 @@ open generated_handlers
 
 %s
 
-let generated_routes : WebPart<'a> list =
+let generated_routes =
   [
 %s
   ]""" paths routes

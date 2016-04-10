@@ -16,10 +16,12 @@ let destination filename =
 
 let lower (value : string) = value.ToLower()
 let upperFirst (value : string) = Char.ToUpper(value.[0]).ToString() + value.Substring(1)
+let lowerFirst (value : string) = Char.ToLower(value.[0]).ToString() + value.Substring(1)
 let spaceToUnderscore (value : string) = value.Replace(" ", "_")
 let spaceToNothing (value : string) = value.Replace(" ", "")
 let format = lower >> spaceToUnderscore
-let typeFormat = lower >> spaceToNothing
+let typeFormat = spaceToNothing
+let camelCase = spaceToNothing >> lowerFirst
 let repeat (value : string) times = [1..times] |> List.map (fun _ -> value) |> List.reduce (+)
 let flatten values = values |> List.reduce (fun value1 value2 -> sprintf "%s%s%s" value1 Environment.NewLine value2)
 
@@ -77,11 +79,12 @@ let pageLinkTemplate (page : Page) = sprintf """li [ aHref "/%s" [text "%s"] ]""
 
 let pathTemplate (page : Page) = sprintf """let path_%s = "/%s" """ (format page.Name) (format page.Name)
 
-let routeTemplate (page : Page) = sprintf """path path_%s >=> %s""" (format page.Name) (format page.Name) |> pad 2
+let routeTemplate (page : Page) = sprintf """path path_%s >=> %s""" (format page.Name) (camelCase page.Name) |> pad 2
 
 let handlerTemplate (page : Page) =
   let pageName = format page.Name
-  let formName = sprintf "%sForm" pageName
+  let camelName= camelCase page.Name
+  let formName = sprintf "%sForm" (camelCase page.Name)
   let convertName = sprintf "convert%s" (upperFirst formName)
   match page.PageMode with
   | Edit -> failwith "not done"
@@ -96,7 +99,7 @@ let handlerTemplate (page : Page) =
         let form = %s %s
         let message = "Parsed form: \r\n" + (form.ToString())
         OK message)
-    ]""" pageName pageName formName formName convertName formName
+    ]""" camelName pageName formName formName convertName formName
 
 let propertyTemplate (page : Page) =
   page.Fields
@@ -105,7 +108,7 @@ let propertyTemplate (page : Page) =
   |> flatten
 
 let formPropertyTemplate (page : Page) =
-  let formName = sprintf "%sForm" (typeFormat page.Name)
+  let formName = sprintf "%sForm" (camelCase page.Name)
   page.Fields
   |> List.map (fun field -> sprintf """%s = %s.%s""" (spaceToNothing field.Name) formName (spaceToNothing field.Name))
   |> List.map (pad 2)
@@ -127,7 +130,7 @@ let typeTemplate (page : Page) =
 
 let converterTemplate (page : Page) =
   let typeName = typeFormat page.Name |> upperFirst
-  let formName = typeFormat page.Name
+  let formName = camelCase page.Name
   sprintf """let convert%sForm (%sForm : %sForm) =
   {
 %s
@@ -136,7 +139,7 @@ let converterTemplate (page : Page) =
 
 let formTypeTemplate (page : Page) =
   let typeName = typeFormat page.Name |> upperFirst
-  let formName = typeFormat page.Name
+  let formName = camelCase page.Name
   sprintf """type %sForm =
   {
 %s
