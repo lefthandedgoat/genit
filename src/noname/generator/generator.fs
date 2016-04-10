@@ -52,6 +52,31 @@ let fieldToProperty field =
   | Password   -> "string"
   | Dropdown _ -> "int"
 
+let fieldToValidation (field : Field) formName =
+  let property = sprintf "%sForm.%s" formName (typeFormat field.Name |> upperFirst)
+  match field.FieldType with
+  | Text       -> None
+  | Paragraph  -> None
+  | Number     -> None //parseInt
+  | Decimal    -> None //parseDecimal
+  | Date       -> None //parseDate
+  | Email      -> Some (sprintf """email "%s" %s""" field.Name property)
+  | Name       -> None
+  | Phone      -> None //parsePhone?
+  | Password   -> Some (sprintf """password "%s" %s""" field.Name property)
+  | Dropdown _ -> None
+
+let attributeToValidation (field : Field) formName =
+  let property = sprintf "%sForm.%s" formName (typeFormat field.Name |> upperFirst)
+  match field.Attribute with
+  | Id         -> None
+  | Null       -> None
+  | NotNull    -> None
+  | Required   -> Some (sprintf """required "%s" %s""" field.Name property)
+  | Min(_)     -> None
+  | Max(_)     -> None
+  | Range(_,_) -> None
+
 let pad tabs field = sprintf "%s%s" (repeat "  " tabs) field
 
 let formatFields (fields : Field list) tabs =
@@ -82,6 +107,7 @@ let pathTemplate (page : Page) = sprintf """let path_%s = "/%s" """ (format page
 let routeTemplate (page : Page) = sprintf """path path_%s >=> %s""" (format page.Name) (camelCase page.Name) |> pad 2
 
 let handlerTemplate (page : Page) =
+  let typeName = typeFormat page.Name |> upperFirst
   let pageName = format page.Name
   let camelName= camelCase page.Name
   let formName = sprintf "%sForm" (camelCase page.Name)
@@ -96,10 +122,11 @@ let handlerTemplate (page : Page) =
     [
       GET >=> OK get_%s
       POST >=> bindToForm %s (fun %s ->
+        let validation = validate%sForm %s
         let form = %s %s
         let message = "Parsed form: \r\n" + (form.ToString())
         OK message)
-    ]""" camelName pageName formName formName convertName formName
+    ]""" camelName pageName formName formName typeName formName convertName formName
 
 let propertyTemplate (page : Page) =
   page.Fields
@@ -150,6 +177,23 @@ let %sForm : Form<%sForm> = Form ([],[])
 %s
   """ typeName (propertyTemplate page) formName typeName (converterTemplate page)
 
+let validationTemplate (page : Page) =
+  let typeName = typeFormat page.Name |> upperFirst
+  let formName = camelCase page.Name
+  let validations =
+    page.Fields
+    |> List.map (fun field -> [fieldToValidation field formName] @ [attributeToValidation field formName])
+    |> List.concat
+    |> List.choose id
+    |> List.map (pad 2)
+    |> flatten
+
+  sprintf """let validate%sForm (%sForm : %sForm) =
+  [
+%s
+  ]
+  """ typeName formName typeName validations
+
 let generate (site : Site) =
   let html_results = site.Pages |> List.map pageLinkTemplate |> flatten
   let generated_html_result = generated_html_template html_results
@@ -170,9 +214,13 @@ let generate (site : Site) =
   let routes_results = site.Pages |> List.map routeTemplate |> flatten
   let generated_paths_result = generated_paths_template paths_results routes_results
 
+  let validations_results = site.Pages |> List.map validationTemplate |> flatten
+  let generated_validation_result = generated_validation_template validations_results
+
   write (destination "generated_html") generated_html_result
   write (destination "generated_views") generated_views_result
   write (destination "generated_handlers") generated_handlers_result
   write (destination "generated_forms") generated_forms_result
   write (destination "generated_types") generated_types_result
   write (destination "generated_paths") generated_paths_result
+  write (destination "generated_validation") generated_validation_result

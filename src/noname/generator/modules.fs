@@ -78,6 +78,7 @@ open Suave.Operators
 open generated_views
 open generated_forms
 open generated_types
+open generated_validation
 open forms
 
 %s""" guts
@@ -92,5 +93,13 @@ let generated_forms_template guts =
 
 open Suave.Model.Binding
 open Suave.Form
+
+%s""" guts
+
+let generated_validation_template guts =
+  sprintf """module generated_validation
+
+open generated_forms
+open validators
 
 %s""" guts
