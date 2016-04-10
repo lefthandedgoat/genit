@@ -1,5 +1,22 @@
 module dsl
 
+open System
+
+let upperFirst (value : string) = Char.ToUpper(value.[0]).ToString() + value.Substring(1)
+let lowerFirst (value : string) = Char.ToLower(value.[0]).ToString() + value.Substring(1)
+let spaceToNothing (value : string) = value.Replace(" ", "")
+let camelCase = spaceToNothing >> lowerFirst
+let typeCase = spaceToNothing >> upperFirst
+let form value = sprintf "%sForm" value
+
+let to_val = camelCase
+let to_type = typeCase
+let to_formVal = camelCase >> form
+let to_formType = typeCase >> form
+let to_href = camelCase >> sprintf "/%s"
+
+let to_property = typeCase
+
 type PageMode =
   | Create
   | Edit
@@ -33,18 +50,24 @@ type Field =
     Name : string
     FieldType : FieldType
     Attribute : Attribute
+    AsProperty : string
   }
 
-let text name attribute = { Name = name; FieldType = Text; Attribute = attribute }
-let name name attribute = { Name = name; FieldType = Name; Attribute = attribute }
-let email name = { Name = name; FieldType = Email; Attribute = Required }
-let password name = { Name = name; FieldType = Password; Attribute = Required }
+let text name attribute = { Name = name; FieldType = Text; Attribute = attribute; AsProperty = to_property name }
+let name name attribute = { Name = name; FieldType = Name; Attribute = attribute; AsProperty = to_property name }
+let email name = { Name = name; FieldType = Email; Attribute = Required; AsProperty = to_property name }
+let password name = { Name = name; FieldType = Password; Attribute = Required; AsProperty = to_property name }
 
 type Page =
   {
     Name : string
     PageMode : PageMode
     Fields : Field list
+    AsVal : string
+    AsType : string
+    AsFormVal : string
+    AsFormType : string
+    AsHref : string
   }
 
 type Site =
@@ -64,9 +87,18 @@ let mutable currentSite = defaultSite
 let site name = currentSite <- { currentSite with Name = name }
 
 let page name pageMode fields =
-  let page = { Name = name; PageMode = pageMode; Fields = fields }
+  let page =
+    {
+      Name = name
+      PageMode = pageMode
+      Fields = fields
+      AsVal = to_val name
+      AsType = to_type name
+      AsFormVal = to_formVal name
+      AsFormType = to_formType name
+      AsHref = to_href name
+    }
   currentSite <- { currentSite with Pages = currentSite.Pages @ [page] }
-
 
 //precanned pages
 

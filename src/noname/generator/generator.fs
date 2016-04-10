@@ -14,17 +14,8 @@ let destination filename =
   |> (fun path -> path.Replace("/bin", "/generated"))
   |> (fun path -> sprintf "%s/%s.fs" path filename)
 
-let lower (value : string) = value.ToLower()
-let upperFirst (value : string) = Char.ToUpper(value.[0]).ToString() + value.Substring(1)
-let lowerFirst (value : string) = Char.ToLower(value.[0]).ToString() + value.Substring(1)
-let spaceToUnderscore (value : string) = value.Replace(" ", "_")
-let spaceToNothing (value : string) = value.Replace(" ", "")
-let format = lower >> spaceToUnderscore
-let typeFormat = spaceToNothing
-let camelCase = spaceToNothing >> lowerFirst
 let repeat (value : string) times = [1..times] |> List.map (fun _ -> value) |> List.reduce (+)
 let flatten values = values |> List.reduce (fun value1 value2 -> sprintf "%s%s%s" value1 Environment.NewLine value2)
-
 
 let fieldToHtml field =
   match field.FieldType with
@@ -52,8 +43,8 @@ let fieldToProperty field =
   | Password   -> "string"
   | Dropdown _ -> "int"
 
-let fieldToValidation (field : Field) formName =
-  let property = sprintf "%sForm.%s" formName (typeFormat field.Name |> upperFirst)
+let fieldToValidation (field : Field) (page : Page) =
+  let property = sprintf "%s.%s" page.AsFormVal field.AsProperty
   match field.FieldType with
   | Text       -> None
   | Paragraph  -> None
@@ -66,8 +57,8 @@ let fieldToValidation (field : Field) formName =
   | Password   -> Some (sprintf """password "%s" %s""" field.Name property)
   | Dropdown _ -> None
 
-let attributeToValidation (field : Field) formName =
-  let property = sprintf "%sForm.%s" formName (typeFormat field.Name |> upperFirst)
+let attributeToValidation (field : Field) (page : Page) =
+  let property = sprintf "%s.%s" page.AsFormVal field.AsProperty
   match field.Attribute with
   | Id         -> None
   | Null       -> None
@@ -98,20 +89,15 @@ let get_%s =
 %s
         ]
     ]
-    scripts.common""" (format page.Name) page.Name page.Name (formatFields page.Fields 5)
+    scripts.common""" page.AsVal page.Name page.Name (formatFields page.Fields 5)
 
-let pageLinkTemplate (page : Page) = sprintf """li [ aHref "/%s" [text "%s"] ]""" (format page.Name) page.Name |> pad 7
+let pageLinkTemplate (page : Page) = sprintf """li [ aHref "%s" [text "%s"] ]""" page.AsHref page.Name |> pad 7
 
-let pathTemplate (page : Page) = sprintf """let path_%s = "/%s" """ (format page.Name) (format page.Name)
+let pathTemplate (page : Page) = sprintf """let path_%s = "%s" """ page.AsVal page.AsHref
 
-let routeTemplate (page : Page) = sprintf """path path_%s >=> %s""" (format page.Name) (camelCase page.Name) |> pad 2
+let routeTemplate (page : Page) = sprintf """path path_%s >=> %s""" page.AsVal page.AsVal |> pad 2
 
 let handlerTemplate (page : Page) =
-  let typeName = typeFormat page.Name |> upperFirst
-  let pageName = format page.Name
-  let camelName= camelCase page.Name
-  let formName = sprintf "%sForm" (camelCase page.Name)
-  let convertName = sprintf "convert%s" (upperFirst formName)
   match page.PageMode with
   | Edit -> failwith "not done"
   | View -> failwith "not done"
@@ -122,77 +108,68 @@ let handlerTemplate (page : Page) =
     [
       GET >=> OK get_%s
       POST >=> bindToForm %s (fun %s ->
-        let validation = validate%sForm %s
-        let form = %s %s
-        let message = "Parsed form: \r\n" + (form.ToString())
-        OK message)
-    ]""" camelName pageName formName formName typeName formName convertName formName
+        let validation = validate%s %s
+        let form = convert%s %s
+        OK "sumitted")
+    ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal
 
 let propertyTemplate (page : Page) =
   page.Fields
-  |> List.map (fun field -> sprintf """%s : %s""" (spaceToNothing field.Name) (fieldToProperty field.FieldType))
+  |> List.map (fun field -> sprintf """%s : %s""" field.AsProperty (fieldToProperty field.FieldType))
   |> List.map (pad 2)
   |> flatten
 
 let formPropertyTemplate (page : Page) =
-  let formName = sprintf "%sForm" (camelCase page.Name)
   page.Fields
-  |> List.map (fun field -> sprintf """%s = %s.%s""" (spaceToNothing field.Name) formName (spaceToNothing field.Name))
+  |> List.map (fun field -> sprintf """%s = %s.%s""" field.AsProperty page.AsFormVal field.AsProperty)
   |> List.map (pad 2)
   |> flatten
 
 let converterPropertyTemplate (page : Page) =
   page.Fields
-  |> List.map (fun field -> sprintf """%s : %s""" (spaceToNothing field.Name) (fieldToProperty field.FieldType))
+  |> List.map (fun field -> sprintf """%s : %s""" field.AsProperty (fieldToProperty field.FieldType))
   |> List.map (pad 2)
   |> flatten
 
 let typeTemplate (page : Page) =
-  let typeName = typeFormat page.Name |> upperFirst
   sprintf """type %s =
   {
 %s
   }
-  """ typeName (propertyTemplate page)
+  """ page.AsType (propertyTemplate page)
 
 let converterTemplate (page : Page) =
-  let typeName = typeFormat page.Name |> upperFirst
-  let formName = camelCase page.Name
-  sprintf """let convert%sForm (%sForm : %sForm) =
+  sprintf """let convert%s (%s : %s) =
   {
 %s
   }
-  """ typeName formName typeName (formPropertyTemplate page)
+  """ page.AsFormType page.AsFormVal page.AsFormType (formPropertyTemplate page)
 
 let formTypeTemplate (page : Page) =
-  let typeName = typeFormat page.Name |> upperFirst
-  let formName = camelCase page.Name
-  sprintf """type %sForm =
+  sprintf """type %s =
   {
 %s
   }
 
-let %sForm : Form<%sForm> = Form ([],[])
+let %s : Form<%s> = Form ([],[])
 
 %s
-  """ typeName (propertyTemplate page) formName typeName (converterTemplate page)
+  """ page.AsFormType (propertyTemplate page) page.AsFormVal page.AsFormType (converterTemplate page)
 
 let validationTemplate (page : Page) =
-  let typeName = typeFormat page.Name |> upperFirst
-  let formName = camelCase page.Name
   let validations =
     page.Fields
-    |> List.map (fun field -> [fieldToValidation field formName] @ [attributeToValidation field formName])
+    |> List.map (fun field -> [fieldToValidation field page] @ [attributeToValidation field page])
     |> List.concat
     |> List.choose id
     |> List.map (pad 2)
     |> flatten
 
-  sprintf """let validate%sForm (%sForm : %sForm) =
+  sprintf """let validate%s (%s : %s) =
   [
 %s
   ]
-  """ typeName formName typeName validations
+  """ page.AsFormType page.AsFormVal page.AsFormType validations
 
 let generate (site : Site) =
   let html_results = site.Pages |> List.map pageLinkTemplate |> flatten
