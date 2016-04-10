@@ -63,6 +63,7 @@
     <Compile Include="generator/modules.fs" />
     <Compile Include="generator/generator.fs" />
     <Compile Include="generator/script.fs" />
+    <Compile Include="validators.fs" />
     <Compile Include="paths.fs" />
     <Compile Include="forms.fs" />
     <Compile Include="htmlHelpers.fs" />
