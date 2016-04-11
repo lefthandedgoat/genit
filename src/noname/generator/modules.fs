@@ -104,3 +104,25 @@ open generated_forms
 open validators
 
 %s""" guts
+
+let generated_unittests_template guts =
+  sprintf """module generated_unittests
+
+open generated_forms
+open generated_validation
+
+let run () =
+%s
+  ()
+""" guts
+
+let generated_uitests_template guts =
+  sprintf """module generated_uitests
+
+open generated_forms
+open generated_validation
+
+let run () =
+%s
+  ()
+""" guts

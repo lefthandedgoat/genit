@@ -270,6 +270,10 @@ let generate (site : Site) =
   let validations_results = site.Pages |> List.map validationTemplate |> flatten
   let generated_validation_result = generated_validation_template validations_results
 
+  let generated_unittests_result = generated_unittests_template "//nothing"
+
+  let generated_uittests_result = generated_uitests_template "//nothing"
+
   write (destination "generated_html") generated_html_result
   write (destination "generated_views") generated_views_result
   write (destination "generated_handlers") generated_handlers_result
@@ -277,3 +281,5 @@ let generate (site : Site) =
   write (destination "generated_types") generated_types_result
   write (destination "generated_paths") generated_paths_result
   write (destination "generated_validation") generated_validation_result
+  write (destination "generated_unittests") generated_unittests_result
+  write (destination "generated_uitests") generated_uittests_result

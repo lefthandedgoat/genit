@@ -109,31 +109,22 @@ Target "Build" (fun _ ->
     |> ignore
 )
 
+
 // --------------------------------------------------------------------------------------
-// Run the unit tests using test runner
+// Run stuff
+let execProcess arg =
+  ExecProcess
+    (fun info ->
+     info.FileName <- (exe @@ "noname.exe")
+     info.Arguments <- "generate"
+    ) (System.TimeSpan.FromMinutes 15.)
+  |> ignore
 
-Target "RunSite" (fun _ ->
-    ExecProcess
-      (fun info -> info.FileName <- (exe @@ "noname.exe"))
-      (System.TimeSpan.FromMinutes 15.)
-    |> ignore
-)
+Target "RunSite" (fun _ -> execProcess "")
 
-Target "Generate" (fun _ ->
-    ExecProcess (fun info ->
-                 info.FileName <- (exe @@ "noname.exe")
-                 info.Arguments <- "generate"
-                ) (System.TimeSpan.FromMinutes 15.)
-    |> ignore
-)
+Target "Generate" (fun _ -> execProcess "generate")
 
-Target "Test" (fun _ ->
-    ExecProcess (fun info ->
-                 info.FileName <- (exe @@ "noname.exe")
-                 info.Arguments <- "test"
-                ) (System.TimeSpan.FromMinutes 15.)
-    |> ignore
-)
+Target "Test" (fun _ -> execProcess "test")
 
 // --------------------------------------------------------------------------------------
 // Run all targets by default. Invoke 'build <Target>' to override
