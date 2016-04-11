@@ -94,6 +94,7 @@ let base_head title' =
     title title'
     cssLink "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
     cssLink "https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"
+    //cssLink "http://www.condorthemes.com/flatdream/css/style.css"
   ]
 
 let base_html title content scripts =

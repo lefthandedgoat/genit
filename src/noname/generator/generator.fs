@@ -15,7 +15,10 @@ let destination filename =
   |> (fun path -> sprintf "%s/%s.fs" path filename)
 
 let repeat (value : string) times = [1..times] |> List.map (fun _ -> value) |> List.reduce (+)
-let flatten values = values |> List.reduce (fun value1 value2 -> sprintf "%s%s%s" value1 Environment.NewLine value2)
+let flatten values =
+  if values = []
+  then ""
+  else values |> List.reduce (fun value1 value2 -> sprintf "%s%s%s" value1 Environment.NewLine value2)
 
 let fieldToHtml field =
   match field.FieldType with
@@ -95,6 +98,21 @@ let formatErroredFields page (fields : Field list) tabs =
   |> List.map (pad tabs)
   |> List.reduce (fun field1 field2 -> sprintf "%s%s%s" field1 Environment.NewLine field2)
 
+let bannerViewTemplate (site : Site) (page : Page) =
+  sprintf """
+let get_%s =
+  base_html
+    "%s"
+    [
+      base_header brand
+      divClass "container" [
+        divClass "jumbotron" [
+          h1 (sprintf "Welcome to %s!")
+        ]
+      ]
+    ]
+    scripts.common""" page.AsVal page.Name site.Name
+
 let formViewTemplate (page : Page) =
   sprintf """
 let get_%s =
@@ -125,6 +143,15 @@ let post_errored_%s errors (%s : %s) =
     ]
     scripts.common""" page.AsVal page.AsFormVal page.AsFormType page.Name page.Name (formatErroredFields page page.Fields 5)
 
+let viewTemplate site page =
+  match page.PageMode with
+  | Edit      -> failwith "not done"
+  | View      -> failwith "not done"
+  | List      -> failwith "not done"
+  | Jumbotron -> bannerViewTemplate site page
+  | Create
+  | Submit    -> [formViewTemplate page] @ [erroredFormViewTemplate page] |> flatten
+
 let pageLinkTemplate (page : Page) = sprintf """li [ aHref "%s" [text "%s"] ]""" page.AsHref page.Name |> pad 7
 
 let pathTemplate (page : Page) = sprintf """let path_%s = "%s" """ page.AsVal page.AsHref
@@ -133,10 +160,13 @@ let routeTemplate (page : Page) = sprintf """path path_%s >=> %s""" page.AsVal p
 
 let handlerTemplate (page : Page) =
   match page.PageMode with
-  | Edit -> failwith "not done"
-  | View -> failwith "not done"
-  | List -> failwith "not done"
-  | Create | Submit ->
+  | Edit      -> failwith "not done"
+  | View      -> failwith "not done"
+  | List      -> failwith "not done"
+  | Jumbotron ->
+    sprintf """let %s = GET >=> OK get_%s""" page.AsVal page.AsVal
+  | Create
+  | Submit    ->
     sprintf """let %s =
   choose
     [
@@ -170,21 +200,27 @@ let converterPropertyTemplate (page : Page) =
   |> flatten
 
 let typeTemplate (page : Page) =
-  sprintf """type %s =
+  if page.Fields = [] then ""
+  else
+    sprintf """type %s =
   {
 %s
   }
   """ page.AsType (propertyTemplate page)
 
 let converterTemplate (page : Page) =
-  sprintf """let convert%s (%s : %s) =
+  if page.Fields = [] then ""
+  else
+    sprintf """let convert%s (%s : %s) =
   {
 %s
   }
   """ page.AsFormType page.AsFormVal page.AsFormType (formPropertyTemplate page)
 
 let formTypeTemplate (page : Page) =
-  sprintf """type %s =
+  if page.Fields = [] then ""
+  else
+    sprintf """type %s =
   {
 %s
   }
@@ -195,15 +231,17 @@ let %s : Form<%s> = Form ([],[])
   """ page.AsFormType (propertyTemplate page) page.AsFormVal page.AsFormType (converterTemplate page)
 
 let validationTemplate (page : Page) =
-  let validations =
-    page.Fields
-    |> List.map (fun field -> [fieldToValidation field page] @ [attributeToValidation field page])
-    |> List.concat
-    |> List.choose id
-    |> List.map (pad 2)
-    |> flatten
+  if page.Fields = [] then ""
+  else
+    let validations =
+      page.Fields
+      |> List.map (fun field -> [fieldToValidation field page] @ [attributeToValidation field page])
+      |> List.concat
+      |> List.choose id
+      |> List.map (pad 2)
+      |> flatten
 
-  sprintf """let validate%s (%s : %s) =
+    sprintf """let validate%s (%s : %s) =
   [
 %s
   ] |> List.choose id
@@ -213,7 +251,7 @@ let generate (site : Site) =
   let html_results = site.Pages |> List.map pageLinkTemplate |> flatten
   let generated_html_result = generated_html_template html_results
 
-  let views_results = site.Pages |> List.map (fun page -> [formViewTemplate page] @ [erroredFormViewTemplate page]) |> List.concat |> flatten
+  let views_results = site.Pages |> List.map (viewTemplate site) |> flatten
   let generated_views_result = generated_views_template site.Name views_results
 
   let handler_results = site.Pages |> List.map handlerTemplate |> flatten

@@ -7,7 +7,8 @@ let someSite () =
 
   site "Bob's Burgers"
 
-  //basic home
+  basic home
+
   basic registration
 
   page "Order" Submit

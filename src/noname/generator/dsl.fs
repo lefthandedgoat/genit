@@ -23,6 +23,7 @@ type PageMode =
   | View
   | List
   | Submit
+  | Jumbotron
 
 type FieldType =
   | Text
@@ -103,9 +104,14 @@ let page name pageMode fields =
 //precanned pages
 
 type Precanned =
+  | Home
   | Register
 
+let home = Home
 let registration = Register
+
+let precannedHome () =
+  page "Home" Jumbotron []
 
 let precannedRegister () =
   page "Register" Submit
@@ -119,4 +125,5 @@ let precannedRegister () =
 
 let basic precanned =
   match precanned with
+  | Home     -> precannedHome()
   | Register -> precannedRegister()
