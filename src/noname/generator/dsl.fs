@@ -40,7 +40,6 @@ type FieldType =
 type Attribute =
   | Id
   | Null
-  | NotNull
   | Required
   | Min of value:int
   | Max of value:int

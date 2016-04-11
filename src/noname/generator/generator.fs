@@ -62,73 +62,70 @@ let fieldToProperty field =
 let fieldToValidation (field : Field) (page : Page) =
   let property = sprintf "%s.%s" page.AsFormVal field.AsProperty
   match field.FieldType with
-  | Text       -> failwith "not done"
-  | Paragraph  -> failwith "not done"
-  | Number     -> failwith "not done" //parseInt
-  | Decimal    -> failwith "not done" //parseDecimal
-  | Date       -> failwith "not done" //parseDate
-  | Email      -> Some (sprintf """email "%s" %s""" field.Name property)
-  | Name       -> failwith "not done"
-  | Phone      -> failwith "not done" //parsePhone?
-  | Password   -> Some (sprintf """password "%s" %s""" field.Name property)
+  | Text       -> None
+  | Paragraph  -> None
+  | Number     -> Some (sprintf """validate_integer "%s" %s""" field.Name property)
+  | Decimal    -> Some (sprintf """validate_double "%s" %s""" field.Name property)
+  | Date       -> Some (sprintf """validate_datetime "%s" %s""" field.Name property)
+  | Email      -> Some (sprintf """validate_email "%s" %s""" field.Name property)
+  | Name       -> None
+  | Phone      -> None //parsePhone?
+  | Password   -> Some (sprintf """validate_password "%s" %s""" field.Name property)
   | Dropdown _ -> failwith "not done"
 
 let fieldToTestName (field : Field) =
   match field.FieldType with
-  | Text       -> failwith "not done"
-  | Paragraph  -> failwith "not done"
-  | Number     -> failwith "not done" //parseInt
-  | Decimal    -> failwith "not done" //parseDecimal
-  | Date       -> failwith "not done" //parseDate
-  | Email      -> Some """"is not a valid email" """
-  | Name       -> failwith "not done"
-  | Phone      -> failwith "not done" //parsePhone?
+  | Text       -> None
+  | Paragraph  -> None
+  | Number     -> Some (sprintf """"%s must be a valid integer" """ field.Name)
+  | Decimal    -> Some (sprintf """"%s must be a valid double" """ field.Name)
+  | Date       -> Some (sprintf """"%s must be a valid date" """ field.Name)
+  | Email      -> Some """"must be a valid email" """
+  | Name       -> None
+  | Phone      -> None //parsePhone?
   | Password   -> Some (sprintf """"%s must be between 6 and 100 characters" """ field.Name)
   | Dropdown _ -> failwith "not done"
 
 let fieldToTestBody (field : Field) =
   match field.FieldType with
-  | Text       -> failwith "not done"
-  | Paragraph  -> failwith "not done"
-  | Number     -> failwith "not done" //parseInt
-  | Decimal    -> failwith "not done" //parseDecimal
-  | Date       -> failwith "not done" //parseDate
+  | Text       -> None
+  | Paragraph  -> None
+  | Number     -> Some (sprintf """displayed "%s is not a valid number (int)" """ field.Name)
+  | Decimal    -> Some (sprintf """displayed "%s is not a valid number (decimal)" """ field.Name)
+  | Date       -> Some (sprintf """displayed "%s is not a valid date" """ field.Name)
   | Email      -> Some """displayed " is not a valid email" """
-  | Name       -> failwith "not done"
-  | Phone      -> failwith "not done" //parsePhone?
+  | Name       -> None
+  | Phone      -> None //parsePhone?
   | Password   -> Some (sprintf """displayed "%s must be between 6 and 100 characters" """ field.Name)
   | Dropdown _ -> failwith "not done"
 
 let attributeToValidation (field : Field) (page : Page) =
   let property = sprintf "%s.%s" page.AsFormVal field.AsProperty
   match field.Attribute with
-  | Id         -> failwith "not done"
-  | Null       -> failwith "not done"
-  | NotNull    -> failwith "not done"
-  | Required   -> Some (sprintf """required "%s" %s""" field.Name property)
-  | Min(_)     -> failwith "not done"
-  | Max(_)     -> failwith "not done"
-  | Range(_,_) -> failwith "not done"
+  | Id         -> None
+  | Null       -> None
+  | Required   -> Some (sprintf """validate_required "%s" %s""" field.Name property)
+  | Min(min)   -> Some (sprintf """validate_min "%s" %s %i""" field.Name property min)
+  | Max(max)   -> Some (sprintf """validate_max "%s" %s %i""" field.Name property max)
+  | Range(min,max) -> Some (sprintf """validate_range "%s" %s %i %i""" field.Name property min max)
 
 let attributeToTestName (field : Field) =
   match field.Attribute with
-  | Id         -> failwith "not done"
-  | Null       -> failwith "not done"
-  | NotNull    -> failwith "not done"
+  | Id         -> None
+  | Null       -> None
   | Required   -> Some (sprintf """"%s is required" """ field.Name)
-  | Min(_)     -> failwith "not done"
-  | Max(_)     -> failwith "not done"
-  | Range(_,_) -> failwith "not done"
+  | Min(min)   -> Some (sprintf """"%s must be greater than %i" """ field.Name min)
+  | Max(max)   -> Some (sprintf """"%s must be less than %i" """ field.Name max)
+  | Range(min,max) -> Some (sprintf """"%s must be between %i and %i" """ field.Name min max)
 
 let attributeToTestBody (field : Field) =
   match field.Attribute with
-  | Id         -> failwith "not done"
-  | Null       -> failwith "not done"
-  | NotNull    -> failwith "not done"
+  | Id         -> None
+  | Null       -> None
   | Required   -> Some (sprintf """displayed "%s is required" """ field.Name)
-  | Min(_)     -> failwith "not done"
-  | Max(_)     -> failwith "not done"
-  | Range(_,_) -> failwith "not done"
+  | Min(min)   -> Some (sprintf """displayed "%s can not be below %i" """ field.Name min)
+  | Max(max)   -> Some (sprintf """displayed "%s can not be above %i" """ field.Name max)
+  | Range(min,max) -> Some (sprintf """displayed "%s must be between %i and %i" """ field.Name min max)
 
 let pad tabs field = sprintf "%s%s" (repeat "  " tabs) field
 
