@@ -22,28 +22,28 @@ let flatten values =
 
 let fieldToHtml field =
   match field.FieldType with
-  | Text -> sprintf """label_text "%s" "" """ field.Name
-  | Paragraph -> failwith "not done"
-  | Number -> failwith "not done"
-  | Decimal -> failwith "not done"
-  | Date -> failwith "not done"
-  | Email -> sprintf """icon_label_text "%s" "" "envelope" """ field.Name
-  | Name -> sprintf """icon_label_text "%s" "" "user" """ field.Name
-  | Phone -> failwith "not done"
-  | Password -> sprintf """icon_password_text "%s" "" "lock" """ field.Name
+  | Text       -> sprintf """label_text "%s" "" """ field.Name
+  | Paragraph  -> sprintf """label_textarea "%s" "" """ field.Name
+  | Number     -> sprintf """label_text "%s" "" """ field.Name
+  | Decimal    -> sprintf """label_text "%s" "" """ field.Name
+  | Date       -> sprintf """label_text "%s" "" """ field.Name
+  | Email      -> sprintf """icon_label_text "%s" "" "envelope" """ field.Name
+  | Name       -> sprintf """icon_label_text "%s" "" "user" """ field.Name
+  | Phone      -> sprintf """label_text "%s" "" """ field.Name
+  | Password   -> sprintf """icon_password_text "%s" "" "lock" """ field.Name
   | Dropdown _ -> failwith "not done"
 
 let fieldToErroredHtml page field =
   match field.FieldType with
-  | Text -> sprintf """errored_label_text "%s" %s.%s errors""" field.Name page.AsFormVal field.AsProperty
-  | Paragraph -> failwith "not done"
-  | Number -> failwith "not done"
-  | Decimal -> failwith "not done"
-  | Date -> failwith "not done"
-  | Email -> sprintf """errored_icon_label_text "%s" %s.%s "envelope" errors""" field.Name page.AsFormVal field.AsProperty
-  | Name -> sprintf """errored_icon_label_text "%s" %s.%s "user" errors""" field.Name page.AsFormVal field.AsProperty
-  | Phone -> failwith "not done"
-  | Password -> sprintf """errored_icon_password_text "%s" %s.%s "lock" errors""" field.Name page.AsFormVal field.AsProperty
+  | Text       -> sprintf """errored_label_text "%s" %s.%s errors""" field.Name page.AsFormVal field.AsProperty
+  | Paragraph  -> sprintf """errored_label_textarea "%s" %s.%s errors""" field.Name page.AsFormVal field.AsProperty
+  | Number     -> sprintf """errored_label_text "%s" %s.%s errors""" field.Name page.AsFormVal field.AsProperty
+  | Decimal    -> sprintf """errored_label_text "%s" %s.%s errors""" field.Name page.AsFormVal field.AsProperty
+  | Date       -> sprintf """errored_label_text "%s" %s.%s errors""" field.Name page.AsFormVal field.AsProperty
+  | Email      -> sprintf """errored_icon_label_text "%s" %s.%s "envelope" errors""" field.Name page.AsFormVal field.AsProperty
+  | Name       -> sprintf """errored_icon_label_text "%s" %s.%s "user" errors""" field.Name page.AsFormVal field.AsProperty
+  | Phone      -> sprintf """errored_label_text "%s" %s.%s errors""" field.Name page.AsFormVal field.AsProperty
+  | Password   -> sprintf """errored_icon_password_text "%s" %s.%s "lock" errors""" field.Name page.AsFormVal field.AsProperty
   | Dropdown _ -> failwith "not done"
 
 let fieldToProperty field =
@@ -51,7 +51,7 @@ let fieldToProperty field =
   | Text       -> "string"
   | Paragraph  -> "string"
   | Number     -> "int"
-  | Decimal    -> "float"
+  | Decimal    -> "double"
   | Date       -> "System.DateTime"
   | Email      -> "string"
   | Name       -> "string"
