@@ -94,6 +94,7 @@ let generated_forms_template guts =
 
 open Suave.Model.Binding
 open Suave.Form
+open generated_types
 
 %s""" guts
 

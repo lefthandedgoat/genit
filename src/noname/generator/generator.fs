@@ -232,13 +232,13 @@ let propertyTemplate (page : Page) =
 
 let formPropertyTemplate (page : Page) =
   page.Fields
-  |> List.map (fun field -> sprintf """%s = %s.%s""" field.AsProperty page.AsFormVal field.AsProperty)
+  |> List.map (fun field -> sprintf """%s : string""" field.AsProperty)
   |> List.map (pad 2)
   |> flatten
 
 let converterPropertyTemplate (page : Page) =
   page.Fields
-  |> List.map (fun field -> sprintf """%s : %s""" field.AsProperty (fieldToProperty field.FieldType))
+  |> List.map (fun field -> sprintf """%s = %s.%s""" field.AsProperty page.AsFormVal field.AsProperty)
   |> List.map (pad 2)
   |> flatten
 
@@ -254,11 +254,11 @@ let typeTemplate (page : Page) =
 let converterTemplate (page : Page) =
   if page.Fields = [] then ""
   else
-    sprintf """let convert%s (%s : %s) =
+    sprintf """let convert%s (%s : %s) : %s =
   {
 %s
   }
-  """ page.AsFormType page.AsFormVal page.AsFormType (formPropertyTemplate page)
+  """ page.AsFormType page.AsFormVal page.AsFormType page.AsType (converterPropertyTemplate page)
 
 let formTypeTemplate (page : Page) =
   if page.Fields = [] then ""
@@ -271,7 +271,7 @@ let formTypeTemplate (page : Page) =
 let %s : Form<%s> = Form ([],[])
 
 %s
-  """ page.AsFormType (propertyTemplate page) page.AsFormVal page.AsFormType (converterTemplate page)
+  """ page.AsFormType (formPropertyTemplate page) page.AsFormVal page.AsFormType (converterTemplate page)
 
 let validationTemplate (page : Page) =
   if page.Fields = [] then ""
