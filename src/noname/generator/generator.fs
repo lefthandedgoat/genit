@@ -47,7 +47,7 @@ let fieldToErroredHtml page field =
   | Dropdown _ -> failwith "not done"
 
 let fieldToProperty field =
-  match field with
+  match field.FieldType with
   | Text       -> "string"
   | Paragraph  -> "string"
   | Number     -> "int"
@@ -59,7 +59,24 @@ let fieldToProperty field =
   | Password   -> "string"
   | Dropdown _ -> "int"
 
-let fieldToValidation (field : Field) (page : Page) =
+let fieldToConvertProperty page field =
+  let string field page = sprintf """%s = %s.%s""" field.AsProperty page.AsFormVal field.AsProperty
+  let int field page = sprintf """%s = int %s.%s""" field.AsProperty page.AsFormVal field.AsProperty
+  let double field page = sprintf """%s = double %s.%s""" field.AsProperty page.AsFormVal field.AsProperty
+  let datetime field page = sprintf """%s = System.DateTime.Parse(%s.%s)""" field.AsProperty page.AsFormVal field.AsProperty
+  match field.FieldType with
+  | Text       -> string field page
+  | Paragraph  -> string field page
+  | Number     -> int field page
+  | Decimal    -> double field page
+  | Date       -> datetime field page
+  | Email      -> string field page
+  | Name       -> string field page
+  | Phone      -> string field page
+  | Password   -> string field page
+  | Dropdown _ -> int field page
+
+let fieldToValidation field page =
   let property = sprintf "%s.%s" page.AsFormVal field.AsProperty
   match field.FieldType with
   | Text       -> None
@@ -73,7 +90,7 @@ let fieldToValidation (field : Field) (page : Page) =
   | Password   -> Some (sprintf """validate_password "%s" %s""" field.Name property)
   | Dropdown _ -> failwith "not done"
 
-let fieldToTestName (field : Field) =
+let fieldToTestName field =
   match field.FieldType with
   | Text       -> None
   | Paragraph  -> None
@@ -86,7 +103,7 @@ let fieldToTestName (field : Field) =
   | Password   -> Some (sprintf """"%s must be between 6 and 100 characters" """ field.Name)
   | Dropdown _ -> failwith "not done"
 
-let fieldToTestBody (field : Field) =
+let fieldToTestBody field =
   match field.FieldType with
   | Text       -> None
   | Paragraph  -> None
@@ -99,7 +116,7 @@ let fieldToTestBody (field : Field) =
   | Password   -> Some (sprintf """displayed "%s must be between 6 and 100 characters" """ field.Name)
   | Dropdown _ -> failwith "not done"
 
-let attributeToValidation (field : Field) (page : Page) =
+let attributeToValidation field page =
   let property = sprintf "%s.%s" page.AsFormVal field.AsProperty
   match field.Attribute with
   | Id         -> None
@@ -109,7 +126,7 @@ let attributeToValidation (field : Field) (page : Page) =
   | Max(max)   -> Some (sprintf """validate_max "%s" %s %i""" field.Name property max)
   | Range(min,max) -> Some (sprintf """validate_range "%s" %s %i %i""" field.Name property min max)
 
-let attributeToTestName (field : Field) =
+let attributeToTestName field =
   match field.Attribute with
   | Id         -> None
   | Null       -> None
@@ -118,7 +135,7 @@ let attributeToTestName (field : Field) =
   | Max(max)   -> Some (sprintf """"%s must be less than %i" """ field.Name max)
   | Range(min,max) -> Some (sprintf """"%s must be between %i and %i" """ field.Name min max)
 
-let attributeToTestBody (field : Field) =
+let attributeToTestBody field =
   match field.Attribute with
   | Id         -> None
   | Null       -> None
@@ -226,7 +243,7 @@ let handlerTemplate (page : Page) =
 
 let propertyTemplate (page : Page) =
   page.Fields
-  |> List.map (fun field -> sprintf """%s : %s""" field.AsProperty (fieldToProperty field.FieldType))
+  |> List.map (fun field -> sprintf """%s : %s""" field.AsProperty (fieldToProperty field))
   |> List.map (pad 2)
   |> flatten
 
@@ -238,7 +255,7 @@ let formPropertyTemplate (page : Page) =
 
 let converterPropertyTemplate (page : Page) =
   page.Fields
-  |> List.map (fun field -> sprintf """%s = %s.%s""" field.AsProperty page.AsFormVal field.AsProperty)
+  |> List.map (fieldToConvertProperty page)
   |> List.map (pad 2)
   |> flatten
 
@@ -292,8 +309,8 @@ let validationTemplate (page : Page) =
 
 let contextTemplate (page : Page) = sprintf """context "%s" """ page.Name |> pad 1
 
-let beforeTemplate (page : Page) =
-  sprintf """before (fun _ -> url "http://localhost:8083%s"; click ".btn") """ page.AsHref
+let onceTemplate (page : Page) =
+  sprintf """once (fun _ -> url "http://localhost:8083%s"; click ".btn") """ page.AsHref
   |> pad 1
 
 let attributeUITestTemplate name field =
@@ -330,7 +347,7 @@ let uitestTemplate (page : Page) =
 %s
 
 %s
-    """ (contextTemplate page) (beforeTemplate page) tests
+    """ (contextTemplate page) (onceTemplate page) tests
 
 let generate (site : Site) =
   let html_results = site.Pages |> List.map pageLinkTemplate |> flatten
