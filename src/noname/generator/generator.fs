@@ -30,6 +30,19 @@ let fieldToHtml field =
   | Password -> sprintf """icon_password_text "%s" "" "lock" """ field.Name
   | Dropdown _ -> failwith "not done"
 
+let fieldToErroredHtml page field =
+  match field.FieldType with
+  | Text -> sprintf """errored_label_text "%s" %s.%s errors""" field.Name page.AsFormVal field.AsProperty
+  | Paragraph -> failwith "not done"
+  | Number -> failwith "not done"
+  | Decimal -> failwith "not done"
+  | Date -> failwith "not done"
+  | Email -> sprintf """errored_icon_label_text "%s" %s.%s "envelope" errors""" field.Name page.AsFormVal field.AsProperty
+  | Name -> sprintf """errored_icon_label_text "%s" %s.%s "user" errors""" field.Name page.AsFormVal field.AsProperty
+  | Phone -> failwith "not done"
+  | Password -> sprintf """errored_icon_password_text "%s" %s.%s "lock" errors""" field.Name page.AsFormVal field.AsProperty
+  | Dropdown _ -> failwith "not done"
+
 let fieldToProperty field =
   match field with
   | Text       -> "string"
@@ -76,6 +89,12 @@ let formatFields (fields : Field list) tabs =
   |> List.map (pad tabs)
   |> List.reduce (fun field1 field2 -> sprintf "%s%s%s" field1 Environment.NewLine field2)
 
+let formatErroredFields page (fields : Field list) tabs =
+  fields
+  |> List.map (fieldToErroredHtml page)
+  |> List.map (pad tabs)
+  |> List.reduce (fun field1 field2 -> sprintf "%s%s%s" field1 Environment.NewLine field2)
+
 let formViewTemplate (page : Page) =
   sprintf """
 let get_%s =
@@ -90,6 +109,21 @@ let get_%s =
         ]
     ]
     scripts.common""" page.AsVal page.Name page.Name (formatFields page.Fields 5)
+
+let erroredFormViewTemplate (page : Page) =
+  sprintf """
+let post_errored_%s errors (%s : %s) =
+  base_html
+    "%s"
+    [
+      base_header brand
+      common_form
+        "%s"
+        [
+%s
+        ]
+    ]
+    scripts.common""" page.AsVal page.AsFormVal page.AsFormType page.Name page.Name (formatErroredFields page page.Fields 5)
 
 let pageLinkTemplate (page : Page) = sprintf """li [ aHref "%s" [text "%s"] ]""" page.AsHref page.Name |> pad 7
 
@@ -114,9 +148,8 @@ let handlerTemplate (page : Page) =
           let message = sprintf "form: %s" form
           OK message
         else
-          let message = sprintf "validation: %s" validation
-          OK message)
-    ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal "%A" "%A"
+          OK (post_errored_%s validation %s))
+    ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal "%A" page.AsVal page.AsFormVal
 
 let propertyTemplate (page : Page) =
   page.Fields
@@ -173,14 +206,14 @@ let validationTemplate (page : Page) =
   sprintf """let validate%s (%s : %s) =
   [
 %s
-  ] |> List.filter invalid
+  ] |> List.choose id
   """ page.AsFormType page.AsFormVal page.AsFormType validations
 
 let generate (site : Site) =
   let html_results = site.Pages |> List.map pageLinkTemplate |> flatten
   let generated_html_result = generated_html_template html_results
 
-  let views_results = site.Pages |> List.map formViewTemplate |> flatten
+  let views_results = site.Pages |> List.map (fun page -> [formViewTemplate page] @ [erroredFormViewTemplate page]) |> List.concat |> flatten
   let generated_views_result = generated_views_template site.Name views_results
 
   let handler_results = site.Pages |> List.map handlerTemplate |> flatten

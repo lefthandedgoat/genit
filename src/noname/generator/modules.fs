@@ -44,6 +44,7 @@ open Suave.Html
 open htmlHelpers
 open bootstrapHelpers
 open generated_html
+open generated_forms
 
 let brand = "%s"
 %s""" brand guts
