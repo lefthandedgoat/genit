@@ -53,10 +53,16 @@ type Field =
     AsProperty : string
   }
 
-let text name attribute = { Name = name; FieldType = Text; Attribute = attribute; AsProperty = to_property name }
-let name name attribute = { Name = name; FieldType = Name; Attribute = attribute; AsProperty = to_property name }
-let email name = { Name = name; FieldType = Email; Attribute = Required; AsProperty = to_property name }
-let password name = { Name = name; FieldType = Password; Attribute = Required; AsProperty = to_property name }
+let field name attribute fieldType = { Name = name; FieldType = fieldType; Attribute = attribute; AsProperty = to_property name }
+let text name attribute = field name attribute Text
+let paragraph name attribute = field name attribute Paragraph
+let number name attribute = field name attribute Number
+let dollar name attribute = field name attribute Decimal
+let date name attribute = field name attribute Date
+let email name = field name Required Email
+let name name attribute = field name attribute Name
+let phone name attribute = field name attribute Phone
+let password name = field name Required Password
 
 type Page =
   {

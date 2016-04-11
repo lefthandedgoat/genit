@@ -16,21 +16,13 @@ let someSite () =
       text "Name" Required
       text "Food" Null
       text "Drinks" Null
-      text "Notes" Null
+      dollar "Tip" Null
+      paragraph "Notes" Null
+      date "Delivery Date" Required
+      phone "Phone Number" Required
       text "Address" Null
       text "City" Null
-      text "Zip" Null
-    ]
-
-  page "Confirm Order" Submit
-    [
-      text "Name" Required
-      text "Food" Null
-      text "Drinks" Null
-      text "Notes" Null
-      text "Address" Null
-      text "City" Null
-      text "Zip" Null
+      number "Zip" Null
     ]
 
   currentSite
