@@ -17,4 +17,6 @@ let routes =
 let args = System.Environment.GetCommandLineArgs()
 if args |> Array.exists (fun arg -> arg = "generate")
 then generator.generate <| script.someSite()
+else if args |> Array.exists (fun arg -> arg = "test")
+then generated_unittests.run()
 else startWebServer defaultConfig routes

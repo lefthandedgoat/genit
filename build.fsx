@@ -127,6 +127,14 @@ Target "Generate" (fun _ ->
     |> ignore
 )
 
+Target "Test" (fun _ ->
+    ExecProcess (fun info ->
+                 info.FileName <- (exe @@ "noname.exe")
+                 info.Arguments <- "test"
+                ) (System.TimeSpan.FromMinutes 15.)
+    |> ignore
+)
+
 // --------------------------------------------------------------------------------------
 // Run all targets by default. Invoke 'build <Target>' to override
 
@@ -143,5 +151,8 @@ Target "All" DoNothing
 
 "All"
   ==> "Generate"
+
+"All"
+  ==> "Test"
 
 RunTargetOrDefault "RunSite"
