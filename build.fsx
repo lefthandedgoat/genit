@@ -116,7 +116,7 @@ let execProcess arg =
   ExecProcess
     (fun info ->
      info.FileName <- (exe @@ "noname.exe")
-     info.Arguments <- "generate"
+     info.Arguments <- arg
     ) (System.TimeSpan.FromMinutes 15.)
   |> ignore
 
