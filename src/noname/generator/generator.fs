@@ -73,6 +73,32 @@ let fieldToValidation (field : Field) (page : Page) =
   | Password   -> Some (sprintf """password "%s" %s""" field.Name property)
   | Dropdown _ -> None
 
+let fieldToTestName (field : Field) =
+  match field.FieldType with
+  | Text       -> None
+  | Paragraph  -> None
+  | Number     -> None //parseInt
+  | Decimal    -> None //parseDecimal
+  | Date       -> None //parseDate
+  | Email      -> Some """"is not a valid email" """
+  | Name       -> None
+  | Phone      -> None //parsePhone?
+  | Password   -> Some (sprintf """"%s must be between 6 and 100 characters" """ field.Name)
+  | Dropdown _ -> None
+
+let fieldToTestBody (field : Field) =
+  match field.FieldType with
+  | Text       -> None
+  | Paragraph  -> None
+  | Number     -> None //parseInt
+  | Decimal    -> None //parseDecimal
+  | Date       -> None //parseDate
+  | Email      -> Some """displayed " is not a valid email" """
+  | Name       -> None
+  | Phone      -> None //parsePhone?
+  | Password   -> Some (sprintf """displayed "%s must be between 6 and 100 characters" """ field.Name)
+  | Dropdown _ -> None
+
 let attributeToValidation (field : Field) (page : Page) =
   let property = sprintf "%s.%s" page.AsFormVal field.AsProperty
   match field.Attribute with
@@ -80,6 +106,26 @@ let attributeToValidation (field : Field) (page : Page) =
   | Null       -> None
   | NotNull    -> None
   | Required   -> Some (sprintf """required "%s" %s""" field.Name property)
+  | Min(_)     -> None
+  | Max(_)     -> None
+  | Range(_,_) -> None
+
+let attributeToTestName (field : Field) =
+  match field.Attribute with
+  | Id         -> None
+  | Null       -> None
+  | NotNull    -> None
+  | Required   -> Some (sprintf """"%s is required" """ field.Name)
+  | Min(_)     -> None
+  | Max(_)     -> None
+  | Range(_,_) -> None
+
+let attributeToTestBody (field : Field) =
+  match field.Attribute with
+  | Id         -> None
+  | Null       -> None
+  | NotNull    -> None
+  | Required   -> Some (sprintf """displayed "%s is required" """ field.Name)
   | Min(_)     -> None
   | Max(_)     -> None
   | Range(_,_) -> None
@@ -247,6 +293,48 @@ let validationTemplate (page : Page) =
   ] |> List.choose id
   """ page.AsFormType page.AsFormVal page.AsFormType validations
 
+let contextTemplate (page : Page) = sprintf """context "%s" """ page.Name |> pad 1
+
+let beforeTemplate (page : Page) =
+  sprintf """before (fun _ -> url "http://localhost:8083%s"; click ".btn") """ page.AsHref
+  |> pad 1
+
+let attributeUITestTemplate name field =
+  match name with
+  | None -> None
+  | Some(name) ->
+    let top = (sprintf """%s&&& fun _ ->""" name) |> pad 1
+    let body = (attributeToTestBody field).Value |> pad 2
+    Some (sprintf """%s
+%s
+    """ top body)
+
+let fieldUITestTemplate name field =
+  match name with
+  | None -> None
+  | Some(name) ->
+    let top = (sprintf """%s&&& fun _ ->""" name) |> pad 1
+    let body = (fieldToTestBody field).Value |> pad 2
+    Some (sprintf """%s
+%s
+    """ top body)
+
+let toTest (field : Field) =
+  let name = attributeToTestName field
+  let name2 = fieldToTestName field
+  [attributeUITestTemplate name field; fieldUITestTemplate name2 field]
+
+let uitestTemplate (page : Page) =
+  if page.Fields = [] then ""
+  else
+    let tests = page.Fields |> List.map toTest |> List.concat |> List.choose id |> flatten
+    sprintf """%s
+
+%s
+
+%s
+    """ (contextTemplate page) (beforeTemplate page) tests
+
 let generate (site : Site) =
   let html_results = site.Pages |> List.map pageLinkTemplate |> flatten
   let generated_html_result = generated_html_template html_results
@@ -272,7 +360,8 @@ let generate (site : Site) =
 
   let generated_unittests_result = generated_unittests_template "//nothing"
 
-  let generated_uittests_result = generated_uitests_template "//nothing"
+  let uitests_results = site.Pages |> List.map uitestTemplate |> flatten
+  let generated_uitests_result = generated_uitests_template uitests_results
 
   write (destination "generated_html") generated_html_result
   write (destination "generated_views") generated_views_result
@@ -282,4 +371,4 @@ let generate (site : Site) =
   write (destination "generated_paths") generated_paths_result
   write (destination "generated_validation") generated_validation_result
   write (destination "generated_unittests") generated_unittests_result
-  write (destination "generated_uitests") generated_uittests_result
+  write (destination "generated_uitests") generated_uitests_result
