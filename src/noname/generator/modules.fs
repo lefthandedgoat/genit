@@ -121,8 +121,14 @@ let generated_uitests_template guts =
 
 open generated_forms
 open generated_validation
+open canopy
 
 let run () =
+  start firefox
+
 %s
-  ()
+
+  canopy.runner.run()
+
+  quit()
 """ guts
