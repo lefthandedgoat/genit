@@ -41,6 +41,19 @@ let fieldToHtml field =
   | Password   -> sprintf """icon_password_text "%s" "" "lock" """ field.Name
   | Dropdown options -> sprintf """label_select "%s" %A """ field.Name (zipOptions options)
 
+let fieldToPopulatedHtml page field =
+  match field.FieldType with
+  | Text       -> sprintf """label_text "%s" "%s.%s" """ field.Name page.AsFormVal field.AsProperty
+  | Paragraph  -> sprintf """label_textarea "%s" "%s.%s" """ field.Name page.AsFormVal field.AsProperty
+  | Number     -> sprintf """label_text "%s" "%s.%s" """ field.Name page.AsFormVal field.AsProperty
+  | Decimal    -> sprintf """label_text "%s" "%s.%s" """ field.Name page.AsFormVal field.AsProperty
+  | Date       -> sprintf """label_text "%s" "%s.%s" """ field.Name page.AsFormVal field.AsProperty
+  | Email      -> sprintf """icon_label_text "%s" "%s.%s" "envelope" """ field.Name page.AsFormVal field.AsProperty
+  | Name       -> sprintf """icon_label_text "%s" "%s.%s" "user" """ field.Name page.AsFormVal field.AsProperty
+  | Phone      -> sprintf """label_text "%s" "%s.%s" """ field.Name page.AsFormVal field.AsProperty
+  | Password   -> sprintf """icon_password_text "%s" "%s.%s" "lock" """ field.Name page.AsFormVal field.AsProperty
+  | Dropdown options -> sprintf """label_select_selected "%s" %A (Some "%s.%s")""" field.Name (zipOptions options) page.AsFormVal field.AsProperty
+
 let fieldToErroredHtml page field =
   match field.FieldType with
   | Text       -> sprintf """errored_label_text "%s" %s.%s errors""" field.Name page.AsFormVal field.AsProperty
@@ -52,7 +65,7 @@ let fieldToErroredHtml page field =
   | Name       -> sprintf """errored_icon_label_text "%s" %s.%s "user" errors""" field.Name page.AsFormVal field.AsProperty
   | Phone      -> sprintf """errored_label_text "%s" %s.%s errors""" field.Name page.AsFormVal field.AsProperty
   | Password   -> sprintf """errored_icon_password_text "%s" %s.%s "lock" errors""" field.Name page.AsFormVal field.AsProperty
-  | Dropdown options -> sprintf """errored_label_select "%s" %A %s.%s errors""" field.Name (zipOptions options) page.AsFormVal field.AsProperty
+  | Dropdown options -> sprintf """errored_label_select "%s" %A (Some %s.%s) errors""" field.Name (zipOptions options) page.AsFormVal field.AsProperty
 
 let fieldToProperty field =
   match field.FieldType with
@@ -154,6 +167,12 @@ let attributeToTestBody field =
 
 let pad tabs field = sprintf "%s%s" (repeat "  " tabs) field
 
+let formatEditFields page (fields : Field list) tabs =
+  fields
+  |> List.map (fieldToPopulatedHtml page)
+  |> List.map (pad tabs)
+  |> List.reduce (fun field1 field2 -> sprintf "%s%s%s" field1 Environment.NewLine field2)
+
 let formatSubmitFields (fields : Field list) tabs =
   fields
   |> List.map fieldToHtml
@@ -180,6 +199,21 @@ let get_%s =
       ]
     ]
     scripts.common""" page.AsVal page.Name site.Name
+
+let editFormViewTemplate (page : Page) =
+  sprintf """
+let get_edit_%s =
+  base_html
+    "%s"
+    [
+      base_header brand
+      common_form
+        "%s"
+        [
+%s
+        ]
+    ]
+    scripts.common""" page.AsVal page.Name page.Name (formatEditFields page page.Fields 5)
 
 let submitFormViewTemplate (page : Page) =
   sprintf """
@@ -212,42 +246,97 @@ let post_submit_errored_%s errors (%s : %s) =
     scripts.common""" page.AsVal page.AsFormVal page.AsFormType page.Name page.Name (formatSubmitErroredFields page page.Fields 5)
 
 let viewTemplate site page =
-  match page.PageMode with
-  | Edit      -> failwith "not done"
-  | View      -> failwith "not done"
-  | List      -> failwith "not done"
-  | Jumbotron -> bannerViewTemplate site page
-  | Create
-  | Submit    -> [submitFormViewTemplate page] @ [submitErroredFormViewTemplate page] |> flatten
+  let rec viewTemplate site page pageMode =
+    match pageMode with
+    | CVEL      -> [viewTemplate site page Edit] |> flatten
+    | Edit      -> editFormViewTemplate page
+    | View      -> failwith "not done"
+    | List      -> failwith "not done"
+    | Jumbotron -> bannerViewTemplate site page
+    | Create
+    | Submit    -> [submitFormViewTemplate page] @ [submitErroredFormViewTemplate page] |> flatten
 
-let pageLinkTemplate (page : Page) = sprintf """li [ aHref "%s" [text "%s"] ]""" page.AsHref page.Name |> pad 7
+  viewTemplate site page page.PageMode
 
-let pathTemplate (page : Page) = sprintf """let path_%s = "%s" """ page.AsVal page.AsHref
+let pageLinkTemplate (page : Page) =
+  let template href text = sprintf """li [ aHref "%s" [text "%s"] ]""" href text |> pad 7
+  let rec pageLinkTemplate page pageMode =
+    match pageMode with
+    | CVEL      -> [Create; View; Edit; List] |> List.map (pageLinkTemplate page) |> flatten
+    | Create    -> template page.AsCreateHref (sprintf "Create %s" page.Name)
+    | Edit      -> template page.AsEditHref (sprintf "Edit %s" page.Name)
+    | View      -> template page.AsViewHref page.Name
+    | List      -> template page.AsListHref (sprintf "List %ss" page.Name)
+    | Submit    -> template page.AsCreateHref page.Name
+    | Jumbotron -> template page.AsViewHref page.Name
 
-let routeTemplate (page : Page) = sprintf """path path_%s >=> %s""" page.AsVal page.AsVal |> pad 2
+  pageLinkTemplate page page.PageMode
 
-let handlerTemplate (page : Page) =
-  match page.PageMode with
-  | Edit      -> failwith "not done"
-  | View      -> failwith "not done"
-  | List      -> failwith "not done"
-  | Jumbotron ->
-    sprintf """let %s = GET >=> OK get_%s""" page.AsVal page.AsVal
-  | Create
-  | Submit    ->
-    sprintf """let %s =
-  choose
-    [
-      GET >=> OK get_submit_%s
-      POST >=> bindToForm %s (fun %s ->
-        let validation = validate%s %s
-        if validation = [] then
-          let form = convert%s %s
-          let message = sprintf "form: %s" form
-          OK message
-        else
-          OK (post_submit_errored_%s validation %s))
-    ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal "%A" page.AsVal page.AsFormVal
+let pathTemplate page =
+  let rec pathTemplate page pageMode =
+    match pageMode with
+    | CVEL      -> [Create; View; Edit; List] |> List.map (pathTemplate page) |> flatten
+    | Create    -> sprintf """let path_create_%s = "%s" """ page.AsVal page.AsCreateHref
+    | Edit      -> sprintf """let path_edit_%s = "%s" """ page.AsVal page.AsEditHref
+    | View      -> sprintf """let path_%s = "%s" """ page.AsVal page.AsViewHref //add id
+    | List      -> sprintf """let path_list_%s = "%s" """ page.AsVal page.AsListHref //add s for cheap pural
+    | Submit    -> sprintf """let path_submit_%s = "%s" """ page.AsVal page.AsCreateHref //add id
+    | Jumbotron -> sprintf """let path_%s = "%s" """ page.AsVal page.AsViewHref //add id
+
+  pathTemplate page page.PageMode
+
+let routeTemplate page =
+  let rec routeTemplate page pageMode =
+    match pageMode with
+    | CVEL      -> [Create; View; Edit; List] |> List.map (routeTemplate page) |> flatten
+    | Create    -> sprintf """path path_create_%s >=> create_%s""" page.AsVal page.AsVal |> pad 2
+    | Edit      -> sprintf """path path_edit_%s >=> edit_%s""" page.AsVal page.AsVal |> pad 2
+    | View      -> sprintf """path path_%s >=> %s""" page.AsVal page.AsVal |> pad 2
+    | List      -> sprintf """path path_list_%s >=> list_%s""" page.AsVal page.AsVal |> pad 2
+    | Submit    -> sprintf """path path_submit_%s >=> submit_%s""" page.AsVal page.AsVal |> pad 2
+    | Jumbotron -> sprintf """path path_%s >=> %s""" page.AsVal page.AsVal |> pad 2
+
+  routeTemplate page page.PageMode
+
+let handlerTemplate page =
+  let rec handlerTemplate page pageMode =
+    match pageMode with
+    | CVEL -> [Create; View; Edit; List] |> List.map (handlerTemplate page) |> flatten
+    | Edit      ->
+      sprintf """let edit_%s =
+    choose
+      [
+        GET >=> OK get_edit_%s
+        POST >=> bindToForm %s (fun %s ->
+          let validation = validate%s %s
+          if validation = [] then
+            let form = convert%s %s
+            let message = sprintf "form: %s" form
+            OK message
+          else
+            OK "") //(post_submit_errored_%s validation %s))
+      ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal "%A" page.AsVal page.AsFormVal
+    | View      -> sprintf """let %s = GET >=> OK "todo" """ page.AsVal
+    | List      -> sprintf """let list_%s = GET >=> OK "todo" """ page.AsVal
+    | Jumbotron ->
+      sprintf """let %s = GET >=> OK get_%s""" page.AsVal page.AsVal
+    | Create    -> sprintf """let create_%s = GET >=> OK "todo" """ page.AsVal
+    | Submit    ->
+      sprintf """let submit_%s =
+    choose
+      [
+        GET >=> OK get_submit_%s
+        POST >=> bindToForm %s (fun %s ->
+          let validation = validate%s %s
+          if validation = [] then
+            let form = convert%s %s
+            let message = sprintf "form: %s" form
+            OK message
+          else
+            OK (post_submit_errored_%s validation %s))
+      ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal "%A" page.AsVal page.AsFormVal
+
+  handlerTemplate page page.PageMode
 
 let propertyTemplate (page : Page) =
   page.Fields
@@ -318,7 +407,7 @@ let validationTemplate (page : Page) =
 let contextTemplate (page : Page) = sprintf """context "%s" """ page.Name |> pad 1
 
 let onceTemplate (page : Page) =
-  sprintf """once (fun _ -> url "http://localhost:8083%s"; click ".btn") """ page.AsHref
+  sprintf """once (fun _ -> url "http://localhost:8083%s"; click ".btn") """ page.AsCreateHref
   |> pad 1
 
 let attributeUITestTemplate name field =

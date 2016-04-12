@@ -49,7 +49,7 @@ let form =
           label_text "Password" ""
           label_text "Repeat Password" ""
           label_text "Age" ""
-          label_select_selected "Visibility" visibilityOptions ""
+          label_select_selected "Visibility" visibilityOptions None
         ]
     ]
     scripts.common

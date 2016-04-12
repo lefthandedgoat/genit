@@ -146,11 +146,11 @@ let private base_label_textarea label' text' errors =
     errorsOrEmptyText label' errors
   ]
 
-let base_label_select label' (options : (string * string) list) selected errors =
+let base_label_select label' (options : (string * string) list) (selected : 'a option) errors =
   form_group_control_label_sm8 label' [
     select_form_control label'
       (options |> List.map (fun (id, value) ->
-                                    if id = selected
+                                    if selected.IsSome && id = selected.Value.ToString()
                                     then selectedOption id value
                                     else option id value))
     errorsOrEmptyText label' errors
@@ -163,7 +163,7 @@ let label_text_ahref_button label' text' button' = base_label_text_ahref_button 
 let label_text label' text' = base_label_text label' text' []
 let label_password label' text' = base_label_password label' text' []
 let label_textarea label' text' = base_label_textarea label' text' []
-let label_select label' options = base_label_select label' options "" []
+let label_select label' options = base_label_select label' options None []
 let label_select_selected label' options selected = base_label_select label' options selected []
 
 let table_bordered ths (rows : 'a list) (toTd : 'a -> Xml list) =
