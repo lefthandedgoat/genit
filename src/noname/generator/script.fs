@@ -11,6 +11,8 @@ let someSite () =
 
   basic registration
 
+  basic login
+
   page "Order" Submit
     [
       text "Name" Required

@@ -111,9 +111,11 @@ let page name pageMode fields =
 type Precanned =
   | Home
   | Register
+  | Login
 
 let home = Home
 let registration = Register
+let login = Login
 
 let precannedHome () =
   page "Home" Jumbotron []
@@ -128,7 +130,15 @@ let precannedRegister () =
       password "Repeat Password"
     ]
 
+let precannedLogin () =
+  page "Login" Submit
+    [
+      email "Email"
+      password "Password"
+    ]
+
 let basic precanned =
   match precanned with
   | Home     -> precannedHome()
   | Register -> precannedRegister()
+  | Login    -> precannedLogin()
