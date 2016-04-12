@@ -14,6 +14,14 @@ let destination filename =
   |> (fun path -> path.Replace("/bin", "/generated"))
   |> (fun path -> sprintf "%s/%s.fs" path filename)
 
+let zipOptions (options : string list) =
+  //clean out empty strings, append one at the end
+  let options = options |> List.filter (fun str -> str <> "")
+  let results =
+    List.zip [ 1 .. options.Length ] options
+    |> List.map (fun (i, s) -> string i, s)
+  ["0", ""] @ results
+
 let repeat (value : string) times = [1..times] |> List.map (fun _ -> value) |> List.reduce (+)
 let flatten values =
   if values = []
@@ -31,7 +39,7 @@ let fieldToHtml field =
   | Name       -> sprintf """icon_label_text "%s" "" "user" """ field.Name
   | Phone      -> sprintf """label_text "%s" "" """ field.Name
   | Password   -> sprintf """icon_password_text "%s" "" "lock" """ field.Name
-  | Dropdown _ -> failwith "not done"
+  | Dropdown options -> sprintf """label_select "%s" %A """ field.Name (zipOptions options)
 
 let fieldToErroredHtml page field =
   match field.FieldType with
@@ -44,7 +52,7 @@ let fieldToErroredHtml page field =
   | Name       -> sprintf """errored_icon_label_text "%s" %s.%s "user" errors""" field.Name page.AsFormVal field.AsProperty
   | Phone      -> sprintf """errored_label_text "%s" %s.%s errors""" field.Name page.AsFormVal field.AsProperty
   | Password   -> sprintf """errored_icon_password_text "%s" %s.%s "lock" errors""" field.Name page.AsFormVal field.AsProperty
-  | Dropdown _ -> failwith "not done"
+  | Dropdown options -> sprintf """errored_label_select "%s" %A %s.%s errors""" field.Name (zipOptions options) page.AsFormVal field.AsProperty
 
 let fieldToProperty field =
   match field.FieldType with
@@ -88,7 +96,7 @@ let fieldToValidation field page =
   | Name       -> None
   | Phone      -> None //parsePhone?
   | Password   -> Some (sprintf """validate_password "%s" %s""" field.Name property)
-  | Dropdown _ -> failwith "not done"
+  | Dropdown _ -> None
 
 let fieldToTestName field =
   match field.FieldType with
@@ -101,7 +109,7 @@ let fieldToTestName field =
   | Name       -> None
   | Phone      -> None //parsePhone?
   | Password   -> Some (sprintf """"%s must be between 6 and 100 characters" """ field.Name)
-  | Dropdown _ -> failwith "not done"
+  | Dropdown _ -> None
 
 let fieldToTestBody field =
   match field.FieldType with
@@ -114,7 +122,7 @@ let fieldToTestBody field =
   | Name       -> None
   | Phone      -> None //parsePhone?
   | Password   -> Some (sprintf """displayed "%s must be between 6 and 100 characters" """ field.Name)
-  | Dropdown _ -> failwith "not done"
+  | Dropdown _ -> None
 
 let attributeToValidation field page =
   let property = sprintf "%s.%s" page.AsFormVal field.AsProperty

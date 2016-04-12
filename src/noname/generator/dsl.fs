@@ -63,6 +63,7 @@ let email name = field name Required Email
 let name name attribute = field name attribute Name
 let phone name attribute = field name attribute Phone
 let password name = field name Required Password
+let dropdown name options = field name Null (Dropdown(options))
 
 type Page =
   {

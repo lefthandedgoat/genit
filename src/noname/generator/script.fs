@@ -25,6 +25,12 @@ let someSite () =
       text "Address" Null
       text "City" Null
       number "Zip" Null
+      dropdown "Free Soda"
+        [
+          "Cola"
+          "Orange"
+          "Root Beer"
+        ]
     ]
 
   currentSite
