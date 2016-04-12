@@ -181,9 +181,9 @@ let get_%s =
     ]
     scripts.common""" page.AsVal page.Name site.Name
 
-let formViewTemplate (page : Page) =
+let submitFormViewTemplate (page : Page) =
   sprintf """
-let get_%s =
+let get_submit_%s =
   base_html
     "%s"
     [
@@ -196,9 +196,9 @@ let get_%s =
     ]
     scripts.common""" page.AsVal page.Name page.Name (formatFields page.Fields 5)
 
-let erroredFormViewTemplate (page : Page) =
+let submitErroredFormViewTemplate (page : Page) =
   sprintf """
-let post_errored_%s errors (%s : %s) =
+let post_submit_errored_%s errors (%s : %s) =
   base_html
     "%s"
     [
@@ -218,7 +218,7 @@ let viewTemplate site page =
   | List      -> failwith "not done"
   | Jumbotron -> bannerViewTemplate site page
   | Create
-  | Submit    -> [formViewTemplate page] @ [erroredFormViewTemplate page] |> flatten
+  | Submit    -> [submitFormViewTemplate page] @ [submitErroredFormViewTemplate page] |> flatten
 
 let pageLinkTemplate (page : Page) = sprintf """li [ aHref "%s" [text "%s"] ]""" page.AsHref page.Name |> pad 7
 
@@ -238,7 +238,7 @@ let handlerTemplate (page : Page) =
     sprintf """let %s =
   choose
     [
-      GET >=> OK get_%s
+      GET >=> OK get_submit_%s
       POST >=> bindToForm %s (fun %s ->
         let validation = validate%s %s
         if validation = [] then
@@ -246,7 +246,7 @@ let handlerTemplate (page : Page) =
           let message = sprintf "form: %s" form
           OK message
         else
-          OK (post_errored_%s validation %s))
+          OK (post_submit_errored_%s validation %s))
     ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal "%A" page.AsVal page.AsFormVal
 
 let propertyTemplate (page : Page) =
