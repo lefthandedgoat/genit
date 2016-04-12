@@ -154,13 +154,13 @@ let attributeToTestBody field =
 
 let pad tabs field = sprintf "%s%s" (repeat "  " tabs) field
 
-let formatFields (fields : Field list) tabs =
+let formatSubmitFields (fields : Field list) tabs =
   fields
   |> List.map fieldToHtml
   |> List.map (pad tabs)
   |> List.reduce (fun field1 field2 -> sprintf "%s%s%s" field1 Environment.NewLine field2)
 
-let formatErroredFields page (fields : Field list) tabs =
+let formatSubmitErroredFields page (fields : Field list) tabs =
   fields
   |> List.map (fieldToErroredHtml page)
   |> List.map (pad tabs)
@@ -194,7 +194,7 @@ let get_submit_%s =
 %s
         ]
     ]
-    scripts.common""" page.AsVal page.Name page.Name (formatFields page.Fields 5)
+    scripts.common""" page.AsVal page.Name page.Name (formatSubmitFields page.Fields 5)
 
 let submitErroredFormViewTemplate (page : Page) =
   sprintf """
@@ -209,7 +209,7 @@ let post_submit_errored_%s errors (%s : %s) =
 %s
         ]
     ]
-    scripts.common""" page.AsVal page.AsFormVal page.AsFormType page.Name page.Name (formatErroredFields page page.Fields 5)
+    scripts.common""" page.AsVal page.AsFormVal page.AsFormType page.Name page.Name (formatSubmitErroredFields page page.Fields 5)
 
 let viewTemplate site page =
   match page.PageMode with
