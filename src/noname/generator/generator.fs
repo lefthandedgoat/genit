@@ -28,43 +28,49 @@ let flatten values =
   then ""
   else values |> List.reduce (fun value1 value2 -> sprintf "%s%s%s" value1 Environment.NewLine value2)
 
-let fieldToHtml field =
+let fieldToHtml (field : Field) =
+  let template tag = sprintf """%s "%s" "" """ tag field.Name
+  let iconTemplate tag icon = sprintf """%s "%s" "" "%s" """ tag field.Name icon
   match field.FieldType with
-  | Text       -> sprintf """label_text "%s" "" """ field.Name
-  | Paragraph  -> sprintf """label_textarea "%s" "" """ field.Name
-  | Number     -> sprintf """label_text "%s" "" """ field.Name
-  | Decimal    -> sprintf """label_text "%s" "" """ field.Name
-  | Date       -> sprintf """label_text "%s" "" """ field.Name
-  | Email      -> sprintf """icon_label_text "%s" "" "envelope" """ field.Name
-  | Name       -> sprintf """icon_label_text "%s" "" "user" """ field.Name
-  | Phone      -> sprintf """label_text "%s" "" """ field.Name
-  | Password   -> sprintf """icon_password_text "%s" "" "lock" """ field.Name
+  | Text       -> template "label_text"
+  | Paragraph  -> template "label_textarea"
+  | Number     -> template "label_text"
+  | Decimal    -> template "label_text"
+  | Date       -> template "label_text"
+  | Phone      -> template "label_text"
+  | Email      -> iconTemplate "icon_label_text" "envelope"
+  | Name       -> iconTemplate "icon_label_text" "user"
+  | Password   -> iconTemplate "icon_password_text" "lock"
   | Dropdown options -> sprintf """label_select "%s" %A """ field.Name (zipOptions options)
 
-let fieldToPopulatedHtml page field =
+let fieldToPopulatedHtml page (field : Field) =
+  let template tag = sprintf """%s "%s" "%s.%s" """ tag field.Name page.AsFormVal field.AsProperty
+  let iconTemplate tag icon = sprintf """%s "%s" "%s.%s" "%s" """ tag field.Name page.AsFormVal field.AsProperty icon
   match field.FieldType with
-  | Text       -> sprintf """label_text "%s" "%s.%s" """ field.Name page.AsFormVal field.AsProperty
-  | Paragraph  -> sprintf """label_textarea "%s" "%s.%s" """ field.Name page.AsFormVal field.AsProperty
-  | Number     -> sprintf """label_text "%s" "%s.%s" """ field.Name page.AsFormVal field.AsProperty
-  | Decimal    -> sprintf """label_text "%s" "%s.%s" """ field.Name page.AsFormVal field.AsProperty
-  | Date       -> sprintf """label_text "%s" "%s.%s" """ field.Name page.AsFormVal field.AsProperty
-  | Email      -> sprintf """icon_label_text "%s" "%s.%s" "envelope" """ field.Name page.AsFormVal field.AsProperty
-  | Name       -> sprintf """icon_label_text "%s" "%s.%s" "user" """ field.Name page.AsFormVal field.AsProperty
-  | Phone      -> sprintf """label_text "%s" "%s.%s" """ field.Name page.AsFormVal field.AsProperty
-  | Password   -> sprintf """icon_password_text "%s" "%s.%s" "lock" """ field.Name page.AsFormVal field.AsProperty
+  | Text       -> template "label_text"
+  | Paragraph  -> template "label_textarea"
+  | Number     -> template "label_text"
+  | Decimal    -> template "label_text"
+  | Date       -> template "label_text"
+  | Phone      -> template "label_text"
+  | Email      -> iconTemplate "icon_label_text" "envelope"
+  | Name       -> iconTemplate "icon_label_text" "user"
+  | Password   -> iconTemplate "icon_password_text" "lock"
   | Dropdown options -> sprintf """label_select_selected "%s" %A (Some "%s.%s")""" field.Name (zipOptions options) page.AsFormVal field.AsProperty
 
-let fieldToErroredHtml page field =
+let fieldToErroredHtml page (field : Field) =
+  let template tag = sprintf """%s "%s" %s.%s errors""" tag field.Name page.AsFormVal field.AsProperty
+  let iconTemplate tag icon = sprintf """%s "%s" %s.%s "%s" errors""" tag field.Name page.AsFormVal field.AsProperty icon
   match field.FieldType with
-  | Text       -> sprintf """errored_label_text "%s" %s.%s errors""" field.Name page.AsFormVal field.AsProperty
-  | Paragraph  -> sprintf """errored_label_textarea "%s" %s.%s errors""" field.Name page.AsFormVal field.AsProperty
-  | Number     -> sprintf """errored_label_text "%s" %s.%s errors""" field.Name page.AsFormVal field.AsProperty
-  | Decimal    -> sprintf """errored_label_text "%s" %s.%s errors""" field.Name page.AsFormVal field.AsProperty
-  | Date       -> sprintf """errored_label_text "%s" %s.%s errors""" field.Name page.AsFormVal field.AsProperty
-  | Email      -> sprintf """errored_icon_label_text "%s" %s.%s "envelope" errors""" field.Name page.AsFormVal field.AsProperty
-  | Name       -> sprintf """errored_icon_label_text "%s" %s.%s "user" errors""" field.Name page.AsFormVal field.AsProperty
-  | Phone      -> sprintf """errored_label_text "%s" %s.%s errors""" field.Name page.AsFormVal field.AsProperty
-  | Password   -> sprintf """errored_icon_password_text "%s" %s.%s "lock" errors""" field.Name page.AsFormVal field.AsProperty
+  | Text       -> template "errored_label_text"
+  | Paragraph  -> template "errored_label_textarea"
+  | Number     -> template "errored_label_text"
+  | Decimal    -> template "errored_label_text"
+  | Date       -> template "errored_label_text"
+  | Phone      -> template "errored_label_text"
+  | Email      -> iconTemplate "errored_icon_label_text" "envelope"
+  | Name       -> iconTemplate "errored_icon_label_text" "user"
+  | Password   -> iconTemplate "errored_icon_password_text" "lock"
   | Dropdown options -> sprintf """errored_label_select "%s" %A (Some %s.%s) errors""" field.Name (zipOptions options) page.AsFormVal field.AsProperty
 
 let fieldToProperty field =
@@ -74,67 +80,70 @@ let fieldToProperty field =
   | Number     -> "int"
   | Decimal    -> "double"
   | Date       -> "System.DateTime"
+  | Phone      -> "string"
   | Email      -> "string"
   | Name       -> "string"
-  | Phone      -> "string"
   | Password   -> "string"
   | Dropdown _ -> "int"
 
 let fieldToConvertProperty page field =
-  let string field page = sprintf """%s = %s.%s""" field.AsProperty page.AsFormVal field.AsProperty
-  let int field page = sprintf """%s = int %s.%s""" field.AsProperty page.AsFormVal field.AsProperty
-  let double field page = sprintf """%s = double %s.%s""" field.AsProperty page.AsFormVal field.AsProperty
-  let datetime field page = sprintf """%s = System.DateTime.Parse(%s.%s)""" field.AsProperty page.AsFormVal field.AsProperty
-  match field.FieldType with
-  | Text       -> string field page
-  | Paragraph  -> string field page
-  | Number     -> int field page
-  | Decimal    -> double field page
-  | Date       -> datetime field page
-  | Email      -> string field page
-  | Name       -> string field page
-  | Phone      -> string field page
-  | Password   -> string field page
-  | Dropdown _ -> int field page
-
-let fieldToValidation field page =
   let property = sprintf "%s.%s" page.AsFormVal field.AsProperty
+  let string () = sprintf """%s = %s""" field.AsProperty property
+  let int () = sprintf """%s = int %s""" field.AsProperty property
+  let double () = sprintf """%s = double %s""" field.AsProperty property
+  let datetime () = sprintf """%s = System.DateTime.Parse(%s)""" field.AsProperty property
+  match field.FieldType with
+  | Text       -> string ()
+  | Paragraph  -> string ()
+  | Number     -> int ()
+  | Decimal    -> double ()
+  | Date       -> datetime ()
+  | Email      -> string ()
+  | Name       -> string ()
+  | Phone      -> string ()
+  | Password   -> string ()
+  | Dropdown _ -> int ()
+
+let fieldToValidation (field : Field) page =
+  let template validation = sprintf """%s "%s" %s.%s""" validation field.Name page.AsFormVal field.AsProperty
   match field.FieldType with
   | Text       -> None
   | Paragraph  -> None
-  | Number     -> Some (sprintf """validate_integer "%s" %s""" field.Name property)
-  | Decimal    -> Some (sprintf """validate_double "%s" %s""" field.Name property)
-  | Date       -> Some (sprintf """validate_datetime "%s" %s""" field.Name property)
-  | Email      -> Some (sprintf """validate_email "%s" %s""" field.Name property)
-  | Name       -> None
+  | Number     -> Some (template "validate_integer")
+  | Decimal    -> Some (template "validate_double")
+  | Date       -> Some (template "validate_datetime")
   | Phone      -> None //parsePhone?
-  | Password   -> Some (sprintf """validate_password "%s" %s""" field.Name property)
+  | Email      -> Some (template "validate_email")
+  | Name       -> None
+  | Password   -> Some (template "validate_password")
   | Dropdown _ -> None
 
-let fieldToTestName field =
+let fieldToTestName (field : Field) =
+  let template text = sprintf """"%s %s" """ field.Name text
   match field.FieldType with
   | Text       -> None
   | Paragraph  -> None
-  | Number     -> Some (sprintf """"%s must be a valid integer" """ field.Name)
-  | Decimal    -> Some (sprintf """"%s must be a valid double" """ field.Name)
-  | Date       -> Some (sprintf """"%s must be a valid date" """ field.Name)
-  | Email      -> Some """"must be a valid email" """
+  | Number     -> Some (template "must be a valid integer")
+  | Decimal    -> Some (template "must be a valid double")
+  | Date       -> Some (template "must be a valid date")
+  | Email      -> Some (template "must be a valid email")
   | Name       -> None
   | Phone      -> None //parsePhone?
-  | Password   -> Some (sprintf """"%s must be between 6 and 100 characters" """ field.Name)
+  | Password   -> Some (template "must be between 6 and 100 characters")
   | Dropdown _ -> None
 
-let fieldToTestBody field =
+let fieldToTestBody (field : Field) =
+  let template text = sprintf """displayed "%s %s" """ field.Name text
   match field.FieldType with
   | Text       -> None
   | Paragraph  -> None
-  | Number     -> Some (sprintf """displayed "%s is not a valid number (int)" """ field.Name)
-  | Decimal    -> Some (sprintf """displayed "%s is not a valid number (decimal)" """ field.Name)
-  | Date       -> Some (sprintf """displayed "%s is not a valid date" """ field.Name)
-  | Email      -> Some """displayed " is not a valid email" """
+  | Number     -> Some (template "is not a valid number (int)")
+  | Decimal    -> Some (template "is not a valid number (decimal)")
+  | Date       -> Some (template "is not a valid date")
+  | Email      -> Some (template "is not a valid email")
   | Name       -> None
   | Phone      -> None //parsePhone?
-  | Password   -> Some (sprintf """displayed "%s must be between 6 and 100 characters" """ field.Name)
+  | Password   -> Some (template "must be between 6 and 100 characters")
   | Dropdown _ -> None
 
 let attributeToValidation field page =
@@ -273,28 +282,30 @@ let pageLinkTemplate (page : Page) =
   pageLinkTemplate page page.PageMode
 
 let pathTemplate page =
+  let template extra href = sprintf """let path_%s%s = "%s" """ extra page.AsVal href
   let rec pathTemplate page pageMode =
     match pageMode with
     | CVEL      -> [Create; View; Edit; List] |> List.map (pathTemplate page) |> flatten
-    | Create    -> sprintf """let path_create_%s = "%s" """ page.AsVal page.AsCreateHref
-    | Edit      -> sprintf """let path_edit_%s = "%s" """ page.AsVal page.AsEditHref
-    | View      -> sprintf """let path_%s = "%s" """ page.AsVal page.AsViewHref //add id
-    | List      -> sprintf """let path_list_%s = "%s" """ page.AsVal page.AsListHref //add s for cheap pural
-    | Submit    -> sprintf """let path_submit_%s = "%s" """ page.AsVal page.AsCreateHref //add id
-    | Jumbotron -> sprintf """let path_%s = "%s" """ page.AsVal page.AsViewHref //add id
+    | Create    -> template "create_" page.AsCreateHref
+    | Edit      -> template "edit_" page.AsEditHref
+    | View      -> template "" page.AsViewHref //add id
+    | List      -> template "list_" page.AsListHref
+    | Submit    -> template "submit_" page.AsCreateHref
+    | Jumbotron -> template "" page.AsViewHref
 
   pathTemplate page page.PageMode
 
 let routeTemplate page =
+  let template extra = sprintf """path path_%s%s >=> %s%s""" extra page.AsVal extra page.AsVal |> pad 2
   let rec routeTemplate page pageMode =
     match pageMode with
     | CVEL      -> [Create; View; Edit; List] |> List.map (routeTemplate page) |> flatten
-    | Create    -> sprintf """path path_create_%s >=> create_%s""" page.AsVal page.AsVal |> pad 2
-    | Edit      -> sprintf """path path_edit_%s >=> edit_%s""" page.AsVal page.AsVal |> pad 2
-    | View      -> sprintf """path path_%s >=> %s""" page.AsVal page.AsVal |> pad 2
-    | List      -> sprintf """path path_list_%s >=> list_%s""" page.AsVal page.AsVal |> pad 2
-    | Submit    -> sprintf """path path_submit_%s >=> submit_%s""" page.AsVal page.AsVal |> pad 2
-    | Jumbotron -> sprintf """path path_%s >=> %s""" page.AsVal page.AsVal |> pad 2
+    | Create    -> template "create_"
+    | Edit      -> template "edit_"
+    | View      -> template ""
+    | List      -> template "list_"
+    | Submit    -> template "submit_"
+    | Jumbotron -> template ""
 
   routeTemplate page page.PageMode
 

@@ -17,7 +17,7 @@ let validate_equal property1 property2 value1 value2  =
 let validate_email property value =
   let isEmail = try MailAddress(value)|> ignore; true with | _ -> false
   if not isEmail
-  then Some (property, sprintf "%s is not a valid email" value)
+  then Some (property, sprintf "%s is not a valid email" property)
   else None
 
 let private passwordPattern = @"(\w){6,100}"

@@ -35,9 +35,9 @@ type FieldType =
   | Number
   | Decimal
   | Date
+  | Phone
   | Email
   | Name
-  | Phone
   | Password
   | Dropdown of options:string list
 
