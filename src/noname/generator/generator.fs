@@ -176,42 +176,72 @@ let attributeToTestBody field =
 
 let pad tabs field = sprintf "%s%s" (repeat "  " tabs) field
 
-let formatEditFields page (fields : Field list) tabs =
+let formatPopulatedEditFields page (fields : Field list) tabs =
   fields
   |> List.map (fieldToPopulatedHtml page)
   |> List.map (pad tabs)
   |> List.reduce (fun field1 field2 -> sprintf "%s%s%s" field1 Environment.NewLine field2)
 
-let formatSubmitFields (fields : Field list) tabs =
+let formatEditFields (fields : Field list) tabs =
   fields
   |> List.map fieldToHtml
   |> List.map (pad tabs)
   |> List.reduce (fun field1 field2 -> sprintf "%s%s%s" field1 Environment.NewLine field2)
 
-let formatSubmitErroredFields page (fields : Field list) tabs =
+let formatErroredFields page (fields : Field list) tabs =
   fields
   |> List.map (fieldToErroredHtml page)
   |> List.map (pad tabs)
   |> List.reduce (fun field1 field2 -> sprintf "%s%s%s" field1 Environment.NewLine field2)
 
-let bannerViewTemplate (site : Site) (page : Page) =
+let createFormViewTemplate (page : Page) =
   sprintf """
-let get_%s =
+let get_create_%s =
   base_html
-    "%s"
+    "Create %s"
     [
       base_header brand
-      divClass "container" [
-        divClass "jumbotron" [
-          h1 (sprintf "Welcome to %s!")
+      common_form
+        "%s"
+        [
+%s
         ]
-      ]
     ]
-    scripts.common""" page.AsVal page.Name site.Name
+    scripts.common""" page.AsVal page.Name page.Name (formatEditFields page.Fields 5)
+
+let createErroredFormViewTemplate (page : Page) =
+  sprintf """
+let post_create_errored_%s errors (%s : %s) =
+  base_html
+    "Create %s"
+    [
+      base_header brand
+      common_form
+        "%s"
+        [
+%s
+        ]
+    ]
+    scripts.common""" page.AsVal page.AsFormVal page.AsFormType page.Name page.Name (formatErroredFields page page.Fields 5)
 
 let editFormViewTemplate (page : Page) =
   sprintf """
 let get_edit_%s =
+  base_html
+    "Edit %s"
+    [
+      base_header brand
+      common_form
+        "%s"
+        [
+%s
+        ]
+    ]
+    scripts.common""" page.AsVal page.Name page.Name (formatPopulatedEditFields page page.Fields 5)
+
+let editErroredFormViewTemplate (page : Page) =
+  sprintf """
+let post_edit_errored_%s errors (%s : %s) =
   base_html
     "%s"
     [
@@ -222,7 +252,29 @@ let get_edit_%s =
 %s
         ]
     ]
-    scripts.common""" page.AsVal page.Name page.Name (formatEditFields page page.Fields 5)
+    scripts.common""" page.AsVal page.AsFormVal page.AsFormType page.Name page.Name (formatErroredFields page page.Fields 5)
+
+let viewFormViewTemplate (page : Page) =
+  sprintf """
+let get_%s =
+  base_html
+    "%s"
+    [
+      base_header brand
+      //todo
+    ]
+    scripts.common""" page.AsVal page.Name
+
+let listFormViewTemplate (page : Page) =
+  sprintf """
+let get_list_%s =
+  base_html
+    "List %s"
+    [
+      base_header brand
+      //todo
+    ]
+    scripts.common""" page.AsVal page.Name
 
 let submitFormViewTemplate (page : Page) =
   sprintf """
@@ -237,7 +289,7 @@ let get_submit_%s =
 %s
         ]
     ]
-    scripts.common""" page.AsVal page.Name page.Name (formatSubmitFields page.Fields 5)
+    scripts.common""" page.AsVal page.Name page.Name (formatEditFields page.Fields 5)
 
 let submitErroredFormViewTemplate (page : Page) =
   sprintf """
@@ -252,18 +304,33 @@ let post_submit_errored_%s errors (%s : %s) =
 %s
         ]
     ]
-    scripts.common""" page.AsVal page.AsFormVal page.AsFormType page.Name page.Name (formatSubmitErroredFields page page.Fields 5)
+    scripts.common""" page.AsVal page.AsFormVal page.AsFormType page.Name page.Name (formatErroredFields page page.Fields 5)
+
+let jumbotronViewTemplate (site : Site) (page : Page) =
+  sprintf """
+let get_%s =
+  base_html
+    "%s"
+    [
+      base_header brand
+      divClass "container" [
+        divClass "jumbotron" [
+          h1 (sprintf "Welcome to %s!")
+        ]
+      ]
+    ]
+    scripts.common""" page.AsVal page.Name site.Name
 
 let viewTemplate site page =
   let rec viewTemplate site page pageMode =
     match pageMode with
-    | CVEL      -> [viewTemplate site page Edit] |> flatten
-    | Edit      -> editFormViewTemplate page
-    | View      -> failwith "not done"
-    | List      -> failwith "not done"
-    | Jumbotron -> bannerViewTemplate site page
-    | Create
-    | Submit    -> [submitFormViewTemplate page] @ [submitErroredFormViewTemplate page] |> flatten
+    | CVEL      -> [Create; View; Edit; List] |> List.map (viewTemplate site page) |> flatten
+    | Create    -> [createFormViewTemplate page; createErroredFormViewTemplate page] |> flatten
+    | Edit      -> [editFormViewTemplate page; editErroredFormViewTemplate page] |> flatten
+    | View      -> viewFormViewTemplate page
+    | List      -> listFormViewTemplate page
+    | Submit    -> [submitFormViewTemplate page; submitErroredFormViewTemplate page] |> flatten
+    | Jumbotron -> jumbotronViewTemplate site page
 
   viewTemplate site page page.PageMode
 
@@ -325,13 +392,28 @@ let handlerTemplate page =
             let message = sprintf "form: %s" form
             OK message
           else
-            OK "") //(post_submit_errored_%s validation %s))
+            OK (post_edit_errored_%s validation %s))
       ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal "%A" page.AsVal page.AsFormVal
-    | View      -> sprintf """let %s = GET >=> OK "todo" """ page.AsVal
-    | List      -> sprintf """let list_%s = GET >=> OK "todo" """ page.AsVal
+    | View      ->
+      sprintf """let %s = GET >=> OK get_%s """ page.AsVal page.AsVal
+    | List      ->
+      sprintf """let list_%s = GET >=> OK get_list_%s""" page.AsVal page.AsVal
     | Jumbotron ->
       sprintf """let %s = GET >=> OK get_%s""" page.AsVal page.AsVal
-    | Create    -> sprintf """let create_%s = GET >=> OK "todo" """ page.AsVal
+    | Create    ->
+      sprintf """let create_%s =
+    choose
+      [
+        GET >=> OK get_create_%s
+        POST >=> bindToForm %s (fun %s ->
+          let validation = validate%s %s
+          if validation = [] then
+            let form = convert%s %s
+            let message = sprintf "form: %s" form
+            OK message
+          else
+            OK (post_create_errored_%s validation %s))
+      ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal "%A" page.AsVal page.AsFormVal
     | Submit    ->
       sprintf """let submit_%s =
     choose
