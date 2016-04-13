@@ -12,7 +12,7 @@ let destination filename =
   |> (fun uri -> uri.Path)
   |> IO.Path.GetDirectoryName
   |> (fun path -> path.Replace("/bin", "/generated"))
-  |> (fun path -> sprintf "%s/%s.fs" path filename)
+  |> (fun path -> sprintf "%s/%s" path filename)
 
 let zipOptions (options : string list) =
   //clean out empty strings, append one at the end
@@ -630,12 +630,15 @@ let generate (site : Site) =
   let uitests_results = site.Pages |> List.map uitestTemplate |> flatten
   let generated_uitests_result = generated_uitests_template uitests_results
 
-  write (destination "generated_html") generated_html_result
-  write (destination "generated_views") generated_views_result
-  write (destination "generated_handlers") generated_handlers_result
-  write (destination "generated_forms") generated_forms_result
-  write (destination "generated_types") generated_types_result
-  write (destination "generated_paths") generated_paths_result
-  write (destination "generated_validation") generated_validation_result
-  write (destination "generated_unittests") generated_unittests_result
-  write (destination "generated_uitests") generated_uitests_result
+  let generated_sql_createdb_result = sql.createTemplate site.AsDatabase
+
+  write (destination "generated_html.fs") generated_html_result
+  write (destination "generated_views.fs") generated_views_result
+  write (destination "generated_handlers.fs") generated_handlers_result
+  write (destination "generated_forms.fs") generated_forms_result
+  write (destination "generated_types.fs") generated_types_result
+  write (destination "generated_paths.fs") generated_paths_result
+  write (destination "generated_validation.fs") generated_validation_result
+  write (destination "generated_unittests.fs") generated_unittests_result
+  write (destination "generated_uitests.fs") generated_uitests_result
+  write (destination "generated_sql_createdb.sql") generated_sql_createdb_result

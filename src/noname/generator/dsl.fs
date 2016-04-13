@@ -2,9 +2,12 @@ module dsl
 
 open System
 
+let clean (value : string) = value.Replace("'", "").Replace("\"", "").Replace("-", "")
+let lower (value : string) = value.ToLower()
 let upperFirst (value : string) = Char.ToUpper(value.[0]).ToString() + value.Substring(1)
 let lowerFirst (value : string) = Char.ToLower(value.[0]).ToString() + value.Substring(1)
 let spaceToNothing (value : string) = value.Replace(" ", "")
+let spaceToUnderscore (value : string) = value.Replace(" ", "_")
 let camelCase = spaceToNothing >> lowerFirst
 let typeCase = spaceToNothing >> upperFirst
 let form value = sprintf "%sForm" value
@@ -19,6 +22,8 @@ let to_editHref = camelCase >> sprintf "/%s/edit"
 let to_listHref = camelCase >> sprintf "/%s/list"
 
 let to_property = typeCase
+
+let to_database = clean >> lower >> spaceToUnderscore
 
 type PageMode =
   | CVEL
@@ -87,18 +92,20 @@ type Page =
 type Site =
   {
     Name : string
+    AsDatabase : string
     Pages : Page list
   }
 
 let private defaultSite =
   {
     Name = "Demo"
+    AsDatabase = ""
     Pages = []
   }
 
 let mutable currentSite = defaultSite
 
-let site name = currentSite <- { currentSite with Name = name }
+let site name = currentSite <- { currentSite with Name = name; AsDatabase = to_database name }
 
 let page name pageMode fields =
   let page =
