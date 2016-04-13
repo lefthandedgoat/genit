@@ -289,21 +289,31 @@ let get_%s = // todo (%s : %s) =
     ]
     scripts.common""" page.AsVal page.AsFormVal page.AsFormType page.Name page.Name (formatStaticFields page page.Fields 5)
 
+let fieldsToHeaders (page : Page) =
+    page.Fields
+    |> List.map (fun field -> sprintf """"%s" """ field.Name)
+    |> List.map (pad 10)
+    |> flatten
+
+let fieldsToTd (page : Page) =
+    page.Fields
+    |> List.map (fun field -> sprintf """td [ text (string "%s.%s") ]""" page.AsVal field.AsProperty)
+    |> List.map (pad 4)
+    |> flatten
+
 let listFormViewTemplate (page : Page) =
   sprintf """
 let get_list_%s =
-  let applications = [1..4]
-  //let toTr (app : Application) inner =
+  let %ss = [1..4]
+  //let toTr (%s : %s) inner =
   let toTr _ inner =
     trLink "" inner
     //trLink (paths.application_link user app.Id) inner
 
-  //let toTd (app : Application) =
+  //let toTd (%s : %s) =
   let toTd _ =
     [
-      td [ text (string "app.Name") ]
-      td [ text (string "app.Owners") ]
-      td [ text (string "app.Developers") ]
+%s
     ]
 
   base_html
@@ -318,18 +328,16 @@ let get_list_%s =
               content [
                 table_bordered_linked_tr
                   [
-                    "Name"
-                    "Owners"
-                    "Developers"
+%s
                   ]
-                  applications toTd toTr
+                  %ss toTd toTr
               ]
             ]
           ]
         ]
       ]
     ]
-    scripts.datatable_bundle""" page.AsVal page.Name page.Name page.AsCreateHref
+    scripts.datatable_bundle""" page.AsVal page.AsVal page.AsVal page.AsType page.AsVal page.AsType (fieldsToTd page) page.Name page.Name page.AsCreateHref (fieldsToHeaders page) page.AsVal
 
 let submitFormViewTemplate (page : Page) =
   sprintf """
