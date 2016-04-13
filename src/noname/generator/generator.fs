@@ -314,7 +314,7 @@ let get_list_%s =
         row [
           mcontent [
             block_flat [
-              header [ h3Inner "TODO" [ pull_right [ text "BUTTONS" ] ] ]
+              header [ h3Inner "%s" [ pull_right [ button_small_success "%s" [ text "Create"] ] ] ]
               content [
                 table_bordered_linked_tr
                   [
@@ -329,7 +329,7 @@ let get_list_%s =
         ]
       ]
     ]
-    scripts.datatable_bundle""" page.AsVal page.Name
+    scripts.datatable_bundle""" page.AsVal page.Name page.Name page.AsCreateHref
 
 let submitFormViewTemplate (page : Page) =
   sprintf """
