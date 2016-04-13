@@ -45,6 +45,7 @@ let solutionFile  = "noname.sln"
 // Pattern specifying assemblies to be tested using NUnit
 let exe = "src/noname/bin/Debug/"
 
+let executingDir = __SOURCE_DIRECTORY__
 // --------------------------------------------------------------------------------------
 // END TODO: The rest of the file includes standard build steps
 // --------------------------------------------------------------------------------------
@@ -126,6 +127,20 @@ Target "Generate" (fun _ -> execProcess "generate")
 
 Target "Test" (fun _ -> execProcess "test")
 
+Target "CreateDB" (fun _ ->
+  let dbname = System.IO.File.ReadAllText("src/noname/generated/dbname.txt")
+
+  let command = "psql"
+  let args = "-a -f src/noname/generated/generated_sql_createdb.sql"
+  Shell.Exec(command, args) |> ignore
+
+  let args = sprintf "-d %s -a -f src/noname/generated/generated_sql_initialSetup.sql" dbname
+  Shell.Exec(command, args) |> ignore
+
+  let args = sprintf "-d %s -a -f src/noname/generated/generated_sql_createTables.sql" dbname
+  Shell.Exec(command, args) |> ignore
+)
+
 // --------------------------------------------------------------------------------------
 // Run all targets by default. Invoke 'build <Target>' to override
 
@@ -142,6 +157,9 @@ Target "All" DoNothing
 
 "All"
   ==> "Generate"
+
+"All"
+  ==> "CreateDB"
 
 "All"
   ==> "Test"

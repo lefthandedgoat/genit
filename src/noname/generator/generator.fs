@@ -631,6 +631,8 @@ let generate (site : Site) =
   let generated_uitests_result = generated_uitests_template uitests_results
 
   let generated_sql_createdb_result = sql.createTemplate site.AsDatabase
+  let generated_sql_initialSetup_result = sql.initialSetupTemplate site.AsDatabase
+  let generated_sql_createTables_result = sql.createTablesTemplate
 
   write (destination "generated_html.fs") generated_html_result
   write (destination "generated_views.fs") generated_views_result
@@ -641,4 +643,8 @@ let generate (site : Site) =
   write (destination "generated_validation.fs") generated_validation_result
   write (destination "generated_unittests.fs") generated_unittests_result
   write (destination "generated_uitests.fs") generated_uitests_result
+
+  write (destination "dbname.txt") site.AsDatabase
   write (destination "generated_sql_createdb.sql") generated_sql_createdb_result
+  write (destination "generated_sql_initialSetup.sql") generated_sql_initialSetup_result
+  write (destination "generated_sql_createTables.sql") generated_sql_createTables_result
