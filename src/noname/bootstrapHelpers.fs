@@ -160,6 +160,11 @@ let base_label_select label' (options : (string * string) list) (selected : 'a o
 let options_data_section (options : (string * string) list) data_section =
   (options |> List.map (fun (id, value) -> option_data_section id data_section value))
 
+let label_static label' value =
+  form_group_control_label_sm8 label' [
+    static' label' value
+  ]
+
 let label_text_ahref_button label' text' button' = base_label_text_ahref_button label' text' button' []
 let label_text label' text' = base_label_text label' text' []
 let label_password label' text' = base_label_password label' text' []
@@ -240,6 +245,22 @@ let common_form decription formElements =
           div [
             form_horizontal [
               content (formElements @ [form_group [ sm12 [ pull_right [ button_submit ] ] ] ])
+            ]
+          ]
+        ]
+      ]
+    ]
+  ]
+
+let common_static_form decription formElements =
+  container [
+    row [
+      mcontent [
+        block_flat [
+          header [ h3 decription ]
+          div [
+            form_horizontal [
+              content formElements
             ]
           ]
         ]

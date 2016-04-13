@@ -81,6 +81,7 @@ let textareaClassPlaceholder class' placeholder text' = tag "textarea" ["class",
 let textareaClassPlaceholderName class' name placeholder text' = tag "textarea" ["class", class'; "name", name; "placeholder", placeholder; "rows", "4"] (text text')
 let sectionId id inner = tag "section" ["id", id] (flatten inner)
 let navClass class' inner = tag "nav" ["class",class'] (flatten inner)
+let static' name value = tag "p" ["class", "form-control-static"; "data-qa-name", name] (text value)
 
 let base_head title' =
   head [

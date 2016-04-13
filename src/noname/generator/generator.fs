@@ -58,6 +58,20 @@ let fieldToPopulatedHtml page (field : Field) =
   | Password   -> iconTemplate "icon_password_text" "lock"
   | Dropdown options -> sprintf """label_select_selected "%s" %A (Some "%s.%s")""" field.Name (zipOptions options) page.AsFormVal field.AsProperty
 
+let fieldToStaticHtml page (field : Field) =
+  let template tag = sprintf """%s "%s" "%s.%s" """ tag field.Name page.AsFormVal field.AsProperty
+  match field.FieldType with
+  | Text       -> template "label_static"
+  | Paragraph  -> template "label_static"
+  | Number     -> template "label_static"
+  | Decimal    -> template "label_static"
+  | Date       -> template "label_static"
+  | Phone      -> template "label_static"
+  | Email      -> template "label_static"
+  | Name       -> template "label_static"
+  | Password   -> template "label_static"
+  | Dropdown _ -> sprintf """label_static "%s" "%s.%s" """ field.Name page.AsFormVal field.AsProperty
+
 let fieldToErroredHtml page (field : Field) =
   let template tag = sprintf """%s "%s" %s.%s errors""" tag field.Name page.AsFormVal field.AsProperty
   let iconTemplate tag icon = sprintf """%s "%s" %s.%s "%s" errors""" tag field.Name page.AsFormVal field.AsProperty icon
@@ -182,6 +196,12 @@ let formatPopulatedEditFields page (fields : Field list) tabs =
   |> List.map (pad tabs)
   |> List.reduce (fun field1 field2 -> sprintf "%s%s%s" field1 Environment.NewLine field2)
 
+let formatStaticFields page (fields : Field list) tabs =
+  fields
+  |> List.map (fieldToStaticHtml page)
+  |> List.map (pad tabs)
+  |> List.reduce (fun field1 field2 -> sprintf "%s%s%s" field1 Environment.NewLine field2)
+
 let formatEditFields (fields : Field list) tabs =
   fields
   |> List.map fieldToHtml
@@ -256,14 +276,18 @@ let post_edit_errored_%s errors (%s : %s) =
 
 let viewFormViewTemplate (page : Page) =
   sprintf """
-let get_%s =
+let get_%s = // todo (%s : %s) =
   base_html
     "%s"
     [
       base_header brand
-      //todo
+      common_static_form
+        "%s"
+        [
+%s
+        ]
     ]
-    scripts.common""" page.AsVal page.Name
+    scripts.common""" page.AsVal page.AsFormVal page.AsFormType page.Name page.Name (formatStaticFields page page.Fields 5)
 
 let listFormViewTemplate (page : Page) =
   sprintf """
