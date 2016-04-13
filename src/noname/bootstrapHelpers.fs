@@ -20,6 +20,7 @@ let navblock inner = divClass "cl-navblock" inner
 let menu_space inner = divClass "menu-space" inner
 let content inner = divClass "content" inner
 let container inner = divClass "container" inner
+let signup_container inner = divClass "sign-up-container" inner
 let mcontent inner = divClass "cl-mcont" inner
 let sidebar_logo inner = divClass "sidebar-logo" inner
 let logo inner = divClass "logo" inner
@@ -233,11 +234,29 @@ let errored_icon_password_text label' text' icon' errors =
 let common_form decription formElements =
   container [
     row [
-      block_flat [
-        header [ h3 decription ]
-        div [
-          form_horizontal [
-            content (formElements @ [form_group [ sm12 [ pull_right [ button_submit ] ] ] ])
+      mcontent [
+        block_flat [
+          header [ h3 decription ]
+          div [
+            form_horizontal [
+              content (formElements @ [form_group [ sm12 [ pull_right [ button_submit ] ] ] ])
+            ]
+          ]
+        ]
+      ]
+    ]
+  ]
+
+let common_submit_form decription formElements =
+  signup_container [
+    divClass "middle-sign-up" [
+      mcontent [
+        block_flat [
+          header [ h3 decription ]
+          div [
+            form_horizontal [
+              content (formElements @ [form_group [ sm12 [ pull_right [ button_submit ] ] ] ])
+            ]
           ]
         ]
       ]

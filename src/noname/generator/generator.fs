@@ -231,7 +231,7 @@ let get_submit_%s =
     "%s"
     [
       base_header brand
-      common_form
+      common_submit_form
         "%s"
         [
 %s
@@ -246,7 +246,7 @@ let post_submit_errored_%s errors (%s : %s) =
     "%s"
     [
       base_header brand
-      common_form
+      common_submit_form
         "%s"
         [
 %s
