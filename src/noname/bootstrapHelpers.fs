@@ -172,16 +172,19 @@ let label_textarea label' text' = base_label_textarea label' text' []
 let label_select label' options = base_label_select label' options None []
 let label_select_selected label' options selected = base_label_select label' options selected []
 
-let table_bordered ths (rows : 'a list) (toTd : 'a -> Xml list) =
-  let table_bordered inner = tableClass "table table-bordered table-hover" inner
+let table_bordered_linked_tr ths (rows : 'a list) (toTd : 'a -> Xml list) (toTr : 'a -> (Xml list -> Xml)) =
+  let table_bordered inner = tableClass "table table-bordered" inner
   table_responsive [
     table_bordered [
       thead [
         tr (ths |> List.map (fun th' -> th [text th']))
       ]
-      tbody (rows |> List.map (fun row' -> tr (toTd row')))
+      tbody (rows |> List.map (fun row' -> (toTr row') (toTd row')))
     ]
   ]
+
+let table_bordered ths (rows : 'a list) (toTd : 'a -> Xml list) =
+  table_bordered_linked_tr ths rows toTd (fun _ -> tr)
 
 let icon_label_text label' text' icon' =
   form_group [

@@ -292,13 +292,44 @@ let get_%s = // todo (%s : %s) =
 let listFormViewTemplate (page : Page) =
   sprintf """
 let get_list_%s =
+  let applications = [1..4]
+  //let toTr (app : Application) inner =
+  let toTr _ inner =
+    trLink "" inner
+    //trLink (paths.application_link user app.Id) inner
+
+  //let toTd (app : Application) =
+  let toTd _ =
+    [
+      td [ text (string "app.Name") ]
+      td [ text (string "app.Owners") ]
+      td [ text (string "app.Developers") ]
+    ]
+
   base_html
     "List %s"
     [
       base_header brand
-      //todo
+      container [
+        row [
+          mcontent [
+            block_flat [
+              header [ h3Inner "TODO" [ pull_right [ text "BUTTONS" ] ] ]
+              content [
+                table_bordered_linked_tr
+                  [
+                    "Name"
+                    "Owners"
+                    "Developers"
+                  ]
+                  applications toTd toTr
+              ]
+            ]
+          ]
+        ]
+      ]
     ]
-    scripts.common""" page.AsVal page.Name
+    scripts.datatable_bundle""" page.AsVal page.Name
 
 let submitFormViewTemplate (page : Page) =
   sprintf """
