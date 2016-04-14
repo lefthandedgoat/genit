@@ -77,7 +77,7 @@
     <Compile Include="generated/generated_html.fs" />
     <Compile Include="generated/generated_types.fs" />
     <Compile Include="generated/generated_forms.fs" />
-    <Compile Include="generated/generated_data.fs" />
+    <Compile Include="generated/generated_data_access.fs" />
     <Compile Include="generated/generated_validation.fs" />
     <Compile Include="generated/generated_views.fs" />
     <Compile Include="generated/generated_handlers.fs" />

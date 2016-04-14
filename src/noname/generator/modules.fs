@@ -80,6 +80,7 @@ open generated_views
 open generated_forms
 open generated_types
 open generated_validation
+open generated_data_access
 open forms
 
 %s""" guts
@@ -89,8 +90,8 @@ let generated_types_template guts =
 
 %s""" guts
 
-let generated_data_template connectionString guts =
-  sprintf """module generated_data
+let generated_data_access_template connectionString guts =
+  sprintf """module generated_data_access
 
 open generated_types
 open generated_forms

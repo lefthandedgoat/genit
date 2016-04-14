@@ -1,4 +1,4 @@
-module generated_data
+module generated_data_access
 
 open generated_types
 open generated_forms

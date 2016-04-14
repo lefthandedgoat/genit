@@ -475,11 +475,11 @@ let handlerTemplate page =
           let validation = validate%s %s
           if validation = [] then
             let form = convert%s %s
-            let message = sprintf "form: %s" form
-            OK message
+            let id = insert_%s form
+            OK (string id)
           else
             OK (post_create_errored_%s validation %s))
-      ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal "%A" page.AsVal page.AsFormVal
+      ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsType page.AsVal page.AsFormVal
     | Submit    ->
       sprintf """let submit_%s =
     choose
