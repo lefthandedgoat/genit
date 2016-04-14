@@ -540,7 +540,7 @@ let handlerTemplate page =
           if validation = [] then
             let converted = convert%s %s
             let id = insert_%s converted
-            OK (string id)
+            FOUND "/home"
           else
             OK (post_submit_errored_%s validation %s))
       ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsType page.AsVal page.AsFormVal
