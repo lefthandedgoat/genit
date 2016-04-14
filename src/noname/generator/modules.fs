@@ -79,6 +79,7 @@ let generated_handlers_template guts =
 open Suave
 open Suave.Filters
 open Suave.Successful
+open Suave.Redirection
 open Suave.Operators
 open generated_views
 open generated_forms
