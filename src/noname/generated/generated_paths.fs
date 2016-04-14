@@ -10,7 +10,7 @@ open Suave.ServerErrors
 open forms
 open generated_handlers
 
-type IntPath = PrintfFormat<(string -> string),unit,string,string,int>
+type IntPath = PrintfFormat<(int -> string),unit,string,string,int>
 
 let generated_routes =
   [
