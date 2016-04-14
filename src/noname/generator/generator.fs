@@ -97,12 +97,13 @@ let fieldToProperty field =
   | Email      -> "string"
   | Name       -> "string"
   | Password   -> "string"
-  | Dropdown _ -> "int"
+  | Dropdown _ -> "int16"
 
 let fieldToConvertProperty page field =
   let property = sprintf "%s.%s" page.AsFormVal field.AsProperty
   let string () = sprintf """%s = %s""" field.AsProperty property
   let int () = sprintf """%s = int %s""" field.AsProperty property
+  let int16 () = sprintf """%s = int16 %s""" field.AsProperty property
   let int64 () = sprintf """%s = int64 %s""" field.AsProperty property
   let double () = sprintf """%s = double %s""" field.AsProperty property
   let datetime () = sprintf """%s = System.DateTime.Parse(%s)""" field.AsProperty property
@@ -117,7 +118,7 @@ let fieldToConvertProperty page field =
   | Name       -> string ()
   | Phone      -> string ()
   | Password   -> string ()
-  | Dropdown _ -> int ()
+  | Dropdown _ -> int16 ()
 
 let fieldToValidation (field : Field) page =
   let template validation = sprintf """%s "%s" %s.%s""" validation field.Name page.AsFormVal field.AsProperty

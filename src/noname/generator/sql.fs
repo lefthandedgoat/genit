@@ -82,6 +82,38 @@ let createTableTemplates (site : Site) =
   |> List.map (createTableTemplate site.AsDatabase)
   |> flatten
 
+let conversionTemplate field =
+  match field.FieldType with
+  | Id           -> "getInt64"
+  | Text         -> "getString"
+  | Paragraph    -> "getString"
+  | Number       -> "getInt32"
+  | Decimal      -> "getDouble"
+  | Date         -> "getDateTime"
+  | Phone        -> "getString"
+  | Email        -> "getString"
+  | Name         -> "getString"
+  | Password     -> "getString"
+  | Dropdown (_) -> "getInt16"
+
+let dataReaderPropertyTemplate field =
+ sprintf """%s = %s "%s" reader""" field.AsProperty (conversionTemplate field) field.AsDBColumn
+
+let dataReaderPropertiesTemplate page =
+  page.Fields
+  |> List.map (fun field -> dataReaderPropertyTemplate field)
+  |> List.map (pad 3)
+  |> flatten
+
+let dataReaderTemplate page =
+  sprintf """let to%s (reader : NpgsqlDataReader) : %s list =
+  [ while reader.Read() do
+    yield {
+%s
+    }
+  ]
+  """ page.AsType page.AsType (dataReaderPropertiesTemplate page)
+
 let insertTemplate site page =
   ""
 
@@ -117,7 +149,10 @@ let createQueriesForPage site page =
     | Submit    -> insertTemplate site page
     | Jumbotron -> ""
 
-  createQueriesForPage page.PageMode
+  let queries = createQueriesForPage page.PageMode
+  if page.PageMode = CVEL || page.PageMode = View || page.PageMode = List
+  then sprintf "%s%s%s" (dataReaderTemplate page) System.Environment.NewLine queries
+  else queries
 
 let createQueries (site : Site) =
   site.Pages

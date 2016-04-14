@@ -29,11 +29,17 @@ let read toFunc (command : NpgsqlCommand) =
   use reader = command.ExecuteReader()
   toFunc reader
 
+let getDouble name (reader : NpgsqlDataReader) =
+  reader.GetDouble(reader.GetOrdinal(name))
+
 let getInt16 name (reader : NpgsqlDataReader) =
   reader.GetInt16(reader.GetOrdinal(name))
 
 let getInt32 name (reader : NpgsqlDataReader) =
   reader.GetInt32(reader.GetOrdinal(name))
+
+let getInt64 name (reader : NpgsqlDataReader) =
+  reader.GetInt64(reader.GetOrdinal(name))
 
 let getString name (reader : NpgsqlDataReader) =
   reader.GetString(reader.GetOrdinal(name))
