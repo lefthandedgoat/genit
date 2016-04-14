@@ -17,6 +17,7 @@ let bodyClass class' inner = tag "body" ["class",class'] (flatten inner)
 let divId id = divAttr ["id", id]
 let divClass c = divAttr ["class", c]
 let divIdClass id c = divAttr ["id", id; "class", c]
+let wrapperClass class' inner = divIdClass "cl-wrapper" class' inner
 let h1Class class' xml = tag "h1" ["class",class'] xml
 let h1 s = tag "h1" [] (text s)
 let h2Class class' xml = tag "h2" ["class",class'] xml
@@ -60,7 +61,7 @@ let legend txt = tag "legend" [] (text txt)
 let headerId id inner = tag "header" ["id", id] (flatten inner)
 let footer inner = tag "footer" [] (flatten inner)
 let submitInput value = inputAttr ["type", "submit"; "value", value]
-let hiddenInput name value =  inputAttr ["type", "hidden"; "name", name; "value", value]
+let hiddenInput name value =  inputAttr ["type", "hidden"; "name", name; "value", (string value)]
 
 let tableClass class' inner = tag "table" ["class", class'] (flatten inner)
 let tbodyClass class' inner = tag "tbody" ["class", class'] (flatten inner)
@@ -83,7 +84,8 @@ let textareaClassPlaceholder class' placeholder text' = tag "textarea" ["class",
 let textareaClassPlaceholderName class' name placeholder text' = tag "textarea" ["class", class'; "name", name; "placeholder", placeholder; "rows", "4"] (text text')
 let sectionId id inner = tag "section" ["id", id] (flatten inner)
 let navClass class' inner = tag "nav" ["class",class'] (flatten inner)
-let static' name value = tag "p" ["class", "form-control-static"; "data-qa-name", name] (text value)
+let static' name (value : obj) = tag "p" ["class", "form-control-static"; "data-qa-name", name] (text (string value))
+let page_error inner = divClass "page-error" inner
 
 let base_head title' =
   head [
@@ -109,3 +111,42 @@ let base_html title content scripts =
     ]
     |> xmlToString
   sprintf "<!DOCTYPE html>%s" html'
+
+let error_html title content scripts =
+  let html' =
+    html [
+      base_head title
+      bodyClass "texture" [
+        wrapperClass "error-container" content
+      ]
+      scripts
+    ]
+    |> xmlToString
+  sprintf "<!DOCTYPE html>%s" html'
+
+let error_404 =
+  error_html
+    "Page not found"
+    [
+      page_error [
+        h1Class "number text-center" (text "404")
+        h2Class "description text-center" (text "Sorry, but this page does not exist!")
+        h3ClassInner "text-center" "Would you like to go " [ aHref "/" [ text "home?" ] ]
+        divClass "text-center copy" [ text "&copy; 2015 ";  aHref "/" [ text "turtletest" ] ]
+      ]
+    ]
+    emptyText
+
+let error_500 =
+  error_html
+    "Oops!"
+    [
+      page_error [
+        h1Class "number text-center" (text "500")
+        h2Class "description text-center" (text "There was a small problem =(.")
+        h3Class "text-center" (text "We're trying to fix it, please try again later.")
+        h3ClassInner "text-center" "Would you like to go " [ aHref "/" [ text "home?" ] ]
+        divClass "text-center copy" [ text "&copy; 2015 ";  aHref "/" [ text "turtletest" ] ]
+      ]
+    ]
+    emptyText

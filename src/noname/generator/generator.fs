@@ -39,10 +39,10 @@ let fieldToHtml (field : Field) =
   | Dropdown options -> sprintf """label_select "%s" %A """ field.Name (zipOptions options)
 
 let fieldToPopulatedHtml page (field : Field) =
-  let template tag = sprintf """%s "%s" "%s.%s" """ tag field.Name page.AsFormVal field.AsProperty
-  let iconTemplate tag icon = sprintf """%s "%s" "%s.%s" "%s" """ tag field.Name page.AsFormVal field.AsProperty icon
+  let template tag = sprintf """%s "%s" %s.%s """ tag field.Name page.AsVal field.AsProperty
+  let iconTemplate tag icon = sprintf """%s "%s" %s.%s "%s" """ tag field.Name page.AsVal field.AsProperty icon
   match field.FieldType with
-  | Id         -> sprintf """hiddenInput "%s" "-1" """ field.AsProperty //todo page.AsFormVal field.AsProperty
+  | Id         -> sprintf """hiddenInput "%s" %s.%s """ field.AsProperty page.AsVal field.AsProperty
   | Text       -> template "label_text"
   | Paragraph  -> template "label_textarea"
   | Number     -> template "label_text"
@@ -52,10 +52,10 @@ let fieldToPopulatedHtml page (field : Field) =
   | Email      -> iconTemplate "icon_label_text" "envelope"
   | Name       -> iconTemplate "icon_label_text" "user"
   | Password   -> iconTemplate "icon_password_text" "lock"
-  | Dropdown options -> sprintf """label_select_selected "%s" %A (Some "%s.%s")""" field.Name (zipOptions options) page.AsFormVal field.AsProperty
+  | Dropdown options -> sprintf """label_select_selected "%s" %A (Some %s.%s)""" field.Name (zipOptions options) page.AsVal field.AsProperty
 
 let fieldToStaticHtml page (field : Field) =
-  let template tag = sprintf """%s "%s" "%s.%s" """ tag field.Name page.AsFormVal field.AsProperty
+  let template tag = sprintf """%s "%s" %s.%s """ tag field.Name page.AsVal field.AsProperty
   match field.FieldType with
   | Id         -> ""
   | Text       -> template "label_static"
@@ -67,13 +67,13 @@ let fieldToStaticHtml page (field : Field) =
   | Email      -> template "label_static"
   | Name       -> template "label_static"
   | Password   -> template "label_static"
-  | Dropdown _ -> sprintf """label_static "%s" "%s.%s" """ field.Name page.AsFormVal field.AsProperty
+  | Dropdown _ -> sprintf """label_static "%s" %s.%s """ field.Name page.AsVal field.AsProperty
 
 let fieldToErroredHtml page (field : Field) =
-  let template tag = sprintf """%s "%s" %s.%s errors""" tag field.Name page.AsFormVal field.AsProperty
+  let template tag = sprintf """%s "%s" (string %s.%s) errors""" tag field.Name page.AsFormVal field.AsProperty
   let iconTemplate tag icon = sprintf """%s "%s" %s.%s "%s" errors""" tag field.Name page.AsFormVal field.AsProperty icon
   match field.FieldType with
-  | Id         -> sprintf """hiddenInput "%s" "%s.%s" """ field.AsProperty page.AsFormVal field.AsProperty
+  | Id         -> sprintf """hiddenInput "%s" %s.%s """ field.AsProperty page.AsFormVal field.AsProperty
   | Text       -> template "errored_label_text"
   | Paragraph  -> template "errored_label_textarea"
   | Number     -> template "errored_label_text"
@@ -249,7 +249,7 @@ let post_create_errored_%s errors (%s : %s) =
 
 let editFormViewTemplate (page : Page) =
   sprintf """
-let get_edit_%s =
+let get_edit_%s (%s : %s) =
   base_html
     "Edit %s"
     [
@@ -260,7 +260,7 @@ let get_edit_%s =
 %s
         ]
     ]
-    scripts.common""" page.AsVal page.Name page.Name (formatPopulatedEditFields page page.Fields 5)
+    scripts.common""" page.AsVal page.AsVal page.AsType page.Name page.Name (formatPopulatedEditFields page page.Fields 5)
 
 let editErroredFormViewTemplate (page : Page) =
   sprintf """
@@ -279,7 +279,7 @@ let post_edit_errored_%s errors (%s : %s) =
 
 let viewFormViewTemplate (page : Page) =
   sprintf """
-let get_%s = // todo (%s : %s) =
+let get_%s (%s : %s) =
   base_html
     "%s"
     [
@@ -290,7 +290,7 @@ let get_%s = // todo (%s : %s) =
 %s
         ]
     ]
-    scripts.common""" page.AsVal page.AsFormVal page.AsFormType page.Name page.Name (formatStaticFields page page.Fields 5)
+    scripts.common""" page.AsVal page.AsVal page.AsType page.Name page.Name (formatStaticFields page page.Fields 5)
 
 let fieldsToHeaders (page : Page) =
     page.Fields
@@ -482,7 +482,11 @@ let handlerTemplate page =
       sprintf """let edit_%s =
     choose
       [
-        GET >=> OK get_edit_%s
+        GET >=> warbler (fun _ ->
+          let data = tryById_%s 1
+          match data with
+          | None -> OK error_404
+          | Some(data) -> OK <| get_edit_%s data)
         POST >=> bindToForm %s (fun %s ->
           let validation = validate%s %s
           if validation = [] then
@@ -491,9 +495,14 @@ let handlerTemplate page =
             OK message
           else
             OK (post_edit_errored_%s validation %s))
-      ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal "%A" page.AsVal page.AsFormVal
+      ]""" page.AsVal page.AsType page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal "%A" page.AsVal page.AsFormVal
     | View      ->
-      sprintf """let %s = GET >=> OK get_%s """ page.AsVal page.AsVal
+      sprintf """let %s =
+  GET >=> warbler (fun _ ->
+    let data = tryById_%s 1
+    match data with
+    | None -> OK error_404
+    | Some(data) -> OK <| get_%s data)""" page.AsVal page.AsType page.AsVal
     | List      ->
       sprintf """let list_%s = GET >=> warbler (fun _ -> OK <| get_list_%s ())""" page.AsVal page.AsVal
     | Jumbotron ->

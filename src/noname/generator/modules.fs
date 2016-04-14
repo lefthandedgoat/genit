@@ -83,6 +83,8 @@ open generated_forms
 open generated_types
 open generated_validation
 open generated_data_access
+open htmlHelpers
+
 open forms
 
 %s""" guts

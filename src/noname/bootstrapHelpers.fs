@@ -160,7 +160,7 @@ let base_label_select label' (options : (string * string) list) (selected : 'a o
 let options_data_section (options : (string * string) list) data_section =
   (options |> List.map (fun (id, value) -> option_data_section id data_section value))
 
-let label_static label' value =
+let label_static label' (value : 'a) =
   form_group_control_label_sm8 label' [
     static' label' value
   ]
