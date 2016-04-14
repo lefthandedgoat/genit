@@ -445,32 +445,38 @@ let pageLinkTemplate (page : Page) =
   pageLinkTemplate page page.PageMode
 
 let pathTemplate page =
-  let template extra href = sprintf """let path_%s%s = "%s" """ extra page.AsVal href
+  let template extra href withId =
+    match withId with
+    | false -> sprintf """let path_%s%s = "%s" """ extra page.AsVal href
+    | true -> sprintf """let path_%s%s : IntPath = "%s/%s" """ extra page.AsVal href "%i"
   let rec pathTemplate page pageMode =
     match pageMode with
     | CVEL      -> [Create; View; Edit; List] |> List.map (pathTemplate page) |> flatten
-    | Create    -> template "create_" page.AsCreateHref
-    | Edit      -> template "edit_" page.AsEditHref
-    | View      -> template "" page.AsViewHref //add id
-    | List      -> template "list_" page.AsListHref
-    | Submit    -> template "submit_" page.AsCreateHref
-    | Login     -> template "login_" page.AsCreateHref
-    | Jumbotron -> template "" page.AsViewHref
+    | Create    -> template "create_" page.AsCreateHref false
+    | Edit      -> template "edit_" page.AsEditHref true
+    | View      -> template "" page.AsViewHref true
+    | List      -> template "list_" page.AsListHref false
+    | Submit    -> template "submit_" page.AsCreateHref false
+    | Login     -> template "login_" page.AsCreateHref false
+    | Jumbotron -> template "" page.AsViewHref false
 
   pathTemplate page page.PageMode
 
 let routeTemplate page =
-  let template extra = sprintf """path path_%s%s >=> %s%s""" extra page.AsVal extra page.AsVal |> pad 2
+  let template extra withId =
+    match withId with
+    | false -> sprintf """path path_%s%s >=> %s%s""" extra page.AsVal extra page.AsVal |> pad 2
+    | true -> sprintf """pathScan path_%s%s %s%s""" extra page.AsVal extra page.AsVal |> pad 2
   let rec routeTemplate page pageMode =
     match pageMode with
     | CVEL      -> [Create; View; Edit; List] |> List.map (routeTemplate page) |> flatten
-    | Create    -> template "create_"
-    | Edit      -> template "edit_"
-    | View      -> template ""
-    | List      -> template "list_"
-    | Submit    -> template "submit_"
-    | Login     -> template "login_"
-    | Jumbotron -> template ""
+    | Create    -> template "create_" false
+    | Edit      -> template "edit_" true
+    | View      -> template "" true
+    | List      -> template "list_" false
+    | Submit    -> template "submit_" false
+    | Login     -> template "login_" false
+    | Jumbotron -> template "" false
 
   routeTemplate page page.PageMode
 
@@ -479,11 +485,11 @@ let handlerTemplate page =
     match pageMode with
     | CVEL -> [Create; View; Edit; List] |> List.map (handlerTemplate page) |> flatten
     | Edit      ->
-      sprintf """let edit_%s =
+      sprintf """let edit_%s id =
     choose
       [
         GET >=> warbler (fun _ ->
-          let data = tryById_%s 1
+          let data = tryById_%s id
           match data with
           | None -> OK error_404
           | Some(data) -> OK <| get_edit_%s data)
@@ -497,9 +503,9 @@ let handlerTemplate page =
             OK (post_edit_errored_%s validation %s))
       ]""" page.AsVal page.AsType page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal "%A" page.AsVal page.AsFormVal
     | View      ->
-      sprintf """let %s =
+      sprintf """let %s id =
   GET >=> warbler (fun _ ->
-    let data = tryById_%s 1
+    let data = tryById_%s id
     match data with
     | None -> OK error_404
     | Some(data) -> OK <| get_%s data)""" page.AsVal page.AsType page.AsVal
