@@ -646,7 +646,7 @@ let generate (site : Site) =
   write (destination "generated_unittests.fs") generated_unittests_result
   write (destination "generated_uitests.fs") generated_uitests_result
 
-  write (destination "dbname.txt") site.AsDatabase
+  write (destination "generated_dbname.txt") site.AsDatabase
   write (destination "generated_sql_createdb.sql") generated_sql_createdb_result
   write (destination "generated_sql_initialSetup.sql") generated_sql_initialSetup_result
   write (destination "generated_sql_createTables.sql") generated_sql_createTables_result

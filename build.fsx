@@ -128,7 +128,7 @@ Target "Generate" (fun _ -> execProcess "generate")
 Target "Test" (fun _ -> execProcess "test")
 
 Target "CreateDB" (fun _ ->
-  let dbname = System.IO.File.ReadAllText("src/noname/generated/dbname.txt")
+  let dbname = System.IO.File.ReadAllText("src/noname/generated/generated_dbname.txt")
 
   let command = "psql"
   let args = "-a -f src/noname/generated/generated_sql_createdb.sql"
