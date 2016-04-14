@@ -45,6 +45,8 @@ open htmlHelpers
 open bootstrapHelpers
 open generated_html
 open generated_forms
+open generated_data_access
+open generated_types
 
 let brand = "%s"
 %s""" brand guts

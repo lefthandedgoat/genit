@@ -300,21 +300,19 @@ let fieldsToHeaders (page : Page) =
 
 let fieldsToTd (page : Page) =
     page.Fields
-    |> List.map (fun field -> sprintf """td [ text (string "%s.%s") ]""" page.AsVal field.AsProperty)
+    |> List.map (fun field -> sprintf """td [ text (string %s.%s) ]""" page.AsVal field.AsProperty)
     |> List.map (pad 4)
     |> flatten
 
 let listFormViewTemplate (page : Page) =
   sprintf """
-let get_list_%s =
-  let %ss = [1..4]
-  //let toTr (%s : %s) inner =
-  let toTr _ inner =
+let get_list_%s () =
+  let %ss = getMany_%s ()
+  let toTr (%s : %s) inner =
     trLink "" inner
     //trLink (paths.application_link user app.Id) inner
 
-  //let toTd (%s : %s) =
-  let toTd _ =
+  let toTd (%s : %s) =
     [
 %s
     ]
@@ -340,7 +338,7 @@ let get_list_%s =
         ]
       ]
     ]
-    scripts.datatable_bundle""" page.AsVal page.AsVal page.AsVal page.AsType page.AsVal page.AsType (fieldsToTd page) page.Name page.Name page.AsCreateHref (fieldsToHeaders page) page.AsVal
+    scripts.datatable_bundle""" page.AsVal page.AsVal page.AsType page.AsVal page.AsType page.AsVal page.AsType (fieldsToTd page) page.Name page.Name page.AsCreateHref (fieldsToHeaders page) page.AsVal
 
 let submitFormViewTemplate (page : Page) =
   sprintf """
@@ -497,7 +495,7 @@ let handlerTemplate page =
     | View      ->
       sprintf """let %s = GET >=> OK get_%s """ page.AsVal page.AsVal
     | List      ->
-      sprintf """let list_%s = GET >=> OK get_list_%s""" page.AsVal page.AsVal
+      sprintf """let list_%s = GET >=> warbler (fun _ -> OK <| get_list_%s ())""" page.AsVal page.AsVal
     | Jumbotron ->
       sprintf """let %s = GET >=> OK get_%s""" page.AsVal page.AsVal
     | Create    ->
