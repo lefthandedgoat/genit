@@ -22,16 +22,11 @@ let zipOptions (options : string list) =
     |> List.map (fun (i, s) -> string i, s)
   ["0", ""] @ results
 
-let repeat (value : string) times = [1..times] |> List.map (fun _ -> value) |> List.reduce (+)
-let flatten values =
-  if values = []
-  then ""
-  else values |> List.reduce (fun value1 value2 -> sprintf "%s%s%s" value1 Environment.NewLine value2)
-
 let fieldToHtml (field : Field) =
   let template tag = sprintf """%s "%s" "" """ tag field.Name
   let iconTemplate tag icon = sprintf """%s "%s" "" "%s" """ tag field.Name icon
   match field.FieldType with
+  | Id         -> template "label_text"
   | Text       -> template "label_text"
   | Paragraph  -> template "label_textarea"
   | Number     -> template "label_text"
@@ -47,6 +42,7 @@ let fieldToPopulatedHtml page (field : Field) =
   let template tag = sprintf """%s "%s" "%s.%s" """ tag field.Name page.AsFormVal field.AsProperty
   let iconTemplate tag icon = sprintf """%s "%s" "%s.%s" "%s" """ tag field.Name page.AsFormVal field.AsProperty icon
   match field.FieldType with
+  | Id         -> template "label_text"
   | Text       -> template "label_text"
   | Paragraph  -> template "label_textarea"
   | Number     -> template "label_text"
@@ -61,6 +57,7 @@ let fieldToPopulatedHtml page (field : Field) =
 let fieldToStaticHtml page (field : Field) =
   let template tag = sprintf """%s "%s" "%s.%s" """ tag field.Name page.AsFormVal field.AsProperty
   match field.FieldType with
+  | Id         -> template "label_static"
   | Text       -> template "label_static"
   | Paragraph  -> template "label_static"
   | Number     -> template "label_static"
@@ -76,6 +73,7 @@ let fieldToErroredHtml page (field : Field) =
   let template tag = sprintf """%s "%s" %s.%s errors""" tag field.Name page.AsFormVal field.AsProperty
   let iconTemplate tag icon = sprintf """%s "%s" %s.%s "%s" errors""" tag field.Name page.AsFormVal field.AsProperty icon
   match field.FieldType with
+  | Id         -> template "errored_label_text"
   | Text       -> template "errored_label_text"
   | Paragraph  -> template "errored_label_textarea"
   | Number     -> template "errored_label_text"
@@ -89,6 +87,7 @@ let fieldToErroredHtml page (field : Field) =
 
 let fieldToProperty field =
   match field.FieldType with
+  | Id         -> "int64"
   | Text       -> "string"
   | Paragraph  -> "string"
   | Number     -> "int"
@@ -104,9 +103,11 @@ let fieldToConvertProperty page field =
   let property = sprintf "%s.%s" page.AsFormVal field.AsProperty
   let string () = sprintf """%s = %s""" field.AsProperty property
   let int () = sprintf """%s = int %s""" field.AsProperty property
+  let int64 () = sprintf """%s = int64 %s""" field.AsProperty property
   let double () = sprintf """%s = double %s""" field.AsProperty property
   let datetime () = sprintf """%s = System.DateTime.Parse(%s)""" field.AsProperty property
   match field.FieldType with
+  | Id         -> int64 ()
   | Text       -> string ()
   | Paragraph  -> string ()
   | Number     -> int ()
@@ -121,6 +122,7 @@ let fieldToConvertProperty page field =
 let fieldToValidation (field : Field) page =
   let template validation = sprintf """%s "%s" %s.%s""" validation field.Name page.AsFormVal field.AsProperty
   match field.FieldType with
+  | Id         -> None
   | Text       -> None
   | Paragraph  -> None
   | Number     -> Some (template "validate_integer")
@@ -135,6 +137,7 @@ let fieldToValidation (field : Field) page =
 let fieldToTestName (field : Field) =
   let template text = sprintf """"%s %s" """ field.Name text
   match field.FieldType with
+  | Id         -> None
   | Text       -> None
   | Paragraph  -> None
   | Number     -> Some (template "must be a valid integer")
@@ -149,6 +152,7 @@ let fieldToTestName (field : Field) =
 let fieldToTestBody (field : Field) =
   let template text = sprintf """displayed "%s %s" """ field.Name text
   match field.FieldType with
+  | Id         -> None
   | Text       -> None
   | Paragraph  -> None
   | Number     -> Some (template "is not a valid number (int)")
@@ -163,7 +167,7 @@ let fieldToTestBody (field : Field) =
 let attributeToValidation field page =
   let property = sprintf "%s.%s" page.AsFormVal field.AsProperty
   match field.Attribute with
-  | Id         -> None
+  | PK         -> None
   | Null       -> None
   | Required   -> Some (sprintf """validate_required "%s" %s""" field.Name property)
   | Min(min)   -> Some (sprintf """validate_min "%s" %s %i""" field.Name property min)
@@ -172,7 +176,7 @@ let attributeToValidation field page =
 
 let attributeToTestName field =
   match field.Attribute with
-  | Id         -> None
+  | PK         -> None
   | Null       -> None
   | Required   -> Some (sprintf """"%s is required" """ field.Name)
   | Min(min)   -> Some (sprintf """"%s must be greater than %i" """ field.Name min)
@@ -181,14 +185,12 @@ let attributeToTestName field =
 
 let attributeToTestBody field =
   match field.Attribute with
-  | Id         -> None
+  | PK         -> None
   | Null       -> None
   | Required   -> Some (sprintf """displayed "%s is required" """ field.Name)
   | Min(min)   -> Some (sprintf """displayed "%s can not be below %i" """ field.Name min)
   | Max(max)   -> Some (sprintf """displayed "%s can not be above %i" """ field.Name max)
   | Range(min,max) -> Some (sprintf """displayed "%s must be between %i and %i" """ field.Name min max)
-
-let pad tabs field = sprintf "%s%s" (repeat "  " tabs) field
 
 let formatPopulatedEditFields page (fields : Field list) tabs =
   fields
@@ -632,7 +634,7 @@ let generate (site : Site) =
 
   let generated_sql_createdb_result = sql.createTemplate site.AsDatabase
   let generated_sql_initialSetup_result = sql.initialSetupTemplate site.AsDatabase
-  let generated_sql_createTables_result = sql.createTablesTemplate
+  let generated_sql_createTables_result = sql.createTableTemplates site
 
   write (destination "generated_html.fs") generated_html_result
   write (destination "generated_views.fs") generated_views_result

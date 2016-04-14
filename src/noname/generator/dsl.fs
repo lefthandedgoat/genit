@@ -2,6 +2,18 @@ module dsl
 
 open System
 
+let flatten values =
+  if values = []
+  then ""
+  else values |> List.reduce (fun value1 value2 -> sprintf "%s%s%s" value1 Environment.NewLine value2)
+
+let flattenWith delimeter values =
+  if values = []
+  then ""
+  else values |> List.reduce (fun value1 value2 -> sprintf "%s%s%s%s" value1 delimeter Environment.NewLine value2)
+
+let repeat (value : string) times = [1..times] |> List.map (fun _ -> value) |> List.reduce (+)
+let pad tabs field = sprintf "%s%s" (repeat "  " tabs) field
 let clean (value : string) = value.Replace("'", "").Replace("\"", "").Replace("-", "")
 let lower (value : string) = value.ToLower()
 let upperFirst (value : string) = Char.ToUpper(value.[0]).ToString() + value.Substring(1)
@@ -11,6 +23,7 @@ let spaceToUnderscore (value : string) = value.Replace(" ", "_")
 let camelCase = spaceToNothing >> lowerFirst
 let typeCase = spaceToNothing >> upperFirst
 let form value = sprintf "%sForm" value
+let pluralize = sprintf "%ss" //trrrrble
 
 let to_val = camelCase
 let to_type = typeCase
@@ -24,6 +37,8 @@ let to_listHref = camelCase >> sprintf "/%s/list"
 let to_property = typeCase
 
 let to_database = clean >> lower >> spaceToUnderscore
+let to_tableName = clean >> lower >> spaceToUnderscore >> pluralize
+let to_dbColumn = clean >> lower >> spaceToUnderscore
 
 type PageMode =
   | CVEL
@@ -35,6 +50,7 @@ type PageMode =
   | Jumbotron
 
 type FieldType =
+  | Id
   | Text
   | Paragraph
   | Number
@@ -47,7 +63,7 @@ type FieldType =
   | Dropdown of options:string list
 
 type Attribute =
-  | Id
+  | PK
   | Null
   | Required
   | Min of value:int
@@ -60,9 +76,18 @@ type Field =
     FieldType : FieldType
     Attribute : Attribute
     AsProperty : string
+    AsDBColumn : string
   }
 
-let field name attribute fieldType = { Name = name; FieldType = fieldType; Attribute = attribute; AsProperty = to_property name }
+let field name attribute fieldType =
+  {
+    Name = name
+    FieldType = fieldType
+    Attribute = attribute
+    AsProperty = to_property name
+    AsDBColumn = to_dbColumn name
+  }
+
 let text name attribute = field name attribute Text
 let paragraph name attribute = field name attribute Paragraph
 let number name attribute = field name attribute Number
@@ -87,6 +112,7 @@ type Page =
     AsViewHref : string
     AsEditHref : string
     AsListHref : string
+    AsTableName : string
   }
 
 type Site =
@@ -121,6 +147,7 @@ let page name pageMode fields =
       AsViewHref = to_viewHref name
       AsEditHref = to_editHref name
       AsListHref = to_listHref name
+      AsTableName = to_tableName name
     }
 
   currentSite <- { currentSite with Pages = currentSite.Pages @ [page] }

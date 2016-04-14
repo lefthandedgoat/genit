@@ -1,5 +1,7 @@
 module sql
 
+open dsl
+
 let createTemplate dbname =
   sprintf """
 DROP DATABASE IF EXISTS %s;
@@ -17,16 +19,59 @@ GRANT USAGE ON SCHEMA {0} to {0};
 ALTER DEFAULT PRIVILEGES IN SCHEMA {0} GRANT SELECT ON TABLES TO {0};
 GRANT CONNECT ON DATABASE "{0}" to {0};""", dbname)
 
-let createTablesTemplate = "--placeholder"
+let columnTypeTemplate field =
+  match field.FieldType with
+  | Id           -> "SERIAL"
+  | Text         -> "varchar(1024)"
+  | Paragraph    -> "text"
+  | Number       -> "integer"
+  | Decimal      -> "decimal(12, 2)"
+  | Date         -> "timestamptz"
+  | Phone        -> "varchar(15)"
+  | Email        -> "varchar(128)"
+  | Name         -> "varchar(128)"
+  | Password     -> "varchar(60)"
+  | Dropdown (_) -> "smallint"
 
-let createTableTemplate2 (dbname : string) table = System.String.Format("""
-CREATE TABLE {0}.{1}(
-  user_id        SERIAL       PRIMARY KEY NOT NULL,
-  name           varchar(64)  NOT NULL UNIQUE,
-  email          varchar(256) NOT NULL UNIQUE,
-  password       varchar(60)  NOT NULL,
-  scheme         smallint     NOT NULL);
+//http://www.postgresql.org/docs/9.5/static/ddl-constraints.html
+let columnAttributesTemplate field =
+  match field.Attribute with
+  | PK              -> "PRIMARY KEY NOT NULL"
+  | Null            -> "NULL"
+  | Required        -> "NOT NULL"
+  | Min(min)        -> sprintf "CHECK (%s > %i)" field.AsDBColumn min
+  | Max(max)        -> sprintf "CHECK (%s < %i)" field.AsDBColumn max
+  | Range(min, max) -> sprintf "CHECK (%i < %s < %i)" min field.AsDBColumn max
 
-CREATE INDEX users_name ON turtletest.Users (name);
-CREATE INDEX users_email ON turtletest.Users (email);
-""", dbname, table)
+let columnTemplate (field : Field) =
+ sprintf "%s %s %s" field.AsDBColumn (columnTypeTemplate field) (columnAttributesTemplate field)
+
+let createColumns (page : Page) =
+  page.Fields
+  |> List.map columnTemplate
+  |> List.map (pad 1)
+  |> flattenWith ","
+
+let createTableTemplate (dbname : string) (page : Page) =
+  let columns = createColumns page
+  sprintf """
+CREATE TABLE %s.%s(
+%s
+);
+  """ dbname page.AsTableName columns
+
+let shouldICreateTable page =
+  match page.PageMode with
+  | CVEL
+  | Create
+  | Edit
+  | View
+  | List
+  | Submit    -> true
+  | Jumbotron -> false
+
+let createTableTemplates (site : Site) =
+  site.Pages
+  |> List.filter (fun page -> shouldICreateTable page)
+  |> List.map (createTableTemplate site.AsDatabase)
+  |> flatten
