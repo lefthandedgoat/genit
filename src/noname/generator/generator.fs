@@ -486,7 +486,8 @@ let handlerTemplate page =
   let rec handlerTemplate page pageMode =
     match pageMode with
     | CVEL -> [Create; View; Edit; List] |> List.map (handlerTemplate page) |> flatten
-    | Edit      ->
+    | Edit ->
+      let idField = page.Fields |> List.find (fun field -> field.FieldType = Id)
       sprintf """let edit_%s id =
     choose
       [
@@ -498,24 +499,24 @@ let handlerTemplate page =
         POST >=> bindToForm %s (fun %s ->
           let validation = validate%s %s
           if validation = [] then
-            let form = convert%s %s
-            let message = sprintf "form: %s" form
-            OK message
+            let converted = convert%s %s
+            update_%s converted
+            FOUND <| sprintf "%s" converted.%s
           else
             OK (post_edit_errored_%s validation %s))
-      ]""" page.AsVal page.AsType page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal "%A" page.AsVal page.AsFormVal
-    | View      ->
+      ]""" page.AsVal page.AsType page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsType page.AsViewHref idField.AsProperty page.AsVal page.AsFormVal
+    | View ->
       sprintf """let %s id =
   GET >=> warbler (fun _ ->
     let data = tryById_%s id
     match data with
     | None -> OK error_404
     | Some(data) -> OK <| get_%s data)""" page.AsVal page.AsType page.AsVal
-    | List      ->
+    | List ->
       sprintf """let list_%s = GET >=> warbler (fun _ -> OK <| get_list_%s ())""" page.AsVal page.AsVal
     | Jumbotron ->
       sprintf """let %s = GET >=> OK get_%s""" page.AsVal page.AsVal
-    | Create    ->
+    | Create ->
       sprintf """let create_%s =
     choose
       [
@@ -523,8 +524,8 @@ let handlerTemplate page =
         POST >=> bindToForm %s (fun %s ->
           let validation = validate%s %s
           if validation = [] then
-            let form = convert%s %s
-            let id = insert_%s form
+            let converted = convert%s %s
+            let id = insert_%s converted
             OK (string id)
           else
             OK (post_create_errored_%s validation %s))
@@ -537,8 +538,8 @@ let handlerTemplate page =
         POST >=> bindToForm %s (fun %s ->
           let validation = validate%s %s
           if validation = [] then
-            let form = convert%s %s
-            let id = insert_%s form
+            let converted = convert%s %s
+            let id = insert_%s converted
             OK (string id)
           else
             OK (post_submit_errored_%s validation %s))
@@ -551,8 +552,8 @@ let handlerTemplate page =
         POST >=> bindToForm %s (fun %s ->
           let validation = validate%s %s
           if validation = [] then
-            let form = convert%s %s
-            ignore form
+            let converted = convert%s %s
+            ignore converted
             OK ""
           else
             OK (post_login_errored_%s validation %s))

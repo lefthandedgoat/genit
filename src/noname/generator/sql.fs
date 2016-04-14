@@ -204,7 +204,6 @@ let updateColumns page =
 
 let updateParamsTemplate page =
   page.Fields
-  |> List.filter (fun field -> field.FieldType <> Id)
   |> List.map (fun field -> sprintf """|> param "%s" %s.%s""" field.AsDBColumn page.AsVal field.AsProperty)
   |> List.map (pad 1)
   |> flatten
