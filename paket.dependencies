@@ -4,3 +4,4 @@ nuget FAKE
 nuget Suave
 nuget Suave.Experimental
 nuget canopy
+nuget Npgsql
