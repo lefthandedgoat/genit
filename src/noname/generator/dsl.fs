@@ -30,9 +30,10 @@ let to_val = camelCase
 let to_type = typeCase
 let to_formVal = camelCase >> form
 let to_formType = typeCase >> form
+let to_href = camelCase >> sprintf "/%s"
 let to_createHref = camelCase >> sprintf "/%s/create"
-let to_viewHref = camelCase >> sprintf "/%s"
-let to_editHref = camelCase >> sprintf "/%s/edit"
+let to_viewHref = camelCase >> (fun page -> sprintf "/%s/%s" page "%i")
+let to_editHref = camelCase >> (fun page -> sprintf "/%s/edit/%s" page "%i")
 let to_listHref = camelCase >> sprintf "/%s/list"
 
 let to_property = typeCase
@@ -116,6 +117,7 @@ type Page =
     AsType : string
     AsFormVal : string
     AsFormType : string
+    AsHref : string
     AsCreateHref : string
     AsViewHref : string
     AsEditHref : string
@@ -152,6 +154,7 @@ let private page_ name pageMode tableName createTable fields =
       AsType = to_type name
       AsFormVal = to_formVal name
       AsFormType = to_formType name
+      AsHref = to_href name
       AsCreateHref = to_createHref name
       AsViewHref = to_viewHref name
       AsEditHref = to_editHref name

@@ -255,12 +255,12 @@ let common_form decription formElements =
     ]
   ]
 
-let common_static_form decription formElements =
+let common_static_form button decription formElements =
   container [
     row [
       mcontent [
         block_flat [
-          header [ h3 decription ]
+          header [ h3Inner decription [ pull_right button ] ]
           div [
             form_horizontal [
               content formElements

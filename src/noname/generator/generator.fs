@@ -278,19 +278,21 @@ let post_edit_errored_%s errors (%s : %s) =
     scripts.common""" page.AsVal page.AsFormVal page.AsFormType page.Name page.Name (formatErroredFields page page.Fields 5)
 
 let viewFormViewTemplate (page : Page) =
+  let idField = page.Fields |> List.find (fun field -> field.FieldType = Id)
   sprintf """
 let get_%s (%s : %s) =
+  let button = [ button_small_success (sprintf "%s" %s.%s) [ text "Edit"] ]
   base_html
     "%s"
     [
       base_header brand
-      common_static_form
+      common_static_form button
         "%s"
         [
 %s
         ]
     ]
-    scripts.common""" page.AsVal page.AsVal page.AsType page.Name page.Name (formatStaticFields page page.Fields 5)
+    scripts.common""" page.AsVal page.AsVal page.AsType page.AsEditHref page.AsVal idField.AsProperty page.Name page.Name (formatStaticFields page page.Fields 5)
 
 let fieldsToHeaders (page : Page) =
     page.Fields
@@ -305,12 +307,12 @@ let fieldsToTd (page : Page) =
     |> flatten
 
 let listFormViewTemplate (page : Page) =
+  let idField = page.Fields |> List.find (fun field -> field.FieldType = Id)
   sprintf """
 let get_list_%s () =
   let %ss = getMany_%s ()
   let toTr (%s : %s) inner =
-    trLink "" inner
-    //trLink (paths.application_link user app.Id) inner
+    trLink (sprintf "%s" %s.%s) inner
 
   let toTd (%s : %s) =
     [
@@ -338,7 +340,7 @@ let get_list_%s () =
         ]
       ]
     ]
-    scripts.datatable_bundle""" page.AsVal page.AsVal page.AsType page.AsVal page.AsType page.AsVal page.AsType (fieldsToTd page) page.Name page.Name page.AsCreateHref (fieldsToHeaders page) page.AsVal
+    scripts.datatable_bundle""" page.AsVal page.AsVal page.AsType page.AsVal page.AsType page.AsViewHref page.AsVal idField.AsProperty page.AsVal page.AsType (fieldsToTd page) page.Name page.Name page.AsCreateHref (fieldsToHeaders page) page.AsVal
 
 let submitFormViewTemplate (page : Page) =
   sprintf """
@@ -440,7 +442,7 @@ let pageLinkTemplate (page : Page) =
     | List      -> template page.AsListHref (sprintf "List %ss" page.Name)
     | Submit    -> template page.AsCreateHref page.Name
     | Login     -> template page.AsCreateHref page.Name
-    | Jumbotron -> template page.AsViewHref page.Name
+    | Jumbotron -> template page.AsHref page.Name
 
   pageLinkTemplate page page.PageMode
 
@@ -448,7 +450,7 @@ let pathTemplate page =
   let template extra href withId =
     match withId with
     | false -> sprintf """let path_%s%s = "%s" """ extra page.AsVal href
-    | true -> sprintf """let path_%s%s : IntPath = "%s/%s" """ extra page.AsVal href "%i"
+    | true -> sprintf """let path_%s%s : IntPath = "%s" """ extra page.AsVal href
   let rec pathTemplate page pageMode =
     match pageMode with
     | CVEL      -> [Create; View; Edit; List] |> List.map (pathTemplate page) |> flatten
@@ -458,7 +460,7 @@ let pathTemplate page =
     | List      -> template "list_" page.AsListHref false
     | Submit    -> template "submit_" page.AsCreateHref false
     | Login     -> template "login_" page.AsCreateHref false
-    | Jumbotron -> template "" page.AsViewHref false
+    | Jumbotron -> template "" page.AsHref false
 
   pathTemplate page page.PageMode
 
