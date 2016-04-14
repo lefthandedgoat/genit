@@ -43,12 +43,17 @@ let columnAttributesTemplate field =
   | Max(max)        -> sprintf "CHECK (%s < %i)" field.AsDBColumn max
   | Range(min, max) -> sprintf "CHECK (%i < %s < %i)" min field.AsDBColumn max
 
-let columnTemplate (field : Field) =
- sprintf "%s %s %s" field.AsDBColumn (columnTypeTemplate field) (columnAttributesTemplate field)
+let columnTemplate namePad typePad (field : Field) =
+ sprintf "%s %s %s" (rightPad namePad field.AsDBColumn) (rightPad typePad (columnTypeTemplate field)) (columnAttributesTemplate field)
 
 let createColumns (page : Page) =
+  let maxName = page.Fields |> List.map (fun field -> field.AsDBColumn.Length) |> List.max
+  let maxName = if maxName > 20 then maxName else 20
+  let maxType = page.Fields |> List.map (fun field -> (columnTypeTemplate field).Length) |> List.max
+  let maxType = if maxType > 20 then maxType else 20
+
   page.Fields
-  |> List.map columnTemplate
+  |> List.map (columnTemplate maxName maxType)
   |> List.map (pad 1)
   |> flattenWith ","
 

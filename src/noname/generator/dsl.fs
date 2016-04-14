@@ -14,6 +14,7 @@ let flattenWith delimeter values =
 
 let repeat (value : string) times = [1..times] |> List.map (fun _ -> value) |> List.reduce (+)
 let pad tabs field = sprintf "%s%s" (repeat "  " tabs) field
+let rightPad upto field = sprintf "%s%s" field (repeat " " (upto - field.Length))
 let clean (value : string) = value.Replace("'", "").Replace("\"", "").Replace("-", "")
 let lower (value : string) = value.ToLower()
 let upperFirst (value : string) = Char.ToUpper(value.[0]).ToString() + value.Substring(1)
