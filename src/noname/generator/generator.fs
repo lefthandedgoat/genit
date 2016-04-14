@@ -632,6 +632,8 @@ let generate (site : Site) =
   let uitests_results = site.Pages |> List.map uitestTemplate |> flatten
   let generated_uitests_result = generated_uitests_template uitests_results
 
+  let generated_data_result = generated_data_template (sql.createQueries site)
+
   let generated_sql_createdb_result = sql.createTemplate site.AsDatabase
   let generated_sql_initialSetup_result = sql.initialSetupTemplate site.AsDatabase
   let generated_sql_createTables_result = sql.createTableTemplates site
@@ -645,6 +647,8 @@ let generate (site : Site) =
   write (destination "generated_validation.fs") generated_validation_result
   write (destination "generated_unittests.fs") generated_unittests_result
   write (destination "generated_uitests.fs") generated_uitests_result
+
+  write (destination "generated_data.fs") generated_data_result
 
   write (destination "generated_dbname.txt") site.AsDatabase
   write (destination "generated_sql_createdb.sql") generated_sql_createdb_result

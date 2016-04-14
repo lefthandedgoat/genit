@@ -81,3 +81,6 @@ let createTableTemplates (site : Site) =
   |> List.filter (fun page -> page.CreateTable = CreateTable)
   |> List.map (createTableTemplate site.AsDatabase)
   |> flatten
+
+let createQueries (site : Site) =
+  ""

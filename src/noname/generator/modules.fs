@@ -89,6 +89,13 @@ let generated_types_template guts =
 
 %s""" guts
 
+let generated_data_template guts =
+  sprintf """module generated_data
+
+open generated_types
+
+%s""" guts
+
 let generated_forms_template guts =
   sprintf """module generated_forms
 
