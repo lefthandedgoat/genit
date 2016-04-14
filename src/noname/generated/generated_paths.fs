@@ -10,6 +10,4 @@ open Suave.ServerErrors
 open forms
 open generated_handlers
 
-let generated_routes =
-  [
-  ]
+type IntPath = PrintfFormat<(string -> string),unit,string,string,int>
