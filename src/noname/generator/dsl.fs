@@ -48,6 +48,7 @@ type PageMode =
   | View
   | List
   | Submit
+  | Login
   | Jumbotron
 
 type CreateTable =
@@ -163,13 +164,13 @@ let private page_ name pageMode tableName createTable fields =
 //precanned pages
 
 type Precanned =
-  | Home
-  | Register
-  | Login
+  | HomePage
+  | RegisterPage
+  | LoginPage
 
-let home = Home
-let registration = Register
-let login = Login
+let home = HomePage
+let registration = RegisterPage
+let login = LoginPage
 
 let precannedHome () =
   page_ "Home" Jumbotron "" DoNotCreateTable []
@@ -186,7 +187,7 @@ let precannedRegister () =
     ]
 
 let precannedLogin () =
-  page_ "Login" Submit "" DoNotCreateTable
+  page_ "Login" Login "" DoNotCreateTable
     [
       email "Email"
       password "Password"
@@ -194,9 +195,9 @@ let precannedLogin () =
 
 let basic precanned =
   match precanned with
-  | Home     -> precannedHome()
-  | Register -> precannedRegister()
-  | Login    -> precannedLogin()
+  | HomePage     -> precannedHome()
+  | RegisterPage -> precannedRegister()
+  | LoginPage    -> precannedLogin()
 
 let page name pageMode fields =
   //auto add id

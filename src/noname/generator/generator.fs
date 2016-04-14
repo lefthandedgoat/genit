@@ -372,6 +372,36 @@ let post_submit_errored_%s errors (%s : %s) =
     ]
     scripts.common""" page.AsVal page.AsFormVal page.AsFormType page.Name page.Name (formatErroredFields page page.Fields 5)
 
+let loginFormViewTemplate (page : Page) =
+  sprintf """
+let get_login_%s =
+  base_html
+    "%s"
+    [
+      base_header brand
+      common_submit_form
+        "%s"
+        [
+%s
+        ]
+    ]
+    scripts.common""" page.AsVal page.Name page.Name (formatEditFields page.Fields 5)
+
+let loginErroredFormViewTemplate (page : Page) =
+  sprintf """
+let post_login_errored_%s errors (%s : %s) =
+  base_html
+    "%s"
+    [
+      base_header brand
+      common_submit_form
+        "%s"
+        [
+%s
+        ]
+    ]
+    scripts.common""" page.AsVal page.AsFormVal page.AsFormType page.Name page.Name (formatErroredFields page page.Fields 5)
+
 let jumbotronViewTemplate (site : Site) (page : Page) =
   sprintf """
 let get_%s =
@@ -396,6 +426,7 @@ let viewTemplate site page =
     | View      -> viewFormViewTemplate page
     | List      -> listFormViewTemplate page
     | Submit    -> [submitFormViewTemplate page; submitErroredFormViewTemplate page] |> flatten
+    | Login     -> [loginFormViewTemplate page; loginErroredFormViewTemplate page] |> flatten
     | Jumbotron -> jumbotronViewTemplate site page
 
   viewTemplate site page page.PageMode
@@ -410,6 +441,7 @@ let pageLinkTemplate (page : Page) =
     | View      -> template page.AsViewHref page.Name
     | List      -> template page.AsListHref (sprintf "List %ss" page.Name)
     | Submit    -> template page.AsCreateHref page.Name
+    | Login     -> template page.AsCreateHref page.Name
     | Jumbotron -> template page.AsViewHref page.Name
 
   pageLinkTemplate page page.PageMode
@@ -424,6 +456,7 @@ let pathTemplate page =
     | View      -> template "" page.AsViewHref //add id
     | List      -> template "list_" page.AsListHref
     | Submit    -> template "submit_" page.AsCreateHref
+    | Login     -> template "login_" page.AsCreateHref
     | Jumbotron -> template "" page.AsViewHref
 
   pathTemplate page page.PageMode
@@ -438,6 +471,7 @@ let routeTemplate page =
     | View      -> template ""
     | List      -> template "list_"
     | Submit    -> template "submit_"
+    | Login     -> template "login_"
     | Jumbotron -> template ""
 
   routeTemplate page page.PageMode
@@ -494,6 +528,20 @@ let handlerTemplate page =
           else
             OK (post_submit_errored_%s validation %s))
       ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsType page.AsVal page.AsFormVal
+    | Login    ->
+      sprintf """let login_%s =
+    choose
+      [
+        GET >=> OK get_login_%s
+        POST >=> bindToForm %s (fun %s ->
+          let validation = validate%s %s
+          if validation = [] then
+            let form = convert%s %s
+            ignore form
+            OK ""
+          else
+            OK (post_login_errored_%s validation %s))
+      ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsVal page.AsFormVal
 
   handlerTemplate page page.PageMode
 

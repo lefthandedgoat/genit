@@ -79,6 +79,7 @@ let shouldICreateTable page =
   | View
   | List
   | Submit    -> true
+  | Login
   | Jumbotron -> false
 
 let createTableTemplates (site : Site) =
@@ -267,6 +268,7 @@ let createQueriesForPage site page =
     | View      -> tryByIdTemplate site page
     | List      -> selectManyTemplate site page
     | Submit    -> insertTemplate site page
+    | Login
     | Jumbotron -> ""
 
   let queries = createQueriesForPage page.PageMode
