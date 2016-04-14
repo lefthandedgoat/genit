@@ -60,6 +60,7 @@ let legend txt = tag "legend" [] (text txt)
 let headerId id inner = tag "header" ["id", id] (flatten inner)
 let footer inner = tag "footer" [] (flatten inner)
 let submitInput value = inputAttr ["type", "submit"; "value", value]
+let hiddenInput name value =  inputAttr ["type", "hidden"; "name", name; "value", value]
 
 let tableClass class' inner = tag "table" ["class", class'] (flatten inner)
 let tbodyClass class' inner = tag "tbody" ["class", class'] (flatten inner)

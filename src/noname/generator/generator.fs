@@ -26,7 +26,7 @@ let fieldToHtml (field : Field) =
   let template tag = sprintf """%s "%s" "" """ tag field.Name
   let iconTemplate tag icon = sprintf """%s "%s" "" "%s" """ tag field.Name icon
   match field.FieldType with
-  | Id         -> template "label_text"
+  | Id         -> sprintf """hiddenInput "%s" "-1" """ field.AsProperty
   | Text       -> template "label_text"
   | Paragraph  -> template "label_textarea"
   | Number     -> template "label_text"
@@ -42,7 +42,7 @@ let fieldToPopulatedHtml page (field : Field) =
   let template tag = sprintf """%s "%s" "%s.%s" """ tag field.Name page.AsFormVal field.AsProperty
   let iconTemplate tag icon = sprintf """%s "%s" "%s.%s" "%s" """ tag field.Name page.AsFormVal field.AsProperty icon
   match field.FieldType with
-  | Id         -> template "label_text"
+  | Id         -> sprintf """hiddenInput "%s" "-1" """ field.AsProperty //todo page.AsFormVal field.AsProperty
   | Text       -> template "label_text"
   | Paragraph  -> template "label_textarea"
   | Number     -> template "label_text"
@@ -57,7 +57,7 @@ let fieldToPopulatedHtml page (field : Field) =
 let fieldToStaticHtml page (field : Field) =
   let template tag = sprintf """%s "%s" "%s.%s" """ tag field.Name page.AsFormVal field.AsProperty
   match field.FieldType with
-  | Id         -> template "label_static"
+  | Id         -> ""
   | Text       -> template "label_static"
   | Paragraph  -> template "label_static"
   | Number     -> template "label_static"
@@ -73,7 +73,7 @@ let fieldToErroredHtml page (field : Field) =
   let template tag = sprintf """%s "%s" %s.%s errors""" tag field.Name page.AsFormVal field.AsProperty
   let iconTemplate tag icon = sprintf """%s "%s" %s.%s "%s" errors""" tag field.Name page.AsFormVal field.AsProperty icon
   match field.FieldType with
-  | Id         -> template "errored_label_text"
+  | Id         -> sprintf """hiddenInput "%s" "%s.%s" """ field.AsProperty page.AsFormVal field.AsProperty
   | Text       -> template "errored_label_text"
   | Paragraph  -> template "errored_label_textarea"
   | Number     -> template "errored_label_text"
@@ -489,11 +489,11 @@ let handlerTemplate page =
           let validation = validate%s %s
           if validation = [] then
             let form = convert%s %s
-            let message = sprintf "form: %s" form
-            OK message
+            let id = insert_%s form
+            OK (string id)
           else
             OK (post_submit_errored_%s validation %s))
-      ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal "%A" page.AsVal page.AsFormVal
+      ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsType page.AsVal page.AsFormVal
 
   handlerTemplate page page.PageMode
 
@@ -634,11 +634,11 @@ let generate (site : Site) =
   let generated_uitests_result = generated_uitests_template uitests_results
 
   let connectionString = sprintf "Server=127.0.0.1;User Id=%s; Password=secure123;Database=%s;" site.AsDatabase site.AsDatabase
-  let generated_data_result = generated_data_template connectionString (sql.createQueries site)
+  let generated_data_result = generated_data_access_template connectionString (sql.createQueries site)
 
   let generated_sql_createdb_result = sql.createTemplate site.AsDatabase
   let generated_sql_initialSetup_result = sql.initialSetupTemplate site.AsDatabase
-  let generated_sql_createTables_result = sql.createTableTemplates site
+  let generated_sql_createTables_result = sql.createTables (sql.createTableTemplates site) (sql.grantPrivileges site)
 
   write (destination "generated_html.fs") generated_html_result
   write (destination "generated_views.fs") generated_views_result
@@ -650,7 +650,7 @@ let generate (site : Site) =
   write (destination "generated_unittests.fs") generated_unittests_result
   write (destination "generated_uitests.fs") generated_uitests_result
 
-  write (destination "generated_data.fs") generated_data_result
+  write (destination "generated_data_access.fs") generated_data_result
 
   write (destination "generated_dbname.txt") site.AsDatabase
   write (destination "generated_sql_createdb.sql") generated_sql_createdb_result

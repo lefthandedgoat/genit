@@ -88,6 +88,19 @@ let createTableTemplates (site : Site) =
   |> List.map (createTableTemplate site.AsDatabase)
   |> flatten
 
+let grantPrivileges (site : Site) =
+  sprintf """
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA %s TO %s;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA %s TO %s;
+  """ site.AsDatabase site.AsDatabase site.AsDatabase site.AsDatabase
+
+let createTables guts1 guts2 =
+  sprintf """
+%s
+
+%s
+  """ guts1 guts2
+
 (*
 
 DATA READERS
@@ -152,7 +165,7 @@ let insertValues page =
 let insertParamsTemplate page =
   page.Fields
   |> List.filter (fun field -> field.FieldType <> Id)
-  |> List.map (fun field -> sprintf """|> param "%s" %s.%s""" field.AsDBColumn page.AsFormVal field.AsProperty)
+  |> List.map (fun field -> sprintf """|> param "%s" %s.%s""" field.AsDBColumn page.AsVal field.AsProperty)
   |> List.map (pad 1)
   |> flatten
 
@@ -174,7 +187,7 @@ INSERT INTO %s.%s
 %s
   |> executeScalar
   |> string |> int
-  """ page.AsType page.AsFormVal page.AsFormType site.AsDatabase page.AsTable (insertColumns page) (insertValues page) idField.AsDBColumn (insertParamsTemplate page)
+  """ page.AsType page.AsVal page.AsType site.AsDatabase page.AsTable (insertColumns page) (insertValues page) idField.AsDBColumn (insertParamsTemplate page)
 
 (*
 
@@ -191,7 +204,7 @@ let updateColumns page =
 let updateParamsTemplate page =
   page.Fields
   |> List.filter (fun field -> field.FieldType <> Id)
-  |> List.map (fun field -> sprintf """|> param "%s" %s.%s""" field.AsDBColumn page.AsFormVal field.AsProperty)
+  |> List.map (fun field -> sprintf """|> param "%s" %s.%s""" field.AsDBColumn page.AsVal field.AsProperty)
   |> List.map (pad 1)
   |> flatten
 
@@ -210,7 +223,7 @@ WHERE %s = :%s;
   command
 %s
   |> executeNonQuery
-  """ page.AsType page.AsFormVal page.AsFormType site.AsDatabase page.AsTable (updateColumns page) idField.AsDBColumn idField.AsDBColumn (updateParamsTemplate page)
+  """ page.AsType page.AsVal page.AsType site.AsDatabase page.AsTable (updateColumns page) idField.AsDBColumn idField.AsDBColumn (updateParamsTemplate page)
 
 (*
 
