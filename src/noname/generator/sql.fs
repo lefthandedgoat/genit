@@ -78,5 +78,6 @@ let shouldICreateTable page =
 let createTableTemplates (site : Site) =
   site.Pages
   |> List.filter (fun page -> shouldICreateTable page)
+  |> List.filter (fun page -> page.CreateTable = CreateTable)
   |> List.map (createTableTemplate site.AsDatabase)
   |> flatten

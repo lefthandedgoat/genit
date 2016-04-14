@@ -50,6 +50,10 @@ type PageMode =
   | Submit
   | Jumbotron
 
+type CreateTable =
+  | CreateTable
+  | DoNotCreateTable
+
 type FieldType =
   | Id
   | Text
@@ -89,6 +93,7 @@ let field name attribute fieldType =
     AsDBColumn = to_dbColumn name
   }
 
+let id_pk name = field (sprintf "%s ID" name) PK Id
 let text name attribute = field name attribute Text
 let paragraph name attribute = field name attribute Paragraph
 let number name attribute = field name attribute Number
@@ -105,6 +110,7 @@ type Page =
     Name : string
     PageMode : PageMode
     Fields : Field list
+    CreateTable : CreateTable
     AsVal : string
     AsType : string
     AsFormVal : string
@@ -134,12 +140,13 @@ let mutable currentSite = defaultSite
 
 let site name = currentSite <- { currentSite with Name = name; AsDatabase = to_database name }
 
-let page name pageMode fields =
+let private page_ name pageMode tableName createTable fields =
   let page =
     {
       Name = name
       PageMode = pageMode
       Fields = fields
+      CreateTable = createTable
       AsVal = to_val name
       AsType = to_type name
       AsFormVal = to_formVal name
@@ -148,7 +155,7 @@ let page name pageMode fields =
       AsViewHref = to_viewHref name
       AsEditHref = to_editHref name
       AsListHref = to_listHref name
-      AsTableName = to_tableName name
+      AsTableName = to_tableName tableName
     }
 
   currentSite <- { currentSite with Pages = currentSite.Pages @ [page] }
@@ -165,11 +172,12 @@ let registration = Register
 let login = Login
 
 let precannedHome () =
-  page "Home" Jumbotron []
+  page_ "Home" Jumbotron "" DoNotCreateTable []
 
 let precannedRegister () =
-  page "Register" Submit
+  page_ "Register" Submit "User" CreateTable
     [
+      id_pk "User"
       name "First Name" Required
       name "Last Name" Required
       email "Email"
@@ -178,7 +186,7 @@ let precannedRegister () =
     ]
 
 let precannedLogin () =
-  page "Login" Submit
+  page_ "Login" Submit "" DoNotCreateTable
     [
       email "Email"
       password "Password"
@@ -189,3 +197,9 @@ let basic precanned =
   | Home     -> precannedHome()
   | Register -> precannedRegister()
   | Login    -> precannedLogin()
+
+let page name pageMode fields =
+  //auto add id
+  let id = id_pk name
+  let fields = id :: fields
+  page_ name pageMode name CreateTable fields
