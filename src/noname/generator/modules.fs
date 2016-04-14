@@ -89,12 +89,16 @@ let generated_types_template guts =
 
 %s""" guts
 
-let generated_data_template guts =
+let generated_data_template connectionString guts =
   sprintf """module generated_data
 
 open generated_types
+open adoHelper
+open Npgsql
 
-%s""" guts
+let connectionString = "%s"
+
+%s""" connectionString guts
 
 let generated_forms_template guts =
   sprintf """module generated_forms

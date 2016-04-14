@@ -632,7 +632,8 @@ let generate (site : Site) =
   let uitests_results = site.Pages |> List.map uitestTemplate |> flatten
   let generated_uitests_result = generated_uitests_template uitests_results
 
-  let generated_data_result = generated_data_template (sql.createQueries site)
+  let connectionString = sprintf "Server=127.0.0.1;User Id=%s; Password=secure123;Database=%s;" site.AsDatabase site.AsDatabase
+  let generated_data_result = generated_data_template connectionString (sql.createQueries site)
 
   let generated_sql_createdb_result = sql.createTemplate site.AsDatabase
   let generated_sql_initialSetup_result = sql.initialSetupTemplate site.AsDatabase

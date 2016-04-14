@@ -82,5 +82,44 @@ let createTableTemplates (site : Site) =
   |> List.map (createTableTemplate site.AsDatabase)
   |> flatten
 
-let createQueries (site : Site) =
+let insertTemplate site page =
   ""
+
+let updateTemplate site page =
+  ""
+
+let tryByIdTemplate site page =
+  let idField = page.Fields |> List.find (fun field -> field.FieldType = Id)
+  sprintf """
+let tryById_%s id =
+  let sql = "
+SELECT * FROM %s.%s
+WHERE %s = :%s
+"
+  use connection = connection connectionString
+  use command = command connection sql
+  command
+  |> param "%s" id
+  |> read to%s
+  |> firstOrNone""" page.AsVal site.AsDatabase page.AsTableName idField.AsDBColumn idField.AsDBColumn idField.AsDBColumn page.AsType
+
+let selectManyTemplate site page =
+  ""
+
+let createQueriesForPage site page =
+  let rec createQueriesForPage pageMode =
+    match pageMode with
+    | CVEL      -> [Create; View; Edit; List] |> List.map createQueriesForPage |> flatten
+    | Create    -> insertTemplate site page
+    | Edit      -> updateTemplate site page
+    | View      -> tryByIdTemplate site page
+    | List      -> selectManyTemplate site page
+    | Submit    -> insertTemplate site page
+    | Jumbotron -> ""
+
+  createQueriesForPage page.PageMode
+
+let createQueries (site : Site) =
+  site.Pages
+  |> List.map (createQueriesForPage site)
+  |> flatten
