@@ -11,3 +11,7 @@ open forms
 open generated_handlers
 
 type IntPath = PrintfFormat<(string -> string),unit,string,string,int>
+
+let generated_routes =
+  [
+  ]
