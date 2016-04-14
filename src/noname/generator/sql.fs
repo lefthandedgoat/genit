@@ -63,7 +63,7 @@ let createTableTemplate (dbname : string) (page : Page) =
 CREATE TABLE %s.%s(
 %s
 );
-  """ dbname page.AsTableName columns
+  """ dbname page.AsTable columns
 
 let shouldICreateTable page =
   match page.PageMode with
@@ -114,8 +114,49 @@ let dataReaderTemplate page =
   ]
   """ page.AsType page.AsType (dataReaderPropertiesTemplate page)
 
+let insertColumns page =
+  page.Fields
+  |> List.map (fun field -> field.AsDBColumn)
+  |> List.map (pad 2)
+  |> flattenWith ","
+
+let insertValues page =
+  let format field =
+    if field.FieldType = Id
+    then "DEFAULT"
+    else sprintf ":%s" field.AsDBColumn
+
+  page.Fields
+  |> List.map format
+  |> List.map (pad 2)
+  |> flattenWith ","
+
+let insertParamsTemplate page =
+  page.Fields
+  |> List.filter (fun field -> field.FieldType <> Id)
+  |> List.map (fun field -> sprintf """|> param "%s" %s.%s""" field.AsDBColumn page.AsFormVal field.AsProperty)
+  |> List.map (pad 1)
+  |> flatten
+
 let insertTemplate site page =
-  ""
+  let idField = page.Fields |> List.find (fun field -> field.FieldType = Id)
+  sprintf """
+let insert_%s (%s : %s) =
+  let sql = "
+INSERT INTO %s.%s
+  (
+%s
+  ) VALUES (
+%s
+  ) RETURNING %s;
+"
+  use connection = connection connectionString
+  use command = command connection sql
+  command
+%s
+  |> executeScalar
+  |> string |> int
+  """ page.AsType page.AsFormVal page.AsFormType site.AsDatabase page.AsTable (insertColumns page) (insertValues page) idField.AsDBColumn (insertParamsTemplate page)
 
 let updateTemplate site page =
   ""
@@ -133,10 +174,19 @@ WHERE %s = :%s
   command
   |> param "%s" id
   |> read to%s
-  |> firstOrNone""" page.AsVal site.AsDatabase page.AsTableName idField.AsDBColumn idField.AsDBColumn idField.AsDBColumn page.AsType
+  |> firstOrNone""" page.AsType site.AsDatabase page.AsTable idField.AsDBColumn idField.AsDBColumn idField.AsDBColumn page.AsType
 
 let selectManyTemplate site page =
-  ""
+  sprintf """
+let getMany_%s () =
+  let sql = "
+SELECT * FROM %s.%s
+"
+  use connection = connection connectionString
+  use command = command connection sql
+  command
+  |> read to%s
+  """ page.AsType site.AsDatabase page.AsTable page.AsType
 
 let createQueriesForPage site page =
   let rec createQueriesForPage pageMode =
@@ -156,5 +206,6 @@ let createQueriesForPage site page =
 
 let createQueries (site : Site) =
   site.Pages
+  |> List.filter (fun page -> page.CreateTable = CreateTable)
   |> List.map (createQueriesForPage site)
   |> flatten

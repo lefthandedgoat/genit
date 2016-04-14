@@ -119,7 +119,7 @@ type Page =
     AsViewHref : string
     AsEditHref : string
     AsListHref : string
-    AsTableName : string
+    AsTable : string
   }
 
 type Site =
@@ -155,7 +155,7 @@ let private page_ name pageMode tableName createTable fields =
       AsViewHref = to_viewHref name
       AsEditHref = to_editHref name
       AsListHref = to_listHref name
-      AsTableName = to_tableName tableName
+      AsTable = to_tableName tableName
     }
 
   currentSite <- { currentSite with Pages = currentSite.Pages @ [page] }
