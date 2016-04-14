@@ -19,6 +19,12 @@ GRANT USAGE ON SCHEMA {0} to {0};
 ALTER DEFAULT PRIVILEGES IN SCHEMA {0} GRANT SELECT ON TABLES TO {0};
 GRANT CONNECT ON DATABASE "{0}" to {0};""", dbname)
 
+(*
+
+CREATE TABLES
+
+*)
+
 let columnTypeTemplate field =
   match field.FieldType with
   | Id           -> "SERIAL"
@@ -82,6 +88,12 @@ let createTableTemplates (site : Site) =
   |> List.map (createTableTemplate site.AsDatabase)
   |> flatten
 
+(*
+
+DATA READERS
+
+*)
+
 let conversionTemplate field =
   match field.FieldType with
   | Id           -> "getInt64"
@@ -113,6 +125,12 @@ let dataReaderTemplate page =
     }
   ]
   """ page.AsType page.AsType (dataReaderPropertiesTemplate page)
+
+(*
+
+INSERT
+
+*)
 
 let insertColumns page =
   page.Fields
@@ -158,8 +176,47 @@ INSERT INTO %s.%s
   |> string |> int
   """ page.AsType page.AsFormVal page.AsFormType site.AsDatabase page.AsTable (insertColumns page) (insertValues page) idField.AsDBColumn (insertParamsTemplate page)
 
+(*
+
+UPDATE
+
+*)
+
+let updateColumns page =
+  page.Fields
+  |> List.map (fun field -> sprintf """%s = :%s""" field.AsDBColumn field.AsDBColumn)
+  |> List.map (pad 1)
+  |> flattenWith ","
+
+let updateParamsTemplate page =
+  page.Fields
+  |> List.filter (fun field -> field.FieldType <> Id)
+  |> List.map (fun field -> sprintf """|> param "%s" %s.%s""" field.AsDBColumn page.AsFormVal field.AsProperty)
+  |> List.map (pad 1)
+  |> flatten
+
 let updateTemplate site page =
-  ""
+  let idField = page.Fields |> List.find (fun field -> field.FieldType = Id)
+  sprintf """
+let update_%s (%s : %s) =
+  let sql = "
+UPDATE %s.%s
+SET
+%s
+WHERE %s = :%s;
+"
+  use connection = connection connectionString
+  use command = command connection sql
+  command
+%s
+  |> executeNonQuery
+  """ page.AsType page.AsFormVal page.AsFormType site.AsDatabase page.AsTable (updateColumns page) idField.AsDBColumn idField.AsDBColumn (updateParamsTemplate page)
+
+(*
+
+SELECT
+
+*)
 
 let tryByIdTemplate site page =
   let idField = page.Fields |> List.find (fun field -> field.FieldType = Id)
