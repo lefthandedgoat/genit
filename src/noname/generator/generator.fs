@@ -684,7 +684,7 @@ let fakePropertyTemplate (field : Field) =
     | Decimal    -> "random.Next(100) |> double"
     | Date       -> "System.DateTime.Now"
     | Phone      -> """sprintf "%i-%i-%i" (random.Next(200,800)) (random.Next(200,800)) (random.Next(2000,8000))"""
-    | Email      -> """sprintf "%s@%s.com" (randomItem words) (randomItems words)"""
+    | Email      -> """sprintf "%s@%s.com" (randomItem words) (randomItem words)"""
     | Name       -> """randomItem names"""
     | Password   -> """"123123" """
     | Dropdown _ -> "1s"
