@@ -520,7 +520,12 @@ let handlerTemplate page =
       sprintf """let create_%s =
     choose
       [
-        GET >=> OK get_create_%s
+        GET >=> request (fun req ->
+          if hasQueryString req "generate"
+          then
+            let data = fake_%s ()
+            OK <| get_edit_%s data
+          else OK get_create_%s)
         POST >=> bindToForm %s (fun %s ->
           let validation = validate%s %s
           if validation = [] then
@@ -529,7 +534,7 @@ let handlerTemplate page =
             FOUND <| sprintf "%s" id
           else
             OK (post_create_errored_%s validation %s))
-      ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsType page.AsViewHref page.AsVal page.AsFormVal
+      ]""" page.AsVal page.AsVal page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsType page.AsViewHref page.AsVal page.AsFormVal
     | Submit    ->
       sprintf """let submit_%s =
     choose
@@ -669,37 +674,20 @@ let uitestTemplate (page : Page) =
 %s
     """ (contextTemplate page) (onceTemplate page) tests
 
-let random = System.Random()
-let words = ["At"; "vero"; "eos"; "et"; "accusamus"; "et"; "iusto"; "odio"; "dignissimos"; "ducimus"; "qui"; "blanditiis"; "praesentium"; "voluptatum"; "atque"; "corrupti"; "quos"; "dolores"; "et"; "quas"; "molestias"; "excepturi"; "sint"; "occaecati"; "cupiditate"; "non"; "provident"; "similique"; "sunt"; "in"; "culpa"; "qui"; "officia"; "deserunt"; "mollitia"; "animi"; "id"; "est"; "laborum"; "omnis"; "dolor"; "repellendus"; "Temporibus"; "autem"; "quibusdam"; "et"; "aut"; "officiis"; "debitis"; "aut"; "rerum"; "necessitatibus"; "saepe"; "eveniet"; "ut"; "et"; "oluptates"; "repudiandae"; "sint"; "et"; "molestiae"; "non"; "recusandae"; "Itaque"; "earum"; "rerum"; "hic"; "tenetur"; "sapiente"; "delectus"; "ut"; "aut"; "reiciendis"; "voluptatibus"; "maiores"; "alias"; "consequatur"; "aut"; "perferendis"; "doloribus"; "asperiores"; "repellat"; ]
-let randomWords number =
-  if number = 1
-  then words.[random.Next(words.Length)]
-  else
-    let number = random.Next(number)
-    [ 1 .. number ] |> List.map (fun _ -> words.[random.Next(words.Length)]) |> concat
-
-let names = [ "James";"Mary";"John";"Patricia";"Robert";"Jennifer";"Michael";"Elizabeth";"William";"Linda";"David";"Barbara";"Richard";"Susan";"Joseph";"Margaret";"Charles";"Jessica";"Thomas";"Sarah";"Christopher";"Dorothy";"Daniel";"Karen";"Matthew";"Nancy";"Donald";"Betty";"Anthony";"Lisa";"Mark";"Sandra";"Paul";"Ashley";"Steven";"Kimberly";"George";"Donna";"Kenneth";"Helen";"Andrew";"Carol";"Edward";"Michelle";"Joshua";"Emily";"Brian";"Amanda";"Kevin";"Melissa";"Ronald";"Deborah";"Timothy";"Laura";"Jason";"Stephanie";"Jeffrey";"Rebecca";"Ryan";"Sharon";"Gary";"Cynthia";"Nicholas";"Kathleen";"Eric";"Anna";"Jacob";"Shirley";"Stephen";"Ruth";"Jonathan";"Amy";"Larry";"Angela";"Frank";"Brenda";"Scott";"Virginia";"Justin";"Pamela";"Catherine";"Raymond";"Katherine";"Gregory";"Nicole";"Samuel";"Christine";"Benjamin";"Samantha";"Patrick";"Janet";"Jack";"Debra";"Dennis";"Carolyn";"Alexander";"Rachel";"Jerry";"Heather"]
-let randomNames number =
-  if number = 1
-  then names.[random.Next(names.Length)]
-  else
-    let number = random.Next(number)
-    [ 1 .. number ] |> List.map (fun _ -> names.[random.Next(names.Length)]) |> concat
-
 let fakePropertyTemplate (field : Field) =
   let value =
     match field.FieldType with
     | Id         -> "-1L"
-    | Text       -> randomWords 8
-    | Paragraph  -> randomWords 40
-    | Number     -> random.Next(100) |> string
-    | Decimal    -> random.Next(100) |> string
-    | Date       -> System.DateTime.Now.ToShortDateString()
-    | Phone      -> sprintf "%i-%i-%i" (random.Next(200,800)) (random.Next(200,800)) (random.Next(2000,8000))
-    | Email      -> sprintf "%s@%s.com" (randomWords 1) (randomWords 1)
-    | Name       -> randomNames 1
-    | Password   -> "123123"
-    | Dropdown _ -> "1"
+    | Text       -> "randomItems 6 words"
+    | Paragraph  -> "randomItems 40 words"
+    | Number     -> "random.Next(100)"
+    | Decimal    -> "random.Next(100) |> double"
+    | Date       -> "System.DateTime.Now"
+    | Phone      -> """sprintf "%i-%i-%i" (random.Next(200,800)) (random.Next(200,800)) (random.Next(2000,8000))"""
+    | Email      -> """sprintf "%s@%s.com" (randomItem words) (randomItems words)"""
+    | Name       -> """randomItem names"""
+    | Password   -> """"123123" """
+    | Dropdown _ -> "1s"
   sprintf """%s = %s """ field.AsProperty value
 
 let fakePropertiesTemplate (page : Page) =
