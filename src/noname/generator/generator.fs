@@ -669,6 +669,54 @@ let uitestTemplate (page : Page) =
 %s
     """ (contextTemplate page) (onceTemplate page) tests
 
+let random = System.Random()
+let words = ["At"; "vero"; "eos"; "et"; "accusamus"; "et"; "iusto"; "odio"; "dignissimos"; "ducimus"; "qui"; "blanditiis"; "praesentium"; "voluptatum"; "atque"; "corrupti"; "quos"; "dolores"; "et"; "quas"; "molestias"; "excepturi"; "sint"; "occaecati"; "cupiditate"; "non"; "provident"; "similique"; "sunt"; "in"; "culpa"; "qui"; "officia"; "deserunt"; "mollitia"; "animi"; "id"; "est"; "laborum"; "omnis"; "dolor"; "repellendus"; "Temporibus"; "autem"; "quibusdam"; "et"; "aut"; "officiis"; "debitis"; "aut"; "rerum"; "necessitatibus"; "saepe"; "eveniet"; "ut"; "et"; "oluptates"; "repudiandae"; "sint"; "et"; "molestiae"; "non"; "recusandae"; "Itaque"; "earum"; "rerum"; "hic"; "tenetur"; "sapiente"; "delectus"; "ut"; "aut"; "reiciendis"; "voluptatibus"; "maiores"; "alias"; "consequatur"; "aut"; "perferendis"; "doloribus"; "asperiores"; "repellat"; ]
+let randomWords number =
+  if number = 1
+  then words.[random.Next(words.Length)]
+  else
+    let number = random.Next(number)
+    [ 1 .. number ] |> List.map (fun _ -> words.[random.Next(words.Length)]) |> concat
+
+let names = [ "James";"Mary";"John";"Patricia";"Robert";"Jennifer";"Michael";"Elizabeth";"William";"Linda";"David";"Barbara";"Richard";"Susan";"Joseph";"Margaret";"Charles";"Jessica";"Thomas";"Sarah";"Christopher";"Dorothy";"Daniel";"Karen";"Matthew";"Nancy";"Donald";"Betty";"Anthony";"Lisa";"Mark";"Sandra";"Paul";"Ashley";"Steven";"Kimberly";"George";"Donna";"Kenneth";"Helen";"Andrew";"Carol";"Edward";"Michelle";"Joshua";"Emily";"Brian";"Amanda";"Kevin";"Melissa";"Ronald";"Deborah";"Timothy";"Laura";"Jason";"Stephanie";"Jeffrey";"Rebecca";"Ryan";"Sharon";"Gary";"Cynthia";"Nicholas";"Kathleen";"Eric";"Anna";"Jacob";"Shirley";"Stephen";"Ruth";"Jonathan";"Amy";"Larry";"Angela";"Frank";"Brenda";"Scott";"Virginia";"Justin";"Pamela";"Catherine";"Raymond";"Katherine";"Gregory";"Nicole";"Samuel";"Christine";"Benjamin";"Samantha";"Patrick";"Janet";"Jack";"Debra";"Dennis";"Carolyn";"Alexander";"Rachel";"Jerry";"Heather"]
+let randomNames number =
+  if number = 1
+  then names.[random.Next(names.Length)]
+  else
+    let number = random.Next(number)
+    [ 1 .. number ] |> List.map (fun _ -> names.[random.Next(names.Length)]) |> concat
+
+let fakePropertyTemplate (field : Field) =
+  let value =
+    match field.FieldType with
+    | Id         -> "-1L"
+    | Text       -> randomWords 8
+    | Paragraph  -> randomWords 40
+    | Number     -> random.Next(100) |> string
+    | Decimal    -> random.Next(100) |> string
+    | Date       -> System.DateTime.Now.ToShortDateString()
+    | Phone      -> sprintf "%i-%i-%i" (random.Next(200,800)) (random.Next(200,800)) (random.Next(2000,8000))
+    | Email      -> sprintf "%s@%s.com" (randomWords 1) (randomWords 1)
+    | Name       -> randomNames 1
+    | Password   -> "123123"
+    | Dropdown _ -> "1"
+  sprintf """%s = %s """ field.AsProperty value
+
+let fakePropertiesTemplate (page : Page) =
+  page.Fields
+  |> List.map fakePropertyTemplate
+  |> List.map (pad 2)
+  |> flatten
+
+let fakeDataTemplate (page : Page) =
+  if page.Fields = [] then ""
+  else
+    sprintf """let fake_%s () =
+  {
+%s
+  }
+ """ page.AsVal (fakePropertiesTemplate page)
+
 let generate (site : Site) =
   let html_results = site.Pages |> List.map pageLinkTemplate |> flatten
   let generated_html_result = generated_html_template html_results
@@ -697,6 +745,9 @@ let generate (site : Site) =
   let uitests_results = site.Pages |> List.map uitestTemplate |> flatten
   let generated_uitests_result = generated_uitests_template uitests_results
 
+  let fake_data_results = site.Pages |> List.map fakeDataTemplate |> flatten
+  let generated_fake_data_result = generated_fake_data_template fake_data_results
+
   let connectionString = sprintf "Server=127.0.0.1;User Id=%s; Password=secure123;Database=%s;" site.AsDatabase site.AsDatabase
   let generated_data_result = generated_data_access_template connectionString (sql.createQueries site)
 
@@ -713,6 +764,7 @@ let generate (site : Site) =
   write (destination "generated_validation.fs") generated_validation_result
   write (destination "generated_unittests.fs") generated_unittests_result
   write (destination "generated_uitests.fs") generated_uitests_result
+  write (destination "generated_fake_data.fs") generated_fake_data_result
 
   write (destination "generated_data_access.fs") generated_data_result
 

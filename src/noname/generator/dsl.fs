@@ -12,6 +12,11 @@ let flattenWith delimeter values =
   then ""
   else values |> List.reduce (fun value1 value2 -> sprintf "%s%s%s%s" value1 delimeter Environment.NewLine value2)
 
+let concat values =
+  if values = []
+  then ""
+  else values |> List.reduce (fun value1 value2 -> sprintf "%s %s" value1 value2)
+
 let repeat (value : string) times = [1..times] |> List.map (fun _ -> value) |> List.reduce (+)
 let pad tabs field = sprintf "%s%s" (repeat "  " tabs) field
 let rightPad upto field = sprintf "%s%s" field (repeat " " (upto - field.Length))

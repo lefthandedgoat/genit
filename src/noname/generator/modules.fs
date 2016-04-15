@@ -153,3 +153,11 @@ let run () =
 
   quit()
 """ guts
+
+let generated_fake_data_template guts =
+  sprintf """module generated_fake_data
+
+open generated_types
+
+%s
+  """ guts
