@@ -688,7 +688,7 @@ let fakePropertyTemplate (field : Field) =
     then "cityStateZip.City"
     else if lowered.Contains("state")
     then "cityStateZip.State"
-    else if lowered.Contains("zip")
+    else if lowered.Contains("zip") || lowered.Contains("postal")
     then "cityStateZip.Zip"
     else defaultValue
 
@@ -723,14 +723,27 @@ let fakePropertiesTemplate (page : Page) =
   |> List.map (pad 2)
   |> flatten
 
+let fakeComplexValues (page : Page) =
+  let cityStateZipTriggers = [ "city"; "state"; "zip"; "postal" ]
+  let exists =
+    page.Fields
+    |> List.exists (fun field ->
+                      let lowered = field.Name.ToLower()
+                      cityStateZipTriggers
+                      |> List.exists (fun trigger -> lowered.Contains(trigger)))
+  if exists then
+    "
+  let cityStateZip = randomItem citiesSatesZips"
+  else ""
+
 let fakeDataTemplate (page : Page) =
   if page.Fields = [] then ""
   else
-    sprintf """let fake_%s () =
+    sprintf """let fake_%s () =%s
   {
 %s
   }
- """ page.AsVal (fakePropertiesTemplate page)
+ """ page.AsVal (fakeComplexValues page) (fakePropertiesTemplate page)
 
 let generate (site : Site) =
   let html_results = site.Pages |> List.map pageLinkTemplate |> flatten
