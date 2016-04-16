@@ -690,6 +690,8 @@ let fakePropertyTemplate (field : Field) =
     then "cityStateZip.State"
     else if lowered.Contains("zip") || lowered.Contains("postal")
     then "cityStateZip.Zip"
+    else if lowered.Contains("address") || lowered.Contains("street")
+    then """(string (random.Next(100,9999))) + " " + (randomItem streetNames) + " " + (randomItem streetNameSuffixes)"""
     else defaultValue
 
   let pickAppropriateNumber defaultValue =
