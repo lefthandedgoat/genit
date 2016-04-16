@@ -19,7 +19,12 @@ let generic_datatable = """
     $('.dataTables_filter input').addClass('form-control').attr('placeholder','Search');
     $('.dataTables_length select').addClass('form-control').attr('size','1');
 
-    //make a tr into a link
+    //make a tr into a link on paging
+    $(".table.table-bordered").on("draw.dt", function () {
+        $('tr[data-link]').on("click", function() { document.location = $(this).data('link'); });
+    } );
+
+    //make a tr into a link intial load
     $('tr[data-link]').on("click", function() { document.location = $(this).data('link'); });
   });
 </script>
