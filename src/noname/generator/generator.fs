@@ -523,8 +523,15 @@ let handlerTemplate page =
         GET >=> request (fun req ->
           if hasQueryString req "generate"
           then
-            let data = fake_%s ()
-            OK <| get_edit_%s data
+            let generate = getQueryStringValue req "generate"
+            let parsed, value = System.Int32.TryParse(generate)
+            if parsed && value > 1
+            then
+              many_fake_%s value
+              OK <| get_list_%s ()
+            else
+              let data = fake_%s ()
+              OK <| get_edit_%s data
           else OK get_create_%s)
         POST >=> bindToForm %s (fun %s ->
           let validation = validate%s %s
@@ -534,7 +541,7 @@ let handlerTemplate page =
             FOUND <| sprintf "%s" id
           else
             OK (post_create_errored_%s validation %s))
-      ]""" page.AsVal page.AsVal page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsType page.AsViewHref page.AsVal page.AsFormVal
+      ]""" page.AsVal page.AsVal page.AsVal page.AsVal page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsType page.AsViewHref page.AsVal page.AsFormVal
     | Submit    ->
       sprintf """let submit_%s =
     choose
@@ -738,14 +745,24 @@ let fakeComplexValues (page : Page) =
   let cityStateZip = randomItem citiesSatesZips"
   else ""
 
+let fakeManyDataTemplate (page: Page) =
+  sprintf """let many_fake_%s number =
+  [| 1..number |]
+  |> Array.map (fun _ -> fake_%s ()) //no parallel cause of RNG
+  |> Array.Parallel.map insert_%s
+  |> ignore
+ """ page.AsVal page.AsVal page.AsType
+
 let fakeDataTemplate (page : Page) =
-  if page.Fields = [] then ""
+  if (not (page.PageMode = Create || page.PageMode = CVEL) ) || page.Fields = [] then ""
   else
     sprintf """let fake_%s () =%s
   {
 %s
   }
- """ page.AsVal (fakeComplexValues page) (fakePropertiesTemplate page)
+
+%s
+ """ page.AsVal (fakeComplexValues page) (fakePropertiesTemplate page) (fakeManyDataTemplate page)
 
 let generate (site : Site) =
   let html_results = site.Pages |> List.map pageLinkTemplate |> flatten
