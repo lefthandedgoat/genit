@@ -674,25 +674,26 @@ let uitestTemplate (page : Page) =
 %s
     """ (contextTemplate page) (onceTemplate page) tests
 
+//let cityStateZip = randomItem citiesSatesZips
 let fakePropertyTemplate (field : Field) =
   let lowered = field.Name.ToLower()
   let pickAppropriateText defaultValue =
     if lowered.Contains("last") && lowered.Contains("name")
-    then "randomItem lastNames" //todo firstNames
+    then "randomItem lastNames"
     else if lowered.Contains("first") && lowered.Contains("name")
-    then "randomItem firstNames" //todo lastNames
+    then "randomItem firstNames"
     else if lowered.Contains("name")
-    then """(randomItem firstNames) + " " + (randomItem lastNames)""" //todo lastNames
+    then """(randomItem firstNames) + " " + (randomItem lastNames)"""
     else if lowered.Contains("city")
-    then "randomItem cities"
+    then "cityStateZip.City"
     else if lowered.Contains("state")
-    then "randomItem states" //todo states
+    then "cityStateZip.State"
+    else if lowered.Contains("zip")
+    then "cityStateZip.Zip"
     else defaultValue
 
   let pickAppropriateNumber defaultValue =
-    if lowered.Contains("zip")
-    then "randomItem zips"
-    else defaultValue
+    defaultValue
 
   let pickAppropriateName defaultValue =
     if lowered.Contains("first")
