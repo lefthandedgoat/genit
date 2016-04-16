@@ -675,17 +675,43 @@ let uitestTemplate (page : Page) =
     """ (contextTemplate page) (onceTemplate page) tests
 
 let fakePropertyTemplate (field : Field) =
+  let lowered = field.Name.ToLower()
+  let pickAppropriateText defaultValue =
+    if lowered.Contains("last") && lowered.Contains("name")
+    then "randomItem lastNames" //todo firstNames
+    else if lowered.Contains("first") && lowered.Contains("name")
+    then "randomItem firstNames" //todo lastNames
+    else if lowered.Contains("name")
+    then """(randomItem firstNames) + " " + (randomItem lastNames)""" //todo lastNames
+    else if lowered.Contains("city")
+    then "randomItem cities"
+    else if lowered.Contains("state")
+    then "randomItem states" //todo states
+    else defaultValue
+
+  let pickAppropriateNumber defaultValue =
+    if lowered.Contains("zip")
+    then "randomItem zips"
+    else defaultValue
+
+  let pickAppropriateName defaultValue =
+    if lowered.Contains("first")
+    then "randomItem firstNames"
+    else if lowered.Contains("last")
+    then "randomItem lastNames"
+    else defaultValue
+
   let value =
     match field.FieldType with
     | Id         -> "-1L"
-    | Text       -> "randomItems 6 words"
+    | Text       -> pickAppropriateText "randomItems 6 words"
     | Paragraph  -> "randomItems 40 words"
-    | Number     -> "random.Next(100)"
+    | Number     -> pickAppropriateNumber "random.Next(100)"
     | Decimal    -> "random.Next(100) |> double"
     | Date       -> "System.DateTime.Now"
     | Phone      -> """sprintf "%i-%i-%i" (random.Next(200,800)) (random.Next(200,800)) (random.Next(2000,8000))"""
     | Email      -> """sprintf "%s@%s.com" (randomItem words) (randomItem words)"""
-    | Name       -> """randomItem names"""
+    | Name       -> pickAppropriateName """randomItem names"""
     | Password   -> """"123123" """
     | Dropdown _ -> "1s"
   sprintf """%s = %s """ field.AsProperty value

@@ -24,6 +24,7 @@ let someSite () =
       phone "Phone Number" Required
       text "Address" Null
       text "City" Null
+      text "State" Null
       number "Zip" Null
       dropdown "Free Soda"
         [
