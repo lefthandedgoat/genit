@@ -251,6 +251,7 @@ let selectManyTemplate site page =
 let getMany_%s () =
   let sql = "
 SELECT * FROM %s.%s
+LIMIT 500
 "
   use connection = connection connectionString
   use command = command connection sql
