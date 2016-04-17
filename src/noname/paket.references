@@ -2,3 +2,4 @@ Suave
 Suave.Experimental
 canopy
 Npgsql
+Http.fs

@@ -5,3 +5,4 @@ nuget Suave
 nuget Suave.Experimental
 nuget canopy
 nuget Npgsql
+nuget Http.fs

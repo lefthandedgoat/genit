@@ -6,6 +6,7 @@ NUGET
       Selenium.WebDriver (2.53)
     FAKE (4.25.4)
     FSharp.Core (4.0.0.1)
+    Http.fs (1.5.1)
     Npgsql (3.0.5)
     Selenium.WebDriver (2.53)
     Suave (1.1.2)
