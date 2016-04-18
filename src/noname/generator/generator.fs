@@ -23,10 +23,10 @@ let zipOptions (options : string list) =
   ["0", ""] @ results
 
 let fieldToHtml (field : Field) =
-  let template tag = sprintf """%s "%s" "" """ tag field.Name
-  let iconTemplate tag icon = sprintf """%s "%s" "" "%s" """ tag field.Name icon
+  let template tag = sprintf """%s "%s" "" """ tag field.Name |> trimEnd
+  let iconTemplate tag icon = sprintf """%s "%s" "" "%s" """ tag field.Name icon |> trimEnd
   match field.FieldType with
-  | Id         -> sprintf """hiddenInput "%s" "-1" """ field.AsProperty
+  | Id         -> sprintf """hiddenInput "%s" "-1" """ field.AsProperty |> trimEnd
   | Text       -> template "label_text"
   | Paragraph  -> template "label_textarea"
   | Number     -> template "label_text"
@@ -36,11 +36,11 @@ let fieldToHtml (field : Field) =
   | Email      -> iconTemplate "icon_label_text" "envelope"
   | Name       -> iconTemplate "icon_label_text" "user"
   | Password   -> iconTemplate "icon_password_text" "lock"
-  | Dropdown options -> sprintf """label_select "%s" %A """ field.Name (zipOptions options)
+  | Dropdown options -> sprintf """label_select "%s" %A """ field.Name (zipOptions options) |> trimEnd
 
 let fieldToPopulatedHtml page (field : Field) =
-  let template tag = sprintf """%s "%s" %s.%s """ tag field.Name page.AsVal field.AsProperty
-  let iconTemplate tag icon = sprintf """%s "%s" %s.%s "%s" """ tag field.Name page.AsVal field.AsProperty icon
+  let template tag = sprintf """%s "%s" %s.%s """ tag field.Name page.AsVal field.AsProperty |> trimEnd
+  let iconTemplate tag icon = sprintf """%s "%s" %s.%s "%s" """ tag field.Name page.AsVal field.AsProperty icon |> trimEnd
   match field.FieldType with
   | Id         -> sprintf """hiddenInput "%s" %s.%s """ field.AsProperty page.AsVal field.AsProperty
   | Text       -> template "label_text"
@@ -136,7 +136,7 @@ let fieldToValidation (field : Field) page =
   | Dropdown _ -> None
 
 let fieldToTestName (field : Field) =
-  let template text = sprintf """"%s %s" """ field.Name text
+  let template text = sprintf """"%s %s" """ field.Name text |> trimEnd
   match field.FieldType with
   | Id         -> None
   | Text       -> None
@@ -151,7 +151,7 @@ let fieldToTestName (field : Field) =
   | Dropdown _ -> None
 
 let fieldToTestBody (field : Field) =
-  let template text = sprintf """displayed "%s %s" """ field.Name text
+  let template text = sprintf """displayed "%s %s" """ field.Name text |> trimEnd
   match field.FieldType with
   | Id         -> None
   | Text       -> None
@@ -179,19 +179,19 @@ let attributeToTestName field =
   match field.Attribute with
   | PK         -> None
   | Null       -> None
-  | Required   -> Some (sprintf """"%s is required" """ field.Name)
-  | Min(min)   -> Some (sprintf """"%s must be greater than %i" """ field.Name min)
-  | Max(max)   -> Some (sprintf """"%s must be less than %i" """ field.Name max)
-  | Range(min,max) -> Some (sprintf """"%s must be between %i and %i" """ field.Name min max)
+  | Required   -> Some (sprintf """"%s is required" """ field.Name |> trimEnd)
+  | Min(min)   -> Some (sprintf """"%s must be greater than %i" """ field.Name min |> trimEnd)
+  | Max(max)   -> Some (sprintf """"%s must be less than %i" """ field.Name max |> trimEnd)
+  | Range(min,max) -> Some (sprintf """"%s must be between %i and %i" """ field.Name min max |> trimEnd)
 
 let attributeToTestBody field =
   match field.Attribute with
   | PK         -> None
   | Null       -> None
-  | Required   -> Some (sprintf """displayed "%s is required" """ field.Name)
-  | Min(min)   -> Some (sprintf """displayed "%s can not be below %i" """ field.Name min)
-  | Max(max)   -> Some (sprintf """displayed "%s can not be above %i" """ field.Name max)
-  | Range(min,max) -> Some (sprintf """displayed "%s must be between %i and %i" """ field.Name min max)
+  | Required   -> Some (sprintf """displayed "%s is required" """ field.Name |> trimEnd)
+  | Min(min)   -> Some (sprintf """displayed "%s can not be below %i" """ field.Name min |> trimEnd)
+  | Max(max)   -> Some (sprintf """displayed "%s can not be above %i" """ field.Name max |> trimEnd)
+  | Range(min,max) -> Some (sprintf """displayed "%s must be between %i and %i" """ field.Name min max |> trimEnd)
 
 let formatPopulatedEditFields page (fields : Field list) tabs =
   fields
@@ -296,7 +296,7 @@ let get_%s (%s : %s) =
 
 let fieldsToHeaders (page : Page) =
     page.Fields
-    |> List.map (fun field -> sprintf """"%s" """ field.Name)
+    |> List.map (fun field -> sprintf """"%s" """ field.Name |> trimEnd)
     |> List.map (pad 10)
     |> flatten
 
@@ -449,8 +449,8 @@ let pageLinkTemplate (page : Page) =
 let pathTemplate page =
   let template extra href withId =
     match withId with
-    | false -> sprintf """let path_%s%s = "%s" """ extra page.AsVal href
-    | true -> sprintf """let path_%s%s : IntPath = "%s" """ extra page.AsVal href
+    | false -> sprintf """let path_%s%s = "%s" """ extra page.AsVal href |> trimEnd
+    | true -> sprintf """let path_%s%s : IntPath = "%s" """ extra page.AsVal href |> trimEnd
   let rec pathTemplate page pageMode =
     match pageMode with
     | CVEL      -> [Create; View; Edit; List] |> List.map (pathTemplate page) |> flatten
@@ -645,7 +645,7 @@ let validationTemplate (page : Page) =
   ] |> List.choose id
   """ page.AsFormType page.AsFormVal page.AsFormType validations
 
-let contextTemplate (page : Page) = sprintf """context "%s" """ page.Name |> pad 1
+let contextTemplate (page : Page) = sprintf """context "%s" """ page.Name |> trimEnd |> pad 1
 
 let onceTemplate (page : Page) =
   sprintf """once (fun _ -> url "http://localhost:8083%s"; click ".btn") """ page.AsCreateHref
@@ -728,7 +728,7 @@ let fakePropertyTemplate (field : Field) =
     | Phone      -> """sprintf "%i-%i-%i" (random.Next(200,800)) (random.Next(200,800)) (random.Next(2000,8000))"""
     | Email      -> """sprintf "%s@%s.com" (randomItem words) (randomItem words)"""
     | Name       -> pickAppropriateName """randomItem names"""
-    | Password   -> """"123123" """
+    | Password   -> """"123123" """ |> trimEnd
     | Dropdown _ -> "1s"
   sprintf """%s = %s """ field.AsProperty value
 

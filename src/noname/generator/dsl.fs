@@ -21,6 +21,7 @@ let pad tabs field = sprintf "%s%s" (repeat "  " tabs) field
 let rightPad upto field = sprintf "%s%s" field (repeat " " (upto - field.Length))
 let clean (value : string) = value.Replace("'", "").Replace("\"", "").Replace("-", "")
 let lower (value : string) = value.ToLower()
+let trimEnd (value : string) = value.TrimEnd()
 let upperFirst (value : string) = Char.ToUpper(value.[0]).ToString() + value.Substring(1)
 let lowerFirst (value : string) = Char.ToLower(value.[0]).ToString() + value.Substring(1)
 let spaceToNothing (value : string) = value.Replace(" ", "")
