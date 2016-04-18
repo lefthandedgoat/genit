@@ -10,6 +10,7 @@ open generated_forms
 open generated_types
 open generated_validation
 open generated_data_access
+open generated_fake_data
 open htmlHelpers
 
 open forms
