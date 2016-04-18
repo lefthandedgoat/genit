@@ -1,6 +1,7 @@
 module dsl
 
 open System
+open System.Text.RegularExpressions
 
 let onlyIfValues values func =
   let values = values |> List.filter (fun str -> str <> "")
@@ -17,7 +18,7 @@ let concat values = onlyIfValues values (List.reduce (fun value1 value2 -> sprin
 let repeat (value : string) times = [1..times] |> List.map (fun _ -> value) |> List.reduce (+)
 let pad tabs field = sprintf "%s%s" (repeat "  " tabs) field
 let rightPad upto field = sprintf "%s%s" field (repeat " " (upto - field.Length))
-let clean (value : string) = value.Replace("'", "").Replace("\"", "").Replace("-", "")
+let clean (value : string) = Regex.Replace(value, "[^0-9a-zA-Z ]+", "")
 let lower (value : string) = value.ToLower()
 let trimEnd (value : string) = value.TrimEnd()
 let upperFirst (value : string) = Char.ToUpper(value.[0]).ToString() + value.Substring(1)

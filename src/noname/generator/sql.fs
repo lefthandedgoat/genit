@@ -263,19 +263,20 @@ LIMIT 500
 
 let selectManyWhereTemplate site page =
   sprintf """
-let getManyWhere_%s field search =
-  let sql = "
-SELECT * FROM %s.%s
-WHERE :field LIKE ':search'
-LIMIT 500
-"
+let getManyWhere_%s field how value =
+  let field = to_dbColumn field
+  let search = searchHowToClause how value
+  let sql =
+    sprintf "SELECT * FROM %s.%s
+WHERE lower(%s) LIKE lower(:search)
+LIMIT 500" field
+
   use connection = connection connectionString
   use command = command connection sql
   command
-  |> param "field" field
   |> param "search" search
   |> read to%s
-  """ page.AsType site.AsDatabase page.AsTable page.AsType
+  """ page.AsType site.AsDatabase page.AsTable "%s" page.AsType
 
 let createQueriesForPage site page =
   let rec createQueriesForPage pageMode =

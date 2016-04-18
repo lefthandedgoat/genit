@@ -582,8 +582,9 @@ let search_%s =
       GET >=> warbler (fun _ ->
         OK <| get_search_%s [])
       POST >=> bindToForm searchForm (fun searchForm ->
-        OK <| get_search_%s [])
-    ]""" page.AsVal page.AsVal page.AsVal
+        let data = getManyWhere_%s searchForm.Field searchForm.How searchForm.Value
+        OK <| get_search_%s data)
+    ]""" page.AsVal page.AsVal page.AsType page.AsVal
     | Jumbotron ->
       sprintf """
 let %s = GET >=> OK get_%s""" page.AsVal page.AsVal

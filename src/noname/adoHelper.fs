@@ -52,3 +52,9 @@ let getBool name (reader : NpgsqlDataReader) =
 
 let getIntArray name (reader : NpgsqlDataReader) =
   reader.GetValue(reader.GetOrdinal(name)) :?> int array
+
+let searchHowToClause how value =
+  match how with
+  | "Equals"      -> value
+  | "Begins With" -> sprintf "%s%s" value "%"
+  | _             -> value

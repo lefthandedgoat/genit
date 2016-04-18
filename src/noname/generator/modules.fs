@@ -105,6 +105,7 @@ open generated_types
 open generated_forms
 open adoHelper
 open Npgsql
+open dsl
 
 let connectionString = "%s"
 

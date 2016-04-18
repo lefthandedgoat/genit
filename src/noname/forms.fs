@@ -27,3 +27,12 @@ let hasQueryString (req : HttpRequest) queryStringKey =
   match (req.queryParam queryStringKey) with
   | Choice1Of2 _ -> true
   | _ -> false
+
+type SearchForm =
+  {
+    Field : string
+    How : string
+    Value : string
+  }
+
+let searchForm : Form<SearchForm> = Form ([],[])
