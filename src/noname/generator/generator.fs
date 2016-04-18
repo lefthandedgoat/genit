@@ -342,19 +342,53 @@ let get_list_%s %ss =
     scripts.datatable_bundle""" page.AsVal page.AsVal page.AsVal page.AsType page.AsViewHref page.AsVal idField.AsProperty page.AsVal page.AsType (fieldsToTd page) page.Name page.Name page.AsCreateHref (fieldsToHeaders page) page.AsVal
 
 let searchFormViewTemplate (page : Page) =
+  let idField = page.Fields |> List.find (fun field -> field.FieldType = Id)
   sprintf """
-let search_%s =
+let get_search_%s %ss =
+  let fields = ["Name", "Name"; "Food","Food"; "City", "City"]
+  let hows = ["Equals", "Equals"; "Begins With","Begins With"]
+  let toTr (%s : %s) inner =
+    trLink (sprintf "%s" %s.%s) inner
+
+  let toTd (%s : %s) =
+    [
+%s
+    ]
+
   base_html
     "Search %s"
     [
       base_header brand
-      common_form
-        "Search %ss"
-        [
-
+      container [
+        row [
+          mcontent [
+            block_flat [
+              header [
+                h3Inner "Search %ss" [ ]
+              ]
+              div [
+                form_horizontal [
+                  content [
+                    label_select "Field" fields
+                    label_select "How" hows
+                    label_text "Value" ""
+                    pull_right [ button_submit ]
+                  ]
+                ]
+              ]
+              content [
+                table_bordered_linked_tr
+                  [
+%s
+                  ]
+                  %ss toTd toTr
+              ]
+            ]
+          ]
         ]
+      ]
     ]
-    scripts.common""" page.AsVal page.Name page.Name
+    scripts.datatable_bundle""" page.AsVal page.AsVal page.AsVal page.AsType page.AsViewHref page.AsVal idField.AsProperty page.AsVal page.AsType (fieldsToTd page) page.Name page.Name (fieldsToHeaders page) page.AsVal
 
 let submitFormViewTemplate (page : Page) =
   sprintf """
@@ -457,7 +491,7 @@ let pageLinkTemplate (page : Page) =
     | Edit      -> ""
     | View      -> ""
     | List      -> template page.AsListHref (sprintf "List %ss" page.Name)
-    | Search    -> template page.AsSearchHref (sprintf "Serch %ss" page.Name)
+    | Search    -> template page.AsSearchHref (sprintf "Search %ss" page.Name)
     | Submit    -> template page.AsHref page.Name
     | Login     -> template page.AsHref page.Name
     | Jumbotron -> template page.AsHref page.Name
@@ -546,8 +580,10 @@ let search_%s =
   choose
     [
       GET >=> warbler (fun _ ->
-        OK <| search_%s)
-    ]""" page.AsVal page.AsVal
+        OK <| get_search_%s [])
+      POST >=> bindToForm searchForm (fun searchForm ->
+        OK <| get_search_%s [])
+    ]""" page.AsVal page.AsVal page.AsVal
     | Jumbotron ->
       sprintf """
 let %s = GET >=> OK get_%s""" page.AsVal page.AsVal
