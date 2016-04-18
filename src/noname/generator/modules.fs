@@ -76,6 +76,7 @@ let generated_routes =
 let generated_handlers_template guts =
   sprintf """module generated_handlers
 
+open System.Web
 open Suave
 open Suave.Filters
 open Suave.Successful

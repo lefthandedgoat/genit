@@ -1,5 +1,6 @@
 module generated_handlers
 
+open System.Web
 open Suave
 open Suave.Filters
 open Suave.Successful
@@ -12,5 +13,3 @@ open generated_validation
 open generated_data_access
 open generated_fake_data
 open htmlHelpers
-
-open forms
