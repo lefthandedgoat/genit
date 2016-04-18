@@ -727,14 +727,27 @@ let validationTemplate (page : Page) =
 let contextTemplate (page : Page) = sprintf """context "%s" """ page.Name |> trimEnd |> pad 1
 
 let onceTemplate (page : Page) =
-  sprintf """once (fun _ -> url "http://localhost:8083%s"; click ".btn") """ page.AsCreateHref
+  let href =
+   match page.PageMode with
+   | CVELS     -> page.AsCreateHref
+   | CVEL      -> page.AsCreateHref
+   | Create    -> page.AsCreateHref
+   | Edit      -> page.AsEditHref
+   | View      -> page.AsViewHref
+   | List      -> page.AsSearchHref
+   | Search    -> page.AsSearchHref
+   | Submit
+   | Login
+   | Jumbotron -> page.AsHref
+
+  sprintf """once (fun _ -> url "http://localhost:8083%s"; click ".btn") """ href
   |> pad 1
 
 let attributeUITestTemplate name field =
   match name with
   | None -> None
   | Some(name) ->
-    let top = (sprintf """%s&&& fun _ ->""" name) |> pad 1
+    let top = (sprintf """%s &&& fun _ ->""" name) |> pad 1
     let body = (attributeToTestBody field).Value |> pad 2
     Some (sprintf """%s
 %s
@@ -744,7 +757,7 @@ let fieldUITestTemplate name field =
   match name with
   | None -> None
   | Some(name) ->
-    let top = (sprintf """%s&&& fun _ ->""" name) |> pad 1
+    let top = (sprintf """%s &&& fun _ ->""" name) |> pad 1
     let body = (fieldToTestBody field).Value |> pad 2
     Some (sprintf """%s
 %s
