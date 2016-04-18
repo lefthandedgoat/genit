@@ -367,11 +367,11 @@ let get_search_%s %ss =
                 h3Inner "Search %ss" [ ]
               ]
               div [
-                form_horizontal [
+                form_inline [
                   content [
-                    label_select "Field" fields
-                    label_select "How" hows
-                    label_text "Value" ""
+                    inline_label_select "Field" fields
+                    inline_label_select "How" hows
+                    inline_label_text "Value" ""
                     pull_right [ button_submit ]
                   ]
                 ]

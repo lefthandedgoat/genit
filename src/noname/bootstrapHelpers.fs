@@ -44,6 +44,7 @@ let progress_bar type' percent inner = divAttr ["class", (sprintf "progress-bar 
 let tile color inner = divClass (sprintf "fd-tile detail clean tile-%s" color) inner
 let sidebar_item inner = spanAttr ["class","sidebar-item"] inner
 let form_horizontal inner = formAttr ["class","form-horizontal"] inner
+let form_inline inner = formAttr ["class","form-inline"] inner
 let form_group inner = divClass "form-group" inner
 let input_group inner = divClass "input-group" inner
 let input_form_control placeholder name value = inputClassPlaceholderNameType "form-control" placeholder (removeSpace name) "text" value [empty]
@@ -54,6 +55,7 @@ let select_form_control name inner = selectClassName "form-control" (removeSpace
 let input_group_button inner = spanClass "input-group-btn" inner
 let input_group_addon inner = spanClass "input-group-addon" inner
 let control_label inner = labelClass "col-sm-2 control-label" inner
+let inline_label inner = labelClass "sr-only" inner
 let button_plain href inner = aHrefAttr href ["class", "btn"] inner
 let button_small_plain href inner = aHrefAttr href ["class", "btn btn-sm"] inner
 let button_primary href inner = aHrefAttr href ["class", "btn btn-primary"] inner
@@ -110,6 +112,12 @@ let form_group_control_label_sm8 label' inner =
     sm8 inner
   ]
 
+let form_group_inline_label label' inner =
+  form_group [
+    inline_label [ text label' ]
+    flatten inner
+  ]
+
 let private errorsOrEmptyText label errors =
   let errors = errors |> List.filter (fun (prop, _) -> (removeSpace prop) = (removeSpace label))
   match errors with
@@ -131,6 +139,12 @@ let private base_label_text_ahref_button label' text' button' errors =
 
 let private base_label_text label' text' errors =
   form_group_control_label_sm8 label' [
+    input_form_control label' label' text'
+    errorsOrEmptyText label' errors
+  ]
+
+let private base_inline_label_text label' text' errors =
+  form_group_inline_label label' [
     input_form_control label' label' text'
     errorsOrEmptyText label' errors
   ]
@@ -157,6 +171,16 @@ let base_label_select label' (options : (string * string) list) (selected : 'a o
     errorsOrEmptyText label' errors
   ]
 
+let base_inline_label_select label' (options : (string * string) list) (selected : 'a option) errors =
+  form_group_inline_label label' [
+    select_form_control label'
+      (options |> List.map (fun (id, value) ->
+                                    if selected.IsSome && id = selected.Value.ToString()
+                                    then selectedOption id value
+                                    else option id value))
+    errorsOrEmptyText label' errors
+  ]
+
 let options_data_section (options : (string * string) list) data_section =
   (options |> List.map (fun (id, value) -> option_data_section id data_section value))
 
@@ -171,6 +195,9 @@ let label_password label' text' = base_label_password label' text' []
 let label_textarea label' text' = base_label_textarea label' text' []
 let label_select label' options = base_label_select label' options None []
 let label_select_selected label' options selected = base_label_select label' options selected []
+
+let inline_label_text label' text' = base_inline_label_text label' text' []
+let inline_label_select label' options = base_inline_label_select label' options None []
 
 let table_bordered_linked_tr ths (rows : 'a list) (toTd : 'a -> Xml list) (toTr : 'a -> (Xml list -> Xml)) =
   let table_bordered inner = tableClass "table table-bordered" inner
