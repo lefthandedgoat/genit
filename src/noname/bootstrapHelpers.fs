@@ -198,6 +198,7 @@ let label_select_selected label' options selected = base_label_select label' opt
 
 let inline_label_text label' text' = base_inline_label_text label' text' []
 let inline_label_select label' options = base_inline_label_select label' options None []
+let inline_label_select_selected label' options selected = base_inline_label_select label' options selected []
 
 let table_bordered_linked_tr ths (rows : 'a list) (toTd : 'a -> Xml list) (toTr : 'a -> (Xml list -> Xml)) =
   let table_bordered inner = tableClass "table table-bordered" inner

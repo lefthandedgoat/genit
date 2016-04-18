@@ -344,7 +344,7 @@ let get_list_%s %ss =
 let searchFormViewTemplate (page : Page) =
   let idField = page.Fields |> List.find (fun field -> field.FieldType = Id)
   sprintf """
-let get_search_%s %ss =
+let get_search_%s field how value %ss =
   let fields = ["Name", "Name"; "Food","Food"; "City", "City"]
   let hows = ["Equals", "Equals"; "Begins With","Begins With"]
   let toTr (%s : %s) inner =
@@ -369,9 +369,9 @@ let get_search_%s %ss =
               div [
                 form_inline [
                   content [
-                    inline_label_select "Field" fields
-                    inline_label_select "How" hows
-                    inline_label_text "Value" ""
+                    inline_label_select_selected "Field" fields field
+                    inline_label_select_selected"How" hows how
+                    inline_label_text "Value" value
                     pull_right [ button_submit ]
                   ]
                 ]
@@ -579,12 +579,22 @@ let list_%s = GET >=> warbler (fun _ -> OK <| get_list_%s (getMany_%s ()))""" pa
 let search_%s =
   choose
     [
-      GET >=> warbler (fun _ ->
-        OK <| get_search_%s [])
+      GET >=> request (fun req ->
+        if hasQueryString req "field" && hasQueryString req "how" && hasQueryString req "value"
+        then
+          let field = getQueryStringValue req "field"
+          let how = getQueryStringValue req "how"
+          let value = getQueryStringValue req "value"
+          let data = getManyWhere_%s field how value
+          OK <| get_search_%s (Some field) (Some how) value data
+        else
+          OK <| get_search_%s None None "" [])
       POST >=> bindToForm searchForm (fun searchForm ->
-        let data = getManyWhere_%s searchForm.Field searchForm.How searchForm.Value
-        OK <| get_search_%s data)
-    ]""" page.AsVal page.AsVal page.AsType page.AsVal
+        let field = HttpUtility.UrlEncode(searchForm.Field)
+        let how = HttpUtility.UrlEncode(searchForm.How)
+        let value = HttpUtility.UrlEncode(searchForm.Value)
+        FOUND <| sprintf "%s?field=%s&how=%s&value=%s" field how value)
+    ]""" page.AsVal page.AsType page.AsVal page.AsVal page.AsSearchHref "%s" "%s" "%s"
     | Jumbotron ->
       sprintf """
 let %s = GET >=> OK get_%s""" page.AsVal page.AsVal
