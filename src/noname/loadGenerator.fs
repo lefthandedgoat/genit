@@ -22,6 +22,20 @@ type LoadTest =
     MaxConcurrentRequests : int
   }
 
+type LoadTestForm =
+  {
+    URI : string
+    NumberofRequests : string
+    MaxConcurrentRequests : string
+  }
+
+let convertLoadTest (loadTestForm : LoadTestForm) : LoadTest =
+  {
+    URI = loadTestForm.URI
+    NumberofRequests = int loadTestForm.NumberofRequests
+    MaxConcurrentRequests = int loadTestForm.MaxConcurrentRequests
+  }
+
 let defaultLoadTest : LoadTest =
   {
     URI = "http://localhost:8083/home"

@@ -5,6 +5,7 @@ open Suave.Model.Binding
 open Suave.Form
 open Suave.ServerErrors
 open Microsoft.FSharp.Reflection
+open loadGenerator
 
 let fromString<'a> s =
   match FSharpType.GetUnionCases typeof<'a> |> Array.filter (fun case -> case.Name = s) with
@@ -36,3 +37,4 @@ type SearchForm =
   }
 
 let searchForm : Form<SearchForm> = Form ([],[])
+let loadTestForm : Form<LoadTestForm> = Form ([],[])
