@@ -309,8 +309,7 @@ let fieldsToTd (page : Page) =
 let listFormViewTemplate (page : Page) =
   let idField = page.Fields |> List.find (fun field -> field.FieldType = Id)
   sprintf """
-let get_list_%s () =
-  let %ss = getMany_%s ()
+let get_list_%s %ss =
   let toTr (%s : %s) inner =
     trLink (sprintf "%s" %s.%s) inner
 
@@ -340,7 +339,7 @@ let get_list_%s () =
         ]
       ]
     ]
-    scripts.datatable_bundle""" page.AsVal page.AsVal page.AsType page.AsVal page.AsType page.AsViewHref page.AsVal idField.AsProperty page.AsVal page.AsType (fieldsToTd page) page.Name page.Name page.AsCreateHref (fieldsToHeaders page) page.AsVal
+    scripts.datatable_bundle""" page.AsVal page.AsVal page.AsVal page.AsType page.AsViewHref page.AsVal idField.AsProperty page.AsVal page.AsType (fieldsToTd page) page.Name page.Name page.AsCreateHref (fieldsToHeaders page) page.AsVal
 
 let searchFormViewTemplate (page : Page) =
   sprintf """
@@ -540,7 +539,7 @@ let %s id =
     | Some(data) -> OK <| get_%s data)""" page.AsVal page.AsType page.AsVal
     | List  ->
       sprintf """
-let list_%s = GET >=> warbler (fun _ -> OK <| get_list_%s ())""" page.AsVal page.AsVal
+let list_%s = GET >=> warbler (fun _ -> OK <| get_list_%s (getMany_%s ()))""" page.AsVal page.AsVal page.AsType
     | Search ->
       sprintf """
 let search_%s =
@@ -565,7 +564,8 @@ let create_%s =
           if parsed && value > 1
           then
             many_fake_%s value
-            OK <| get_list_%s ()
+            let data = getMany_%s()
+            OK <| get_list_%s data
           else
             let data = fake_%s ()
             OK <| get_edit_%s data
@@ -578,7 +578,7 @@ let create_%s =
           FOUND <| sprintf "%s" id
         else
           OK (post_create_errored_%s validation %s))
-    ]""" page.AsVal page.AsVal page.AsVal page.AsVal page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsType page.AsViewHref page.AsVal page.AsFormVal
+    ]""" page.AsVal page.AsVal page.AsType page.AsVal page.AsVal page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsType page.AsViewHref page.AsVal page.AsFormVal
     | Submit    ->
       sprintf """
 let submit_%s =
