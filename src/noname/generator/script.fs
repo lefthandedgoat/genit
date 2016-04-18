@@ -13,7 +13,7 @@ let someSite () =
 
   basic login
 
-  page "Order" CVEL
+  page "Order" CVELS
     [
       text "Name" Required
       text "Food" Null

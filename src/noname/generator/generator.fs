@@ -225,7 +225,7 @@ let get_create_%s =
     [
       base_header brand
       common_form
-        "%s"
+        "Create %s"
         [
 %s
         ]
@@ -240,7 +240,7 @@ let post_create_errored_%s errors (%s : %s) =
     [
       base_header brand
       common_form
-        "%s"
+        "Create %s"
         [
 %s
         ]
@@ -255,7 +255,7 @@ let get_edit_%s (%s : %s) =
     [
       base_header brand
       common_form
-        "%s"
+        "Edit %s"
         [
 %s
         ]
@@ -266,11 +266,11 @@ let editErroredFormViewTemplate (page : Page) =
   sprintf """
 let post_edit_errored_%s errors (%s : %s) =
   base_html
-    "%s"
+    "Edit %s"
     [
       base_header brand
       common_form
-        "%s"
+        "Edit %s"
         [
 %s
         ]
@@ -327,7 +327,7 @@ let get_list_%s () =
         row [
           mcontent [
             block_flat [
-              header [ h3Inner "%s" [ pull_right [ button_small_success "%s" [ text "Create"] ] ] ]
+              header [ h3Inner "List %ss" [ pull_right [ button_small_success "%s" [ text "Create"] ] ] ]
               content [
                 table_bordered_linked_tr
                   [
@@ -341,6 +341,21 @@ let get_list_%s () =
       ]
     ]
     scripts.datatable_bundle""" page.AsVal page.AsVal page.AsType page.AsVal page.AsType page.AsViewHref page.AsVal idField.AsProperty page.AsVal page.AsType (fieldsToTd page) page.Name page.Name page.AsCreateHref (fieldsToHeaders page) page.AsVal
+
+let searchFormViewTemplate (page : Page) =
+  sprintf """
+let search_%s =
+  base_html
+    "Search %s"
+    [
+      base_header brand
+      common_form
+        "Search %ss"
+        [
+
+        ]
+    ]
+    scripts.common""" page.AsVal page.Name page.Name
 
 let submitFormViewTemplate (page : Page) =
   sprintf """
@@ -420,11 +435,13 @@ let get_%s =
 let viewTemplate site page =
   let rec viewTemplate site page pageMode =
     match pageMode with
+    | CVELS     -> [Create; View; Edit; List; Search] |> List.map (viewTemplate site page) |> flatten
     | CVEL      -> [Create; View; Edit; List] |> List.map (viewTemplate site page) |> flatten
     | Create    -> [createFormViewTemplate page; createErroredFormViewTemplate page] |> flatten
     | Edit      -> [editFormViewTemplate page; editErroredFormViewTemplate page] |> flatten
     | View      -> viewFormViewTemplate page
     | List      -> listFormViewTemplate page
+    | Search    -> searchFormViewTemplate page
     | Submit    -> [submitFormViewTemplate page; submitErroredFormViewTemplate page] |> flatten
     | Login     -> [loginFormViewTemplate page; loginErroredFormViewTemplate page] |> flatten
     | Jumbotron -> jumbotronViewTemplate site page
@@ -435,13 +452,15 @@ let pageLinkTemplate (page : Page) =
   let template href text = sprintf """li [ aHref "%s" [text "%s"] ]""" href text |> pad 7
   let rec pageLinkTemplate page pageMode =
     match pageMode with
+    | CVELS     -> [Create; View; Edit; List; Search] |> List.map (pageLinkTemplate page) |> flatten
     | CVEL      -> [Create; View; Edit; List] |> List.map (pageLinkTemplate page) |> flatten
     | Create    -> template page.AsCreateHref (sprintf "Create %s" page.Name)
     | Edit      -> ""
     | View      -> ""
     | List      -> template page.AsListHref (sprintf "List %ss" page.Name)
-    | Submit    -> template page.AsCreateHref page.Name
-    | Login     -> template page.AsCreateHref page.Name
+    | Search    -> template page.AsSearchHref (sprintf "Serch %ss" page.Name)
+    | Submit    -> template page.AsHref page.Name
+    | Login     -> template page.AsHref page.Name
     | Jumbotron -> template page.AsHref page.Name
 
   pageLinkTemplate page page.PageMode
@@ -453,13 +472,15 @@ let pathTemplate page =
     | true -> sprintf """let path_%s%s : IntPath = "%s" """ extra page.AsVal href |> trimEnd
   let rec pathTemplate page pageMode =
     match pageMode with
+    | CVELS     -> [Create; View; Edit; List; Search] |> List.map (pathTemplate page) |> flatten
     | CVEL      -> [Create; View; Edit; List] |> List.map (pathTemplate page) |> flatten
     | Create    -> template "create_" page.AsCreateHref false
     | Edit      -> template "edit_" page.AsEditHref true
     | View      -> template "" page.AsViewHref true
     | List      -> template "list_" page.AsListHref false
-    | Submit    -> template "submit_" page.AsCreateHref false
-    | Login     -> template "login_" page.AsCreateHref false
+    | Search    -> template "search_" page.AsSearchHref false
+    | Submit    -> template "submit_" page.AsHref false
+    | Login     -> template "login_" page.AsHref false
     | Jumbotron -> template "" page.AsHref false
 
   pathTemplate page page.PageMode
@@ -471,11 +492,13 @@ let routeTemplate page =
     | true -> sprintf """pathScan path_%s%s %s%s""" extra page.AsVal extra page.AsVal |> pad 2
   let rec routeTemplate page pageMode =
     match pageMode with
+    | CVELS     -> [Create; View; Edit; List; Search] |> List.map (routeTemplate page) |> flatten
     | CVEL      -> [Create; View; Edit; List] |> List.map (routeTemplate page) |> flatten
     | Create    -> template "create_" false
     | Edit      -> template "edit_" true
     | View      -> template "" true
     | List      -> template "list_" false
+    | Search    -> template "search_" false
     | Submit    -> template "submit_" false
     | Login     -> template "login_" false
     | Jumbotron -> template "" false
@@ -485,8 +508,9 @@ let routeTemplate page =
 let handlerTemplate page =
   let rec handlerTemplate page pageMode =
     match pageMode with
-    | CVEL -> [Create; View; Edit; List] |> List.map (handlerTemplate page) |> flatten
-    | Edit ->
+    | CVELS -> [Create; View; Edit; List; Search] |> List.map (handlerTemplate page) |> flatten
+    | CVEL  -> [Create; View; Edit; List] |> List.map (handlerTemplate page) |> flatten
+    | Edit  ->
       let idField = page.Fields |> List.find (fun field -> field.FieldType = Id)
       sprintf """
 let edit_%s id =
@@ -506,7 +530,7 @@ let edit_%s id =
         else
           OK (post_edit_errored_%s validation %s))
     ]""" page.AsVal page.AsType page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsType page.AsViewHref idField.AsProperty page.AsVal page.AsFormVal
-    | View ->
+    | View  ->
       sprintf """
 let %s id =
   GET >=> warbler (fun _ ->
@@ -514,9 +538,17 @@ let %s id =
     match data with
     | None -> OK error_404
     | Some(data) -> OK <| get_%s data)""" page.AsVal page.AsType page.AsVal
-    | List ->
+    | List  ->
       sprintf """
 let list_%s = GET >=> warbler (fun _ -> OK <| get_list_%s ())""" page.AsVal page.AsVal
+    | Search ->
+      sprintf """
+let search_%s =
+  choose
+    [
+      GET >=> warbler (fun _ ->
+        OK <| search_%s)
+    ]""" page.AsVal page.AsVal
     | Jumbotron ->
       sprintf """
 let %s = GET >=> OK get_%s""" page.AsVal page.AsVal
@@ -760,7 +792,7 @@ let fakeManyDataTemplate (page: Page) =
  """ page.AsVal page.AsVal page.AsType
 
 let fakeDataTemplate (page : Page) =
-  if (not (page.PageMode = Create || page.PageMode = CVEL) ) || page.Fields = [] then ""
+  if (not (page.PageMode = Create || page.PageMode = CVEL || page.PageMode = CVELS) ) || page.Fields = [] then ""
   else
     sprintf """let fake_%s () =%s
   {

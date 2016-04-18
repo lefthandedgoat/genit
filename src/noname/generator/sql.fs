@@ -73,6 +73,7 @@ CREATE TABLE %s.%s(
 
 let shouldICreateTable page =
   match page.PageMode with
+  | CVELS
   | CVEL
   | Create
   | Edit
@@ -80,6 +81,7 @@ let shouldICreateTable page =
   | List
   | Submit    -> true
   | Login
+  | Search
   | Jumbotron -> false
 
 let createTableTemplates (site : Site) =
@@ -259,20 +261,38 @@ LIMIT 500
   |> read to%s
   """ page.AsType site.AsDatabase page.AsTable page.AsType
 
+let selectManyWhereTemplate site page =
+  sprintf """
+let getManyWhere_%s field search =
+  let sql = "
+SELECT * FROM %s.%s
+WHERE :field LIKE ':search'
+LIMIT 500
+"
+  use connection = connection connectionString
+  use command = command connection sql
+  command
+  |> param "field" field
+  |> param "search" search
+  |> read to%s
+  """ page.AsType site.AsDatabase page.AsTable page.AsType
+
 let createQueriesForPage site page =
   let rec createQueriesForPage pageMode =
     match pageMode with
+    | CVELS     -> [Create; View; Edit; List; Search] |> List.map createQueriesForPage |> flatten
     | CVEL      -> [Create; View; Edit; List] |> List.map createQueriesForPage |> flatten
     | Create    -> insertTemplate site page
     | Edit      -> updateTemplate site page
     | View      -> tryByIdTemplate site page
     | List      -> selectManyTemplate site page
+    | Search    -> selectManyWhereTemplate site page
     | Submit    -> insertTemplate site page
     | Login
     | Jumbotron -> ""
 
   let queries = createQueriesForPage page.PageMode
-  if page.PageMode = CVEL || page.PageMode = View || page.PageMode = List
+  if page.PageMode = CVEL || page.PageMode = CVELS || page.PageMode = View || page.PageMode = List
   then sprintf "%s%s%s" (dataReaderTemplate page) System.Environment.NewLine queries
   else queries
 

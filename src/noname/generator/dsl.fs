@@ -3,12 +3,10 @@ module dsl
 open System
 
 let onlyIfValues values func =
+  let values = values |> List.filter (fun str -> str <> "")
   if values = []
   then ""
-  else
-    values
-    |> List.filter (fun str -> str <> "")
-    |> func
+  else values |> func
 
 let flatten values = onlyIfValues values (List.reduce (fun value1 value2 -> sprintf "%s%s%s" value1 Environment.NewLine value2))
 
@@ -40,6 +38,7 @@ let to_createHref = camelCase >> sprintf "/%s/create"
 let to_viewHref = camelCase >> (fun page -> sprintf "/%s/%s" page "%i")
 let to_editHref = camelCase >> (fun page -> sprintf "/%s/edit/%s" page "%i")
 let to_listHref = camelCase >> sprintf "/%s/list"
+let to_searchHref = camelCase >> sprintf "/%s/search"
 
 let to_property = typeCase
 
@@ -48,11 +47,13 @@ let to_tableName = clean >> lower >> spaceToUnderscore >> pluralize
 let to_dbColumn = clean >> lower >> spaceToUnderscore
 
 type PageMode =
+  | CVELS
   | CVEL
   | Create
   | Edit
   | View
   | List
+  | Search
   | Submit
   | Login
   | Jumbotron
@@ -127,6 +128,7 @@ type Page =
     AsViewHref : string
     AsEditHref : string
     AsListHref : string
+    AsSearchHref : string
     AsTable : string
   }
 
@@ -164,6 +166,7 @@ let private page_ name pageMode tableName createTable fields =
       AsViewHref = to_viewHref name
       AsEditHref = to_editHref name
       AsListHref = to_listHref name
+      AsSearchHref = to_searchHref name
       AsTable = to_tableName tableName
     }
 
