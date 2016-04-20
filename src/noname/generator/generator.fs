@@ -11,8 +11,8 @@ let destination filename =
   |> UriBuilder
   |> (fun uri -> uri.Path)
   |> IO.Path.GetDirectoryName
-  |> (fun path -> path.Replace("/bin", "/generated"))
-  |> (fun path -> sprintf "%s/%s" path filename)
+  |> (fun path -> path.Replace("bin", "generated"))
+  |> (fun path -> System.IO.Path.Combine(path, filename))
 
 let zipOptions (options : string list) =
   //clean out empty strings, append one at the end
