@@ -7,7 +7,17 @@ let jquery_1_11_3_min = """<script src="//code.jquery.com/jquery-1.11.3.min.js">
 let bootstrap = """<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>"""
 let datatable_jquery_1_10_9_min = """<script src="//cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>"""
 //todo dont hotlink
-let datatable_adapater = """<script src="http://chronogram.co/js/jquery.datatables/bootstrap-adapter/js/datatables.js"></script>"""
+let datatable_adapter = """<script src="http://chronogram.co/js/jquery.datatables/bootstrap-adapter/js/datatables.js"></script>"""
+let bootstrap_datepicker = """<script src="http://www.condorthemes.com/flatdream/js/bootstrap.datetimepicker/js/bootstrap-datetimepicker.min.js"></script>"""
+
+let generic_onready = """
+<script type="text/javascript">
+  $(document).ready(function(){
+    //enable datepickers
+    $('.datetime').datetimepicker();
+  });
+</script>
+"""
 
 let generic_datatable = """
 <script type="text/javascript">
@@ -36,6 +46,8 @@ let common =
   [
     jquery_1_11_3_min
     bootstrap
+    bootstrap_datepicker
+    generic_onready
   ]
   |> List.map (fun script -> text script) |> flatten
 
@@ -44,7 +56,9 @@ let datatable_bundle =
     jquery_1_11_3_min
     bootstrap
     datatable_jquery_1_10_9_min
-    datatable_adapater
+    datatable_adapter
+    bootstrap_datepicker
+    generic_onready
     generic_datatable
   ]
   |> List.map (fun script -> text script) |> flatten

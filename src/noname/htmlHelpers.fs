@@ -100,6 +100,7 @@ let base_head title' =
     cssLink "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
     cssLink "https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"
     cssLink "http://turtletest.com/css/style.css"
+    cssLink "http://www.condorthemes.com/flatdream/js/bootstrap.datetimepicker/css/bootstrap-datetimepicker.min.css"
   ]
 
 let base_html title content scripts =
