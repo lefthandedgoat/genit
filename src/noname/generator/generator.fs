@@ -26,78 +26,83 @@ let fieldToHtml (field : Field) =
   let template tag = sprintf """%s "%s" "" """ tag field.Name |> trimEnd
   let iconTemplate tag icon = sprintf """%s "%s" "" "%s" """ tag field.Name icon |> trimEnd
   match field.FieldType with
-  | Id         -> sprintf """hiddenInput "%s" "-1" """ field.AsProperty |> trimEnd
-  | Text       -> template "label_text"
-  | Paragraph  -> template "label_textarea"
-  | Number     -> template "label_text"
-  | Decimal    -> template "label_text"
-  | Date       -> template "label_text"
-  | Phone      -> template "label_text"
-  | Email      -> iconTemplate "icon_label_text" "envelope"
-  | Name       -> iconTemplate "icon_label_text" "user"
-  | Password   -> iconTemplate "icon_password_text" "lock"
-  | Dropdown options -> sprintf """label_select "%s" %A """ field.Name (zipOptions options) |> trimEnd
+  | Id                -> sprintf """hiddenInput "%s" "-1" """ field.AsProperty |> trimEnd
+  | Text              -> template "label_text"
+  | Paragraph         -> template "label_textarea"
+  | Number            -> template "label_text"
+  | Decimal           -> template "label_text"
+  | Date              -> template "label_text"
+  | Phone             -> template "label_text"
+  | Email             -> iconTemplate "icon_label_text" "envelope"
+  | Name              -> iconTemplate "icon_label_text" "user"
+  | Password          -> iconTemplate "icon_password_text" "lock"
+  | ConfirmPassword   -> iconTemplate "icon_password_text" "lock"
+  | Dropdown options  -> sprintf """label_select "%s" %A """ field.Name (zipOptions options) |> trimEnd
 
 let fieldToPopulatedHtml page (field : Field) =
   let template tag = sprintf """%s "%s" %s.%s """ tag field.Name page.AsVal field.AsProperty |> trimEnd
   let iconTemplate tag icon = sprintf """%s "%s" %s.%s "%s" """ tag field.Name page.AsVal field.AsProperty icon |> trimEnd
   match field.FieldType with
-  | Id         -> sprintf """hiddenInput "%s" %s.%s """ field.AsProperty page.AsVal field.AsProperty
-  | Text       -> template "label_text"
-  | Paragraph  -> template "label_textarea"
-  | Number     -> template "label_text"
-  | Decimal    -> template "label_text"
-  | Date       -> template "label_text"
-  | Phone      -> template "label_text"
-  | Email      -> iconTemplate "icon_label_text" "envelope"
-  | Name       -> iconTemplate "icon_label_text" "user"
-  | Password   -> iconTemplate "icon_password_text" "lock"
-  | Dropdown options -> sprintf """label_select_selected "%s" %A (Some %s.%s)""" field.Name (zipOptions options) page.AsVal field.AsProperty
+  | Id                -> sprintf """hiddenInput "%s" %s.%s """ field.AsProperty page.AsVal field.AsProperty
+  | Text              -> template "label_text"
+  | Paragraph         -> template "label_textarea"
+  | Number            -> template "label_text"
+  | Decimal           -> template "label_text"
+  | Date              -> template "label_text"
+  | Phone             -> template "label_text"
+  | Email             -> iconTemplate "icon_label_text" "envelope"
+  | Name              -> iconTemplate "icon_label_text" "user"
+  | Password          -> iconTemplate "icon_password_text" "lock"
+  | ConfirmPassword   -> iconTemplate "icon_password_text" "lock"
+  | Dropdown options  -> sprintf """label_select_selected "%s" %A (Some %s.%s)""" field.Name (zipOptions options) page.AsVal field.AsProperty
 
 let fieldToStaticHtml page (field : Field) =
   let template tag = sprintf """%s "%s" %s.%s """ tag field.Name page.AsVal field.AsProperty
   match field.FieldType with
-  | Id         -> ""
-  | Text       -> template "label_static"
-  | Paragraph  -> template "label_static"
-  | Number     -> template "label_static"
-  | Decimal    -> template "label_static"
-  | Date       -> template "label_static"
-  | Phone      -> template "label_static"
-  | Email      -> template "label_static"
-  | Name       -> template "label_static"
-  | Password   -> template "label_static"
-  | Dropdown _ -> sprintf """label_static "%s" %s.%s """ field.Name page.AsVal field.AsProperty
+  | Id                -> ""
+  | Text              -> template "label_static"
+  | Paragraph         -> template "label_static"
+  | Number            -> template "label_static"
+  | Decimal           -> template "label_static"
+  | Date              -> template "label_static"
+  | Phone             -> template "label_static"
+  | Email             -> template "label_static"
+  | Name              -> template "label_static"
+  | Password          -> template "label_static"
+  | ConfirmPassword   -> template "label_static"
+  | Dropdown _        -> sprintf """label_static "%s" %s.%s """ field.Name page.AsVal field.AsProperty
 
 let fieldToErroredHtml page (field : Field) =
   let template tag = sprintf """%s "%s" (string %s.%s) errors""" tag field.Name page.AsFormVal field.AsProperty
   let iconTemplate tag icon = sprintf """%s "%s" %s.%s "%s" errors""" tag field.Name page.AsFormVal field.AsProperty icon
   match field.FieldType with
-  | Id         -> sprintf """hiddenInput "%s" %s.%s """ field.AsProperty page.AsFormVal field.AsProperty
-  | Text       -> template "errored_label_text"
-  | Paragraph  -> template "errored_label_textarea"
-  | Number     -> template "errored_label_text"
-  | Decimal    -> template "errored_label_text"
-  | Date       -> template "errored_label_text"
-  | Phone      -> template "errored_label_text"
-  | Email      -> iconTemplate "errored_icon_label_text" "envelope"
-  | Name       -> iconTemplate "errored_icon_label_text" "user"
-  | Password   -> iconTemplate "errored_icon_password_text" "lock"
-  | Dropdown options -> sprintf """errored_label_select "%s" %A (Some %s.%s) errors""" field.Name (zipOptions options) page.AsFormVal field.AsProperty
+  | Id                -> sprintf """hiddenInput "%s" %s.%s """ field.AsProperty page.AsFormVal field.AsProperty
+  | Text              -> template "errored_label_text"
+  | Paragraph         -> template "errored_label_textarea"
+  | Number            -> template "errored_label_text"
+  | Decimal           -> template "errored_label_text"
+  | Date              -> template "errored_label_text"
+  | Phone             -> template "errored_label_text"
+  | Email             -> iconTemplate "errored_icon_label_text" "envelope"
+  | Name              -> iconTemplate "errored_icon_label_text" "user"
+  | Password          -> iconTemplate "errored_icon_password_text" "lock"
+  | ConfirmPassword   -> iconTemplate "errored_icon_password_text" "lock"
+  | Dropdown options  -> sprintf """errored_label_select "%s" %A (Some %s.%s) errors""" field.Name (zipOptions options) page.AsFormVal field.AsProperty
 
 let fieldToProperty field =
   match field.FieldType with
-  | Id         -> "int64"
-  | Text       -> "string"
-  | Paragraph  -> "string"
-  | Number     -> "int"
-  | Decimal    -> "double"
-  | Date       -> "System.DateTime"
-  | Phone      -> "string"
-  | Email      -> "string"
-  | Name       -> "string"
-  | Password   -> "string"
-  | Dropdown _ -> "int16"
+  | Id              -> "int64"
+  | Text            -> "string"
+  | Paragraph       -> "string"
+  | Number          -> "int"
+  | Decimal         -> "double"
+  | Date            -> "System.DateTime"
+  | Phone           -> "string"
+  | Email           -> "string"
+  | Name            -> "string"
+  | Password        -> "string"
+  | ConfirmPassword -> "string"
+  | Dropdown _      -> "int16"
 
 let fieldToConvertProperty page field =
   let property = sprintf "%s.%s" page.AsFormVal field.AsProperty
@@ -108,62 +113,66 @@ let fieldToConvertProperty page field =
   let double () = sprintf """%s = double %s""" field.AsProperty property
   let datetime () = sprintf """%s = System.DateTime.Parse(%s)""" field.AsProperty property
   match field.FieldType with
-  | Id         -> int64 ()
-  | Text       -> string ()
-  | Paragraph  -> string ()
-  | Number     -> int ()
-  | Decimal    -> double ()
-  | Date       -> datetime ()
-  | Email      -> string ()
-  | Name       -> string ()
-  | Phone      -> string ()
-  | Password   -> string ()
-  | Dropdown _ -> int16 ()
+  | Id              -> int64 ()
+  | Text            -> string ()
+  | Paragraph       -> string ()
+  | Number          -> int ()
+  | Decimal         -> double ()
+  | Date            -> datetime ()
+  | Email           -> string ()
+  | Name            -> string ()
+  | Phone           -> string ()
+  | Password        -> string ()
+  | ConfirmPassword -> string ()
+  | Dropdown _      -> int16 ()
 
 let fieldToValidation (field : Field) page =
   let template validation = sprintf """%s "%s" %s.%s""" validation field.Name page.AsFormVal field.AsProperty
   match field.FieldType with
-  | Id         -> None
-  | Text       -> None
-  | Paragraph  -> None
-  | Number     -> Some (template "validate_integer")
-  | Decimal    -> Some (template "validate_double")
-  | Date       -> Some (template "validate_datetime")
-  | Phone      -> None //parsePhone?
-  | Email      -> Some (template "validate_email")
-  | Name       -> None
-  | Password   -> Some (template "validate_password")
-  | Dropdown _ -> None
+  | Id              -> None
+  | Text            -> None
+  | Paragraph       -> None
+  | Number          -> Some (template "validate_integer")
+  | Decimal         -> Some (template "validate_double")
+  | Date            -> Some (template "validate_datetime")
+  | Phone           -> None //parsePhone?
+  | Email           -> Some (template "validate_email")
+  | Name            -> None
+  | Password        -> Some (template "validate_password")
+  | ConfirmPassword -> Some (template "validate_password")
+  | Dropdown _      -> None
 
 let fieldToTestName (field : Field) =
   let template text = sprintf """"%s %s" """ field.Name text |> trimEnd
   match field.FieldType with
-  | Id         -> None
-  | Text       -> None
-  | Paragraph  -> None
-  | Number     -> Some (template "must be a valid integer")
-  | Decimal    -> Some (template "must be a valid double")
-  | Date       -> Some (template "must be a valid date")
-  | Email      -> Some (template "must be a valid email")
-  | Name       -> None
-  | Phone      -> None //parsePhone?
-  | Password   -> Some (template "must be between 6 and 100 characters")
-  | Dropdown _ -> None
+  | Id              -> None
+  | Text            -> None
+  | Paragraph       -> None
+  | Number          -> Some (template "must be a valid integer")
+  | Decimal         -> Some (template "must be a valid double")
+  | Date            -> Some (template "must be a valid date")
+  | Email           -> Some (template "must be a valid email")
+  | Name            -> None
+  | Phone           -> None //parsePhone?
+  | Password        -> Some (template "must be between 6 and 100 characters")
+  | ConfirmPassword -> Some (template "must be between 6 and 100 characters")
+  | Dropdown _      -> None
 
 let fieldToTestBody (field : Field) =
   let template text = sprintf """displayed "%s %s" """ field.Name text |> trimEnd
   match field.FieldType with
-  | Id         -> None
-  | Text       -> None
-  | Paragraph  -> None
-  | Number     -> Some (template "is not a valid number (int)")
-  | Decimal    -> Some (template "is not a valid number (decimal)")
-  | Date       -> Some (template "is not a valid date")
-  | Email      -> Some (template "is not a valid email")
-  | Name       -> None
-  | Phone      -> None //parsePhone?
-  | Password   -> Some (template "must be between 6 and 100 characters")
-  | Dropdown _ -> None
+  | Id              -> None
+  | Text            -> None
+  | Paragraph       -> None
+  | Number          -> Some (template "is not a valid number (int)")
+  | Decimal         -> Some (template "is not a valid number (decimal)")
+  | Date            -> Some (template "is not a valid date")
+  | Email           -> Some (template "is not a valid email")
+  | Name            -> None
+  | Phone           -> None //parsePhone?
+  | Password        -> Some (template "must be between 6 and 100 characters")
+  | ConfirmPassword -> Some (template "must be between 6 and 100 characters")
+  | Dropdown _      -> None
 
 let attributeToValidation field page =
   let property = sprintf "%s.%s" page.AsFormVal field.AsProperty
@@ -811,17 +820,18 @@ let fakePropertyTemplate (field : Field) =
 
   let value =
     match field.FieldType with
-    | Id         -> "-1L"
-    | Text       -> pickAppropriateText "randomItems 6 words"
-    | Paragraph  -> "randomItems 40 words"
-    | Number     -> pickAppropriateNumber "random.Next(100)"
-    | Decimal    -> "random.Next(100) |> double"
-    | Date       -> "System.DateTime.Now"
-    | Phone      -> """sprintf "%i-%i-%i" (random.Next(200,800)) (random.Next(200,800)) (random.Next(2000,8000))"""
-    | Email      -> """sprintf "%s@%s.com" (randomItem words) (randomItem words)"""
-    | Name       -> pickAppropriateName """randomItem names"""
-    | Password   -> """"123123" """ |> trimEnd
-    | Dropdown _ -> "1s"
+    | Id              -> "-1L"
+    | Text            -> pickAppropriateText "randomItems 6 words"
+    | Paragraph       -> "randomItems 40 words"
+    | Number          -> pickAppropriateNumber "random.Next(100)"
+    | Decimal         -> "random.Next(100) |> double"
+    | Date            -> "System.DateTime.Now"
+    | Phone           -> """sprintf "%i-%i-%i" (random.Next(200,800)) (random.Next(200,800)) (random.Next(2000,8000))"""
+    | Email           -> """sprintf "%s@%s.com" (randomItem words) (randomItem words)"""
+    | Name            -> pickAppropriateName """randomItem names"""
+    | Password        -> """"123123" """ |> trimEnd
+    | ConfirmPassword -> """"123123" """ |> trimEnd
+    | Dropdown _      -> "1s"
   sprintf """%s = %s """ field.AsProperty value
 
 let fakePropertiesTemplate (page : Page) =

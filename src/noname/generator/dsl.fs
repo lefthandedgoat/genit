@@ -74,6 +74,7 @@ type FieldType =
   | Email
   | Name
   | Password
+  | ConfirmPassword
   | Dropdown of options:string list
 
 type Attribute =
@@ -112,6 +113,7 @@ let email name = field name Required Email
 let name name attribute = field name attribute Name
 let phone name attribute = field name attribute Phone
 let password name = field name Required Password
+let confirm name = field name Required ConfirmPassword
 let dropdown name options = field name Null (Dropdown(options))
 
 type Page =
@@ -195,7 +197,7 @@ let precannedRegister () =
       name "Last Name" Required
       email "Email"
       password "Password"
-      password "Repeat Password"
+      confirm "Confirm Password"
     ]
 
 let precannedLogin () =

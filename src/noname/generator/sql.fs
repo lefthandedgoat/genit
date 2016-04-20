@@ -27,17 +27,18 @@ CREATE TABLES
 
 let columnTypeTemplate field =
   match field.FieldType with
-  | Id           -> "SERIAL"
-  | Text         -> "varchar(1024)"
-  | Paragraph    -> "text"
-  | Number       -> "integer"
-  | Decimal      -> "decimal(12, 2)"
-  | Date         -> "timestamptz"
-  | Phone        -> "varchar(15)"
-  | Email        -> "varchar(128)"
-  | Name         -> "varchar(128)"
-  | Password     -> "varchar(60)"
-  | Dropdown (_) -> "smallint"
+  | Id              -> "SERIAL"
+  | Text            -> "varchar(1024)"
+  | Paragraph       -> "text"
+  | Number          -> "integer"
+  | Decimal         -> "decimal(12, 2)"
+  | Date            -> "timestamptz"
+  | Phone           -> "varchar(15)"
+  | Email           -> "varchar(128)"
+  | Name            -> "varchar(128)"
+  | Password        -> "varchar(60)"
+  | ConfirmPassword -> ""
+  | Dropdown (_)    -> "smallint"
 
 //http://www.postgresql.org/docs/9.5/static/ddl-constraints.html
 let columnAttributesTemplate field =
@@ -112,17 +113,18 @@ DATA READERS
 
 let conversionTemplate field =
   match field.FieldType with
-  | Id           -> "getInt64"
-  | Text         -> "getString"
-  | Paragraph    -> "getString"
-  | Number       -> "getInt32"
-  | Decimal      -> "getDouble"
-  | Date         -> "getDateTime"
-  | Phone        -> "getString"
-  | Email        -> "getString"
-  | Name         -> "getString"
-  | Password     -> "getString"
-  | Dropdown (_) -> "getInt16"
+  | Id              -> "getInt64"
+  | Text            -> "getString"
+  | Paragraph       -> "getString"
+  | Number          -> "getInt32"
+  | Decimal         -> "getDouble"
+  | Date            -> "getDateTime"
+  | Phone           -> "getString"
+  | Email           -> "getString"
+  | Name            -> "getString"
+  | Password        -> "getString"
+  | ConfirmPassword -> "getString"
+  | Dropdown (_)    -> "getInt16"
 
 let dataReaderPropertyTemplate field =
  sprintf """%s = %s "%s" reader""" field.AsProperty (conversionTemplate field) field.AsDBColumn
