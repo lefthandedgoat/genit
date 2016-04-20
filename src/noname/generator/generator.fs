@@ -670,6 +670,7 @@ let login_%s =
 
 let propertyTemplate (page : Page) =
   page.Fields
+  |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
   |> List.map (fun field -> sprintf """%s : %s""" field.AsProperty (fieldToProperty field))
   |> List.map (pad 2)
   |> flatten
@@ -682,6 +683,7 @@ let formPropertyTemplate (page : Page) =
 
 let converterPropertyTemplate (page : Page) =
   page.Fields
+  |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
   |> List.map (fieldToConvertProperty page)
   |> List.map (pad 2)
   |> flatten

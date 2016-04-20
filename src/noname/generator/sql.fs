@@ -60,6 +60,7 @@ let createColumns (page : Page) =
   let maxType = if maxType > 20 then maxType else 20
 
   page.Fields
+  |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
   |> List.map (columnTemplate maxName maxType)
   |> List.map (pad 1)
   |> flattenWith ","
@@ -123,7 +124,7 @@ let conversionTemplate field =
   | Email           -> "getString"
   | Name            -> "getString"
   | Password        -> "getString"
-  | ConfirmPassword -> "getString"
+  | ConfirmPassword -> ""
   | Dropdown (_)    -> "getInt16"
 
 let dataReaderPropertyTemplate field =
@@ -131,6 +132,7 @@ let dataReaderPropertyTemplate field =
 
 let dataReaderPropertiesTemplate page =
   page.Fields
+  |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
   |> List.map (fun field -> dataReaderPropertyTemplate field)
   |> List.map (pad 3)
   |> flatten
@@ -152,6 +154,7 @@ INSERT
 
 let insertColumns page =
   page.Fields
+  |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
   |> List.map (fun field -> field.AsDBColumn)
   |> List.map (pad 2)
   |> flattenWith ","
@@ -163,13 +166,14 @@ let insertValues page =
     else sprintf ":%s" field.AsDBColumn
 
   page.Fields
+  |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
   |> List.map format
   |> List.map (pad 2)
   |> flattenWith ","
 
 let insertParamsTemplate page =
   page.Fields
-  |> List.filter (fun field -> field.FieldType <> Id)
+  |> List.filter (fun field -> field.FieldType <> Id && field.FieldType <> ConfirmPassword)
   |> List.map (fun field -> sprintf """|> param "%s" %s.%s""" field.AsDBColumn page.AsVal field.AsProperty)
   |> List.map (pad 1)
   |> flatten
@@ -202,12 +206,14 @@ UPDATE
 
 let updateColumns page =
   page.Fields
+  |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
   |> List.map (fun field -> sprintf """%s = :%s""" field.AsDBColumn field.AsDBColumn)
   |> List.map (pad 1)
   |> flattenWith ","
 
 let updateParamsTemplate page =
   page.Fields
+  |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
   |> List.map (fun field -> sprintf """|> param "%s" %s.%s""" field.AsDBColumn page.AsVal field.AsProperty)
   |> List.map (pad 1)
   |> flatten
