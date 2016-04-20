@@ -89,7 +89,8 @@ open generated_validation
 open generated_data_access
 open generated_fake_data
 open htmlHelpers
-
+open Nessos.FsPickler
+open Nessos.FsPickler.Json
 open forms
 
 %s""" guts
