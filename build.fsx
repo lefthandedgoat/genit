@@ -118,7 +118,7 @@ let execProcess arg =
     (fun info ->
      info.FileName <- (exe @@ "noname.exe")
      info.Arguments <- arg
-    ) (System.TimeSpan.FromMinutes 15.)
+    ) (System.TimeSpan.FromMinutes 60.)
   |> ignore
 
 Target "RunSite" (fun _ -> execProcess "")
