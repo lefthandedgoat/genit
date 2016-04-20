@@ -128,6 +128,15 @@ let fieldToConvertProperty page field =
 
 let fieldToValidation (field : Field) page =
   let template validation = sprintf """%s "%s" %s.%s""" validation field.Name page.AsFormVal field.AsProperty
+  let confirmPasswordTemplate () =
+    let password = page.Fields |> List.tryFind (fun field -> field.FieldType = Password)
+    match password with
+    | Some(password) ->
+       let validate1 = template "validate_password"
+       let validate2 = sprintf """validate_equal "%s" "%s" %s.%s %s.%s""" password.Name field.Name page.AsFormVal password.AsProperty page.AsFormVal field.AsProperty |> pad 2
+       [validate1; validate2] |> flatten |> Some
+    | None -> Some (template "validate_password")
+
   match field.FieldType with
   | Id              -> None
   | Text            -> None
@@ -139,7 +148,7 @@ let fieldToValidation (field : Field) page =
   | Email           -> Some (template "validate_email")
   | Name            -> None
   | Password        -> Some (template "validate_password")
-  | ConfirmPassword -> Some (template "validate_password")
+  | ConfirmPassword -> confirmPasswordTemplate ()
   | Dropdown _      -> None
 
 let fieldToTestName (field : Field) =
