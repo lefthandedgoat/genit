@@ -159,6 +159,17 @@ let insertColumns page =
   |> List.map (pad 2)
   |> flattenWith ","
 
+let passwordTemplate page =
+  let password = page.Fields |> List.tryFind (fun field -> field.FieldType = Password)
+  match password with
+  | Some(password) ->
+    sprintf """
+  let bCryptScheme = getBCryptScheme currentBCryptScheme
+  let salt = BCrypt.GenerateSalt(bCryptScheme.WorkFactor)
+  let password = BCrypt.HashPassword(%s.%s, salt)
+    """ page.AsVal password.AsProperty
+  | None -> ""
+
 let insertValues page =
   let format field =
     if field.FieldType = Id
@@ -171,10 +182,15 @@ let insertValues page =
   |> List.map (pad 2)
   |> flattenWith ","
 
+let insertParamTemplate page field =
+  if field.FieldType = Password
+  then sprintf """|> param "%s" password""" field.AsDBColumn
+  else sprintf """|> param "%s" %s.%s""" field.AsDBColumn page.AsVal field.AsProperty
+
 let insertParamsTemplate page =
   page.Fields
   |> List.filter (fun field -> field.FieldType <> Id && field.FieldType <> ConfirmPassword)
-  |> List.map (fun field -> sprintf """|> param "%s" %s.%s""" field.AsDBColumn page.AsVal field.AsProperty)
+  |> List.map (insertParamTemplate page)
   |> List.map (pad 1)
   |> flatten
 
@@ -190,13 +206,14 @@ INSERT INTO %s.%s
 %s
   ) RETURNING %s;
 "
+%s
   use connection = connection connectionString
   use command = command connection sql
   command
 %s
   |> executeScalar
   |> string |> int
-  """ page.AsType page.AsVal page.AsType site.AsDatabase page.AsTable (insertColumns page) (insertValues page) idField.AsDBColumn (insertParamsTemplate page)
+  """ page.AsType page.AsVal page.AsType site.AsDatabase page.AsTable (insertColumns page) (insertValues page) idField.AsDBColumn (passwordTemplate page) (insertParamsTemplate page)
 
 (*
 
