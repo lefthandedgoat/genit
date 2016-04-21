@@ -516,15 +516,15 @@ let pageLinkTemplate (page : Page) =
 
   pageLinkTemplate page page.PageMode
 
-let pathTemplate page =
+let pagePathTemplate (page : Page) =
   let template extra href withId =
     match withId with
     | false -> sprintf """let path_%s%s = "%s" """ extra page.AsVal href |> trimEnd
     | true -> sprintf """let path_%s%s : IntPath = "%s" """ extra page.AsVal href |> trimEnd
-  let rec pathTemplate page pageMode =
+  let rec pagePathTemplate page pageMode =
     match pageMode with
-    | CVELS     -> [Create; View; Edit; List; Search] |> List.map (pathTemplate page) |> flatten
-    | CVEL      -> [Create; View; Edit; List] |> List.map (pathTemplate page) |> flatten
+    | CVELS     -> [Create; View; Edit; List; Search] |> List.map (pagePathTemplate page) |> flatten
+    | CVEL      -> [Create; View; Edit; List] |> List.map (pagePathTemplate page) |> flatten
     | Create    -> template "create_" page.AsCreateHref false
     | Edit      -> template "edit_" page.AsEditHref true
     | View      -> template "" page.AsViewHref true
@@ -534,17 +534,20 @@ let pathTemplate page =
     | Login     -> template "login_" page.AsHref false
     | Jumbotron -> template "" page.AsHref false
 
-  pathTemplate page page.PageMode
+  pagePathTemplate page page.PageMode
 
-let routeTemplate page =
+let apiPathTemplate (api : API) =
+  sprintf """let path_api_%s : IntPath = "%s" """ api.AsVal api.AsViewHref |> trimEnd
+
+let pageRouteTemplate (page : Page) =
   let template extra withId =
     match withId with
     | false -> sprintf """path path_%s%s >=> %s%s""" extra page.AsVal extra page.AsVal |> pad 2
     | true -> sprintf """pathScan path_%s%s %s%s""" extra page.AsVal extra page.AsVal |> pad 2
-  let rec routeTemplate page pageMode =
+  let rec pageRouteTemplate page pageMode =
     match pageMode with
-    | CVELS     -> [Create; View; Edit; List; Search] |> List.map (routeTemplate page) |> flatten
-    | CVEL      -> [Create; View; Edit; List] |> List.map (routeTemplate page) |> flatten
+    | CVELS     -> [Create; View; Edit; List; Search] |> List.map (pageRouteTemplate page) |> flatten
+    | CVEL      -> [Create; View; Edit; List] |> List.map (pageRouteTemplate page) |> flatten
     | Create    -> template "create_" false
     | Edit      -> template "edit_" true
     | View      -> template "" true
@@ -554,13 +557,16 @@ let routeTemplate page =
     | Login     -> template "login_" false
     | Jumbotron -> template "" false
 
-  routeTemplate page page.PageMode
+  pageRouteTemplate page page.PageMode
 
-let handlerTemplate page =
-  let rec handlerTemplate page pageMode =
+let apiRouteTemplate (api : API) =
+  sprintf """pathScan path_api_%s api_%s""" api.AsVal api.AsVal |> pad 2
+
+let pageHandlerTemplate page =
+  let rec pageHandlerTemplate page pageMode =
     match pageMode with
-    | CVELS -> [Create; View; Edit; List; Search] |> List.map (handlerTemplate page) |> flatten
-    | CVEL  -> [Create; View; Edit; List] |> List.map (handlerTemplate page) |> flatten
+    | CVELS -> [Create; View; Edit; List; Search] |> List.map (pageHandlerTemplate page) |> flatten
+    | CVEL  -> [Create; View; Edit; List] |> List.map (pageHandlerTemplate page) |> flatten
     | Edit  ->
       let idField = page.Fields |> List.find (fun field -> field.FieldType = Id)
       sprintf """
@@ -675,7 +681,25 @@ let login_%s =
           OK (post_login_errored_%s validation %s))
     ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsVal page.AsFormVal
 
-  handlerTemplate page page.PageMode
+  pageHandlerTemplate page page.PageMode
+
+let apiHandlerTemplate (api : API) =
+  sprintf """
+let api_%s id =
+  GET >=> request (fun req ->
+    let data = tryById_%s id
+    match data with
+    | None -> OK error_404
+    | Some(data) ->
+      match (getQueryStringValue req "format").ToLower() with
+      | "xml" ->
+         let serializer = FsPickler.CreateXmlSerializer(indent = true)
+         Writers.setMimeType "application/xml"
+         >=> OK (serializer.PickleToString(data))
+      | "json" | _ ->
+         let serializer = FsPickler.CreateJsonSerializer(indent = true)
+         Writers.setMimeType "application/json"
+         >=> OK (serializer.PickleToString(data)))""" api.AsVal api.AsType
 
 let propertyTemplate (page : Page) =
   page.Fields
@@ -890,7 +914,9 @@ let generate (site : Site) =
   let views_results = site.Pages |> List.map (viewTemplate site) |> flatten
   let generated_views_result = generated_views_template site.Name views_results
 
-  let handler_results = site.Pages |> List.map handlerTemplate |> flatten
+  let page_handlers = site.Pages |> List.map pageHandlerTemplate |> flatten
+  let api_handlers = site.APIs |> List.map apiHandlerTemplate |> flatten
+  let handler_results = [page_handlers; api_handlers] |> flatten
   let generated_handlers_result = generated_handlers_template handler_results
 
   let forms_results = site.Pages |> List.map formTypeTemplate |> flatten
@@ -899,8 +925,12 @@ let generate (site : Site) =
   let types_results = site.Pages |> List.map typeTemplate |> flatten
   let generated_types_result = generated_types_template types_results
 
-  let paths_results = site.Pages |> List.map pathTemplate |> flatten
-  let routes_results = site.Pages |> List.map routeTemplate |> flatten
+  let page_paths = site.Pages |> List.map pagePathTemplate |> flatten
+  let api_paths = site.APIs |> List.map apiPathTemplate |> flatten
+  let paths_results = [page_paths; api_paths] |> flatten
+  let page_routes = site.Pages |> List.map pageRouteTemplate |> flatten
+  let api_routes = site.APIs |> List.map apiRouteTemplate |> flatten
+  let routes_results = [page_routes; api_routes] |> flatten
   let generated_paths_result = generated_paths_template paths_results routes_results
 
   let validations_results = site.Pages |> List.map validationTemplate |> flatten

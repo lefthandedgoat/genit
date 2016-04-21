@@ -37,6 +37,7 @@ let to_formType = typeCase >> form
 let to_href = camelCase >> sprintf "/%s"
 let to_createHref = camelCase >> sprintf "/%s/create"
 let to_viewHref = camelCase >> (fun page -> sprintf "/%s/%s" page "%i")
+let to_apiViewHref = camelCase >> (fun page -> sprintf "/api/%s/%s" page "%i")
 let to_editHref = camelCase >> (fun page -> sprintf "/%s/edit/%s" page "%i")
 let to_listHref = camelCase >> sprintf "/%s/list"
 let to_searchHref = camelCase >> sprintf "/%s/search"
@@ -116,6 +117,14 @@ let password name = field name Required Password
 let confirm name = field name Required ConfirmPassword
 let dropdown name options = field name Null (Dropdown(options))
 
+type API =
+  {
+    Name : string
+    AsVal : string
+    AsType : string
+    AsViewHref : string
+  }
+
 type Page =
   {
     Name : string
@@ -140,6 +149,7 @@ type Site =
     Name : string
     AsDatabase : string
     Pages : Page list
+    APIs : API list
   }
 
 let private defaultSite =
@@ -147,6 +157,7 @@ let private defaultSite =
     Name = "Demo"
     AsDatabase = ""
     Pages = []
+    APIs = []
   }
 
 let mutable currentSite = defaultSite
@@ -174,6 +185,17 @@ let private page_ name pageMode tableName createTable fields =
     }
 
   currentSite <- { currentSite with Pages = currentSite.Pages @ [page] }
+
+let api name =
+  let api : API =
+    {
+      Name = name
+      AsViewHref = to_apiViewHref name
+      AsVal = to_val name
+      AsType = to_type name
+    }
+
+  currentSite <- { currentSite with APIs = currentSite.APIs @ [api] }
 
 //precanned pages
 
