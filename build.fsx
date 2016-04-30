@@ -128,16 +128,17 @@ Target "Generate" (fun _ -> execProcess "generate")
 Target "Test" (fun _ -> execProcess "test")
 
 Target "CreateDB" (fun _ ->
-  let dbname = System.IO.File.ReadAllText("src/noname/generated/generated_dbname.txt")
-
+  let path template = String.Format(template, System.IO.Path.DirectorySeparatorChar)
+  let dbname = System.IO.File.ReadAllText(path "src{0}noname{0}generated{0}generated_dbname.txt")
+  
   let command = "psql"
-  let args = "-a -f src/noname/generated/generated_sql_createdb.sql"
+  let args = path "-a -f src{0}noname{0}generated{0}generated_sql_createdb.sql"
   Shell.Exec(command, args) |> ignore
 
-  let args = sprintf "-d %s -a -f src/noname/generated/generated_sql_initialSetup.sql" dbname
+  let args = path (sprintf "-d %s -a -f src{0}noname{0}generated{0}generated_sql_initialSetup.sql" dbname)
   Shell.Exec(command, args) |> ignore
 
-  let args = sprintf "-d %s -a -f src/noname/generated/generated_sql_createTables.sql" dbname
+  let args = path (sprintf "-d %s -a -f src{0}noname{0}generated{0}generated_sql_createTables.sql" dbname)
   Shell.Exec(command, args) |> ignore
 )
 
