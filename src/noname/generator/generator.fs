@@ -298,7 +298,7 @@ let post_edit_errored_%s errors (%s : %s) =
 let viewFormViewTemplate (page : Page) =
   let idField = page.Fields |> List.find (fun field -> field.FieldType = Id)
   sprintf """
-let get_%s (%s : %s) =
+let get_view_%s (%s : %s) =
   let button = [ button_small_success (sprintf "%s" %s.%s) [ text "Edit"] ]
   base_html
     "%s"
@@ -527,7 +527,7 @@ let pagePathTemplate (page : Page) =
     | CVEL      -> [Create; View; Edit; List] |> List.map (pagePathTemplate page) |> flatten
     | Create    -> template "create_" page.AsCreateHref false
     | Edit      -> template "edit_" page.AsEditHref true
-    | View      -> template "" page.AsViewHref true
+    | View      -> template "view_" page.AsViewHref true
     | List      -> template "list_" page.AsListHref false
     | Search    -> template "search_" page.AsSearchHref false
     | Submit    -> template "submit_" page.AsHref false
@@ -550,7 +550,7 @@ let pageRouteTemplate (page : Page) =
     | CVEL      -> [Create; View; Edit; List] |> List.map (pageRouteTemplate page) |> flatten
     | Create    -> template "create_" false
     | Edit      -> template "edit_" true
-    | View      -> template "" true
+    | View      -> template "view_" true
     | List      -> template "list_" false
     | Search    -> template "search_" false
     | Submit    -> template "submit_" false
@@ -589,12 +589,12 @@ let edit_%s id =
     ]""" page.AsVal page.AsType page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsType page.AsViewHref idField.AsProperty page.AsVal page.AsFormVal
     | View  ->
       sprintf """
-let %s id =
+let view_%s id =
   GET >=> warbler (fun _ ->
     let data = tryById_%s id
     match data with
     | None -> OK error_404
-    | Some(data) -> OK <| get_%s data)""" page.AsVal page.AsType page.AsVal
+    | Some(data) -> OK <| get_view_%s data)""" page.AsVal page.AsType page.AsVal
     | List  ->
       sprintf """
 let list_%s = GET >=> warbler (fun _ -> OK <| get_list_%s (getMany_%s ()))""" page.AsVal page.AsVal page.AsType
