@@ -27,17 +27,18 @@ CREATE TABLES
 
 let columnTypeTemplate field =
   match field.FieldType with
-  | Id           -> "SERIAL"
-  | Text         -> "varchar(1024)"
-  | Paragraph    -> "text"
-  | Number       -> "integer"
-  | Decimal      -> "decimal(12, 2)"
-  | Date         -> "timestamptz"
-  | Phone        -> "varchar(15)"
-  | Email        -> "varchar(128)"
-  | Name         -> "varchar(128)"
-  | Password     -> "varchar(60)"
-  | Dropdown (_) -> "smallint"
+  | Id              -> "SERIAL"
+  | Text            -> "varchar(1024)"
+  | Paragraph       -> "text"
+  | Number          -> "integer"
+  | Decimal         -> "decimal(12, 2)"
+  | Date            -> "timestamptz"
+  | Phone           -> "varchar(15)"
+  | Email           -> "varchar(128)"
+  | Name            -> "varchar(128)"
+  | Password        -> "varchar(60)"
+  | ConfirmPassword -> ""
+  | Dropdown (_)    -> "smallint"
 
 //http://www.postgresql.org/docs/9.5/static/ddl-constraints.html
 let columnAttributesTemplate field =
@@ -59,6 +60,7 @@ let createColumns (page : Page) =
   let maxType = if maxType > 20 then maxType else 20
 
   page.Fields
+  |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
   |> List.map (columnTemplate maxName maxType)
   |> List.map (pad 1)
   |> flattenWith ","
@@ -112,23 +114,25 @@ DATA READERS
 
 let conversionTemplate field =
   match field.FieldType with
-  | Id           -> "getInt64"
-  | Text         -> "getString"
-  | Paragraph    -> "getString"
-  | Number       -> "getInt32"
-  | Decimal      -> "getDouble"
-  | Date         -> "getDateTime"
-  | Phone        -> "getString"
-  | Email        -> "getString"
-  | Name         -> "getString"
-  | Password     -> "getString"
-  | Dropdown (_) -> "getInt16"
+  | Id              -> "getInt64"
+  | Text            -> "getString"
+  | Paragraph       -> "getString"
+  | Number          -> "getInt32"
+  | Decimal         -> "getDouble"
+  | Date            -> "getDateTime"
+  | Phone           -> "getString"
+  | Email           -> "getString"
+  | Name            -> "getString"
+  | Password        -> "getString"
+  | ConfirmPassword -> ""
+  | Dropdown (_)    -> "getInt16"
 
 let dataReaderPropertyTemplate field =
  sprintf """%s = %s "%s" reader""" field.AsProperty (conversionTemplate field) field.AsDBColumn
 
 let dataReaderPropertiesTemplate page =
   page.Fields
+  |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
   |> List.map (fun field -> dataReaderPropertyTemplate field)
   |> List.map (pad 3)
   |> flatten
@@ -150,9 +154,21 @@ INSERT
 
 let insertColumns page =
   page.Fields
+  |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
   |> List.map (fun field -> field.AsDBColumn)
   |> List.map (pad 2)
   |> flattenWith ","
+
+let passwordTemplate page =
+  let password = page.Fields |> List.tryFind (fun field -> field.FieldType = Password)
+  match password with
+  | Some(password) ->
+    sprintf """
+  let bCryptScheme = getBCryptScheme currentBCryptScheme
+  let salt = BCrypt.GenerateSalt(bCryptScheme.WorkFactor)
+  let password = BCrypt.HashPassword(%s.%s, salt)
+    """ page.AsVal password.AsProperty
+  | None -> ""
 
 let insertValues page =
   let format field =
@@ -161,14 +177,20 @@ let insertValues page =
     else sprintf ":%s" field.AsDBColumn
 
   page.Fields
+  |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
   |> List.map format
   |> List.map (pad 2)
   |> flattenWith ","
 
+let insertParamTemplate page field =
+  if field.FieldType = Password
+  then sprintf """|> param "%s" password""" field.AsDBColumn
+  else sprintf """|> param "%s" %s.%s""" field.AsDBColumn page.AsVal field.AsProperty
+
 let insertParamsTemplate page =
   page.Fields
-  |> List.filter (fun field -> field.FieldType <> Id)
-  |> List.map (fun field -> sprintf """|> param "%s" %s.%s""" field.AsDBColumn page.AsVal field.AsProperty)
+  |> List.filter (fun field -> field.FieldType <> Id && field.FieldType <> ConfirmPassword)
+  |> List.map (insertParamTemplate page)
   |> List.map (pad 1)
   |> flatten
 
@@ -184,13 +206,14 @@ INSERT INTO %s.%s
 %s
   ) RETURNING %s;
 "
+%s
   use connection = connection connectionString
   use command = command connection sql
   command
 %s
   |> executeScalar
   |> string |> int
-  """ page.AsType page.AsVal page.AsType site.AsDatabase page.AsTable (insertColumns page) (insertValues page) idField.AsDBColumn (insertParamsTemplate page)
+  """ page.AsType page.AsVal page.AsType site.AsDatabase page.AsTable (insertColumns page) (insertValues page) idField.AsDBColumn (passwordTemplate page) (insertParamsTemplate page)
 
 (*
 
@@ -200,12 +223,14 @@ UPDATE
 
 let updateColumns page =
   page.Fields
+  |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
   |> List.map (fun field -> sprintf """%s = :%s""" field.AsDBColumn field.AsDBColumn)
   |> List.map (pad 1)
   |> flattenWith ","
 
 let updateParamsTemplate page =
   page.Fields
+  |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
   |> List.map (fun field -> sprintf """|> param "%s" %s.%s""" field.AsDBColumn page.AsVal field.AsProperty)
   |> List.map (pad 1)
   |> flatten

@@ -1,12 +1,18 @@
 NUGET
   remote: https://www.nuget.org/api/v2
   specs:
-    canopy (0.9.52)
+    BCrypt-Official (0.1.109)
+    canopy (0.9.53)
       FSharp.Core (>= 3.0.2)
       Selenium.WebDriver (2.53)
     FAKE (4.25.4)
     FSharp.Core (4.0.0.1)
+    FsPickler (2.1)
+    FsPickler.Json (2.1)
+      FsPickler (2.1)
+      Newtonsoft.Json (>= 6.0.5)
     Http.fs (1.5.1)
+    Newtonsoft.Json (8.0.3)
     Npgsql (3.0.5)
     Selenium.WebDriver (2.53)
     Suave (1.1.2)

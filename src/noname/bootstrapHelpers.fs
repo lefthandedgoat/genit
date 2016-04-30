@@ -48,6 +48,7 @@ let form_inline inner = formAttr ["class","form-inline"] inner
 let form_group inner = divClass "form-group" inner
 let input_group inner = divClass "input-group" inner
 let input_form_control placeholder name value = inputClassPlaceholderNameType "form-control" placeholder (removeSpace name) "text" value [empty]
+let datetime_input_form_control placeholder name value = inputClassPlaceholderNameType "form-control datetime" placeholder (removeSpace name) "text" value [empty]
 let password_form_control placeholder name value = inputClassPlaceholderNameType "form-control" placeholder (removeSpace name) "password" value [empty]
 let input_form_control_inner placeholder name value inner = inputClassPlaceholderNameType "form-control" placeholder (removeSpace name) "text" value inner
 let textarea_form_control placeholder name value = textareaClassPlaceholderName "form-control" (removeSpace name) placeholder value
@@ -149,6 +150,12 @@ let private base_inline_label_text label' text' errors =
     errorsOrEmptyText label' errors
   ]
 
+let private base_label_datetime label' text' errors =
+  form_group_control_label_sm8 label' [
+    datetime_input_form_control label' label' text'
+    errorsOrEmptyText label' errors
+  ]
+
 let private base_label_password label' text' errors =
   form_group_control_label_sm8 label' [
     password_form_control label' label' text'
@@ -191,6 +198,7 @@ let label_static label' (value : 'a) =
 
 let label_text_ahref_button label' text' button' = base_label_text_ahref_button label' text' button' []
 let label_text label' text' = base_label_text label' text' []
+let label_datetime label' text' = base_label_datetime label' text' []
 let label_password label' text' = base_label_password label' text' []
 let label_textarea label' text' = base_label_textarea label' text' []
 let label_select label' options = base_label_select label' options None []
@@ -241,6 +249,7 @@ let stand_alone_error text' =
 
 let errored_label_text_ahref_button label' text' button' errors = base_label_text_ahref_button label' text' button' errors
 let errored_label_text label' text' errors = base_label_text label' text' errors
+let errored_label_datetime label' text' errors = base_label_datetime label' text' errors
 let errored_label_password label' text' errors = base_label_password label' text' errors
 let errored_label_textarea label' text' errors = base_label_textarea label' text' errors
 let errored_label_select label' options selected errors = base_label_select label' options selected errors

@@ -6,3 +6,6 @@ nuget Suave.Experimental
 nuget canopy
 nuget Npgsql
 nuget Http.fs
+nuget BCrypt-Official
+nuget FsPickler
+nuget FsPickler.Json

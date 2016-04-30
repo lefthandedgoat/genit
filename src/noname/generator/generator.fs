@@ -26,78 +26,83 @@ let fieldToHtml (field : Field) =
   let template tag = sprintf """%s "%s" "" """ tag field.Name |> trimEnd
   let iconTemplate tag icon = sprintf """%s "%s" "" "%s" """ tag field.Name icon |> trimEnd
   match field.FieldType with
-  | Id         -> sprintf """hiddenInput "%s" "-1" """ field.AsProperty |> trimEnd
-  | Text       -> template "label_text"
-  | Paragraph  -> template "label_textarea"
-  | Number     -> template "label_text"
-  | Decimal    -> template "label_text"
-  | Date       -> template "label_text"
-  | Phone      -> template "label_text"
-  | Email      -> iconTemplate "icon_label_text" "envelope"
-  | Name       -> iconTemplate "icon_label_text" "user"
-  | Password   -> iconTemplate "icon_password_text" "lock"
-  | Dropdown options -> sprintf """label_select "%s" %A """ field.Name (zipOptions options) |> trimEnd
+  | Id                -> sprintf """hiddenInput "%s" "-1" """ field.AsProperty |> trimEnd
+  | Text              -> template "label_text"
+  | Paragraph         -> template "label_textarea"
+  | Number            -> template "label_text"
+  | Decimal           -> template "label_text"
+  | Date              -> template "label_datetime"
+  | Phone             -> template "label_text"
+  | Email             -> iconTemplate "icon_label_text" "envelope"
+  | Name              -> iconTemplate "icon_label_text" "user"
+  | Password          -> iconTemplate "icon_password_text" "lock"
+  | ConfirmPassword   -> iconTemplate "icon_password_text" "lock"
+  | Dropdown options  -> sprintf """label_select "%s" %A """ field.Name (zipOptions options) |> trimEnd
 
 let fieldToPopulatedHtml page (field : Field) =
   let template tag = sprintf """%s "%s" %s.%s """ tag field.Name page.AsVal field.AsProperty |> trimEnd
   let iconTemplate tag icon = sprintf """%s "%s" %s.%s "%s" """ tag field.Name page.AsVal field.AsProperty icon |> trimEnd
   match field.FieldType with
-  | Id         -> sprintf """hiddenInput "%s" %s.%s """ field.AsProperty page.AsVal field.AsProperty
-  | Text       -> template "label_text"
-  | Paragraph  -> template "label_textarea"
-  | Number     -> template "label_text"
-  | Decimal    -> template "label_text"
-  | Date       -> template "label_text"
-  | Phone      -> template "label_text"
-  | Email      -> iconTemplate "icon_label_text" "envelope"
-  | Name       -> iconTemplate "icon_label_text" "user"
-  | Password   -> iconTemplate "icon_password_text" "lock"
-  | Dropdown options -> sprintf """label_select_selected "%s" %A (Some %s.%s)""" field.Name (zipOptions options) page.AsVal field.AsProperty
+  | Id                -> sprintf """hiddenInput "%s" %s.%s """ field.AsProperty page.AsVal field.AsProperty
+  | Text              -> template "label_text"
+  | Paragraph         -> template "label_textarea"
+  | Number            -> template "label_text"
+  | Decimal           -> template "label_text"
+  | Date              -> template "label_datetime"
+  | Phone             -> template "label_text"
+  | Email             -> iconTemplate "icon_label_text" "envelope"
+  | Name              -> iconTemplate "icon_label_text" "user"
+  | Password          -> iconTemplate "icon_password_text" "lock"
+  | ConfirmPassword   -> iconTemplate "icon_password_text" "lock"
+  | Dropdown options  -> sprintf """label_select_selected "%s" %A (Some %s.%s)""" field.Name (zipOptions options) page.AsVal field.AsProperty
 
 let fieldToStaticHtml page (field : Field) =
   let template tag = sprintf """%s "%s" %s.%s """ tag field.Name page.AsVal field.AsProperty
   match field.FieldType with
-  | Id         -> ""
-  | Text       -> template "label_static"
-  | Paragraph  -> template "label_static"
-  | Number     -> template "label_static"
-  | Decimal    -> template "label_static"
-  | Date       -> template "label_static"
-  | Phone      -> template "label_static"
-  | Email      -> template "label_static"
-  | Name       -> template "label_static"
-  | Password   -> template "label_static"
-  | Dropdown _ -> sprintf """label_static "%s" %s.%s """ field.Name page.AsVal field.AsProperty
+  | Id                -> ""
+  | Text              -> template "label_static"
+  | Paragraph         -> template "label_static"
+  | Number            -> template "label_static"
+  | Decimal           -> template "label_static"
+  | Date              -> template "label_static"
+  | Phone             -> template "label_static"
+  | Email             -> template "label_static"
+  | Name              -> template "label_static"
+  | Password          -> template "label_static"
+  | ConfirmPassword   -> template "label_static"
+  | Dropdown _        -> sprintf """label_static "%s" %s.%s """ field.Name page.AsVal field.AsProperty
 
 let fieldToErroredHtml page (field : Field) =
   let template tag = sprintf """%s "%s" (string %s.%s) errors""" tag field.Name page.AsFormVal field.AsProperty
   let iconTemplate tag icon = sprintf """%s "%s" %s.%s "%s" errors""" tag field.Name page.AsFormVal field.AsProperty icon
   match field.FieldType with
-  | Id         -> sprintf """hiddenInput "%s" %s.%s """ field.AsProperty page.AsFormVal field.AsProperty
-  | Text       -> template "errored_label_text"
-  | Paragraph  -> template "errored_label_textarea"
-  | Number     -> template "errored_label_text"
-  | Decimal    -> template "errored_label_text"
-  | Date       -> template "errored_label_text"
-  | Phone      -> template "errored_label_text"
-  | Email      -> iconTemplate "errored_icon_label_text" "envelope"
-  | Name       -> iconTemplate "errored_icon_label_text" "user"
-  | Password   -> iconTemplate "errored_icon_password_text" "lock"
-  | Dropdown options -> sprintf """errored_label_select "%s" %A (Some %s.%s) errors""" field.Name (zipOptions options) page.AsFormVal field.AsProperty
+  | Id                -> sprintf """hiddenInput "%s" %s.%s """ field.AsProperty page.AsFormVal field.AsProperty
+  | Text              -> template "errored_label_text"
+  | Paragraph         -> template "errored_label_textarea"
+  | Number            -> template "errored_label_text"
+  | Decimal           -> template "errored_label_text"
+  | Date              -> template "errored_label_datetime"
+  | Phone             -> template "errored_label_text"
+  | Email             -> iconTemplate "errored_icon_label_text" "envelope"
+  | Name              -> iconTemplate "errored_icon_label_text" "user"
+  | Password          -> iconTemplate "errored_icon_password_text" "lock"
+  | ConfirmPassword   -> iconTemplate "errored_icon_password_text" "lock"
+  | Dropdown options  -> sprintf """errored_label_select "%s" %A (Some %s.%s) errors""" field.Name (zipOptions options) page.AsFormVal field.AsProperty
 
 let fieldToProperty field =
   match field.FieldType with
-  | Id         -> "int64"
-  | Text       -> "string"
-  | Paragraph  -> "string"
-  | Number     -> "int"
-  | Decimal    -> "double"
-  | Date       -> "System.DateTime"
-  | Phone      -> "string"
-  | Email      -> "string"
-  | Name       -> "string"
-  | Password   -> "string"
-  | Dropdown _ -> "int16"
+  | Id              -> "int64"
+  | Text            -> "string"
+  | Paragraph       -> "string"
+  | Number          -> "int"
+  | Decimal         -> "double"
+  | Date            -> "System.DateTime"
+  | Phone           -> "string"
+  | Email           -> "string"
+  | Name            -> "string"
+  | Password        -> "string"
+  | ConfirmPassword -> "string"
+  | Dropdown _      -> "int16"
 
 let fieldToConvertProperty page field =
   let property = sprintf "%s.%s" page.AsFormVal field.AsProperty
@@ -108,62 +113,75 @@ let fieldToConvertProperty page field =
   let double () = sprintf """%s = double %s""" field.AsProperty property
   let datetime () = sprintf """%s = System.DateTime.Parse(%s)""" field.AsProperty property
   match field.FieldType with
-  | Id         -> int64 ()
-  | Text       -> string ()
-  | Paragraph  -> string ()
-  | Number     -> int ()
-  | Decimal    -> double ()
-  | Date       -> datetime ()
-  | Email      -> string ()
-  | Name       -> string ()
-  | Phone      -> string ()
-  | Password   -> string ()
-  | Dropdown _ -> int16 ()
+  | Id              -> int64 ()
+  | Text            -> string ()
+  | Paragraph       -> string ()
+  | Number          -> int ()
+  | Decimal         -> double ()
+  | Date            -> datetime ()
+  | Email           -> string ()
+  | Name            -> string ()
+  | Phone           -> string ()
+  | Password        -> string ()
+  | ConfirmPassword -> string ()
+  | Dropdown _      -> int16 ()
 
 let fieldToValidation (field : Field) page =
   let template validation = sprintf """%s "%s" %s.%s""" validation field.Name page.AsFormVal field.AsProperty
+  let confirmPasswordTemplate () =
+    let password = page.Fields |> List.tryFind (fun field -> field.FieldType = Password)
+    match password with
+    | Some(password) ->
+       let validate1 = template "validate_password"
+       let validate2 = sprintf """validate_equal "%s" "%s" %s.%s %s.%s""" password.Name field.Name page.AsFormVal password.AsProperty page.AsFormVal field.AsProperty |> pad 2
+       [validate1; validate2] |> flatten |> Some
+    | None -> Some (template "validate_password")
+
   match field.FieldType with
-  | Id         -> None
-  | Text       -> None
-  | Paragraph  -> None
-  | Number     -> Some (template "validate_integer")
-  | Decimal    -> Some (template "validate_double")
-  | Date       -> Some (template "validate_datetime")
-  | Phone      -> None //parsePhone?
-  | Email      -> Some (template "validate_email")
-  | Name       -> None
-  | Password   -> Some (template "validate_password")
-  | Dropdown _ -> None
+  | Id              -> None
+  | Text            -> None
+  | Paragraph       -> None
+  | Number          -> Some (template "validate_integer")
+  | Decimal         -> Some (template "validate_double")
+  | Date            -> Some (template "validate_datetime")
+  | Phone           -> None //parsePhone?
+  | Email           -> Some (template "validate_email")
+  | Name            -> None
+  | Password        -> Some (template "validate_password")
+  | ConfirmPassword -> confirmPasswordTemplate ()
+  | Dropdown _      -> None
 
 let fieldToTestName (field : Field) =
   let template text = sprintf """"%s %s" """ field.Name text |> trimEnd
   match field.FieldType with
-  | Id         -> None
-  | Text       -> None
-  | Paragraph  -> None
-  | Number     -> Some (template "must be a valid integer")
-  | Decimal    -> Some (template "must be a valid double")
-  | Date       -> Some (template "must be a valid date")
-  | Email      -> Some (template "must be a valid email")
-  | Name       -> None
-  | Phone      -> None //parsePhone?
-  | Password   -> Some (template "must be between 6 and 100 characters")
-  | Dropdown _ -> None
+  | Id              -> None
+  | Text            -> None
+  | Paragraph       -> None
+  | Number          -> Some (template "must be a valid integer")
+  | Decimal         -> Some (template "must be a valid double")
+  | Date            -> Some (template "must be a valid date")
+  | Email           -> Some (template "must be a valid email")
+  | Name            -> None
+  | Phone           -> None //parsePhone?
+  | Password        -> Some (template "must be between 6 and 100 characters")
+  | ConfirmPassword -> Some (template "must be between 6 and 100 characters")
+  | Dropdown _      -> None
 
 let fieldToTestBody (field : Field) =
   let template text = sprintf """displayed "%s %s" """ field.Name text |> trimEnd
   match field.FieldType with
-  | Id         -> None
-  | Text       -> None
-  | Paragraph  -> None
-  | Number     -> Some (template "is not a valid number (int)")
-  | Decimal    -> Some (template "is not a valid number (decimal)")
-  | Date       -> Some (template "is not a valid date")
-  | Email      -> Some (template "is not a valid email")
-  | Name       -> None
-  | Phone      -> None //parsePhone?
-  | Password   -> Some (template "must be between 6 and 100 characters")
-  | Dropdown _ -> None
+  | Id              -> None
+  | Text            -> None
+  | Paragraph       -> None
+  | Number          -> Some (template "is not a valid number (int)")
+  | Decimal         -> Some (template "is not a valid number (decimal)")
+  | Date            -> Some (template "is not a valid date")
+  | Email           -> Some (template "is not a valid email")
+  | Name            -> None
+  | Phone           -> None //parsePhone?
+  | Password        -> Some (template "must be between 6 and 100 characters")
+  | ConfirmPassword -> Some (template "must be between 6 and 100 characters")
+  | Dropdown _      -> None
 
 let attributeToValidation field page =
   let property = sprintf "%s.%s" page.AsFormVal field.AsProperty
@@ -498,15 +516,15 @@ let pageLinkTemplate (page : Page) =
 
   pageLinkTemplate page page.PageMode
 
-let pathTemplate page =
+let pagePathTemplate (page : Page) =
   let template extra href withId =
     match withId with
     | false -> sprintf """let path_%s%s = "%s" """ extra page.AsVal href |> trimEnd
     | true -> sprintf """let path_%s%s : IntPath = "%s" """ extra page.AsVal href |> trimEnd
-  let rec pathTemplate page pageMode =
+  let rec pagePathTemplate page pageMode =
     match pageMode with
-    | CVELS     -> [Create; View; Edit; List; Search] |> List.map (pathTemplate page) |> flatten
-    | CVEL      -> [Create; View; Edit; List] |> List.map (pathTemplate page) |> flatten
+    | CVELS     -> [Create; View; Edit; List; Search] |> List.map (pagePathTemplate page) |> flatten
+    | CVEL      -> [Create; View; Edit; List] |> List.map (pagePathTemplate page) |> flatten
     | Create    -> template "create_" page.AsCreateHref false
     | Edit      -> template "edit_" page.AsEditHref true
     | View      -> template "" page.AsViewHref true
@@ -516,17 +534,20 @@ let pathTemplate page =
     | Login     -> template "login_" page.AsHref false
     | Jumbotron -> template "" page.AsHref false
 
-  pathTemplate page page.PageMode
+  pagePathTemplate page page.PageMode
 
-let routeTemplate page =
+let apiPathTemplate (api : API) =
+  sprintf """let path_api_%s : IntPath = "%s" """ api.AsVal api.AsViewHref |> trimEnd
+
+let pageRouteTemplate (page : Page) =
   let template extra withId =
     match withId with
     | false -> sprintf """path path_%s%s >=> %s%s""" extra page.AsVal extra page.AsVal |> pad 2
     | true -> sprintf """pathScan path_%s%s %s%s""" extra page.AsVal extra page.AsVal |> pad 2
-  let rec routeTemplate page pageMode =
+  let rec pageRouteTemplate page pageMode =
     match pageMode with
-    | CVELS     -> [Create; View; Edit; List; Search] |> List.map (routeTemplate page) |> flatten
-    | CVEL      -> [Create; View; Edit; List] |> List.map (routeTemplate page) |> flatten
+    | CVELS     -> [Create; View; Edit; List; Search] |> List.map (pageRouteTemplate page) |> flatten
+    | CVEL      -> [Create; View; Edit; List] |> List.map (pageRouteTemplate page) |> flatten
     | Create    -> template "create_" false
     | Edit      -> template "edit_" true
     | View      -> template "" true
@@ -536,13 +557,16 @@ let routeTemplate page =
     | Login     -> template "login_" false
     | Jumbotron -> template "" false
 
-  routeTemplate page page.PageMode
+  pageRouteTemplate page page.PageMode
 
-let handlerTemplate page =
-  let rec handlerTemplate page pageMode =
+let apiRouteTemplate (api : API) =
+  sprintf """pathScan path_api_%s api_%s""" api.AsVal api.AsVal |> pad 2
+
+let pageHandlerTemplate page =
+  let rec pageHandlerTemplate page pageMode =
     match pageMode with
-    | CVELS -> [Create; View; Edit; List; Search] |> List.map (handlerTemplate page) |> flatten
-    | CVEL  -> [Create; View; Edit; List] |> List.map (handlerTemplate page) |> flatten
+    | CVELS -> [Create; View; Edit; List; Search] |> List.map (pageHandlerTemplate page) |> flatten
+    | CVEL  -> [Create; View; Edit; List] |> List.map (pageHandlerTemplate page) |> flatten
     | Edit  ->
       let idField = page.Fields |> List.find (fun field -> field.FieldType = Id)
       sprintf """
@@ -657,10 +681,29 @@ let login_%s =
           OK (post_login_errored_%s validation %s))
     ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsVal page.AsFormVal
 
-  handlerTemplate page page.PageMode
+  pageHandlerTemplate page page.PageMode
+
+let apiHandlerTemplate (api : API) =
+  sprintf """
+let api_%s id =
+  GET >=> request (fun req ->
+    let data = tryById_%s id
+    match data with
+    | None -> OK error_404
+    | Some(data) ->
+      match (getQueryStringValue req "format").ToLower() with
+      | "xml" ->
+         let serializer = FsPickler.CreateXmlSerializer(indent = true)
+         Writers.setMimeType "application/xml"
+         >=> OK (serializer.PickleToString(data))
+      | "json" | _ ->
+         let serializer = FsPickler.CreateJsonSerializer(indent = true)
+         Writers.setMimeType "application/json"
+         >=> OK (serializer.PickleToString(data)))""" api.AsVal api.AsType
 
 let propertyTemplate (page : Page) =
   page.Fields
+  |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
   |> List.map (fun field -> sprintf """%s : %s""" field.AsProperty (fieldToProperty field))
   |> List.map (pad 2)
   |> flatten
@@ -673,6 +716,7 @@ let formPropertyTemplate (page : Page) =
 
 let converterPropertyTemplate (page : Page) =
   page.Fields
+  |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
   |> List.map (fieldToConvertProperty page)
   |> List.map (pad 2)
   |> flatten
@@ -811,17 +855,18 @@ let fakePropertyTemplate (field : Field) =
 
   let value =
     match field.FieldType with
-    | Id         -> "-1L"
-    | Text       -> pickAppropriateText "randomItems 6 words"
-    | Paragraph  -> "randomItems 40 words"
-    | Number     -> pickAppropriateNumber "random.Next(100)"
-    | Decimal    -> "random.Next(100) |> double"
-    | Date       -> "System.DateTime.Now"
-    | Phone      -> """sprintf "%i-%i-%i" (random.Next(200,800)) (random.Next(200,800)) (random.Next(2000,8000))"""
-    | Email      -> """sprintf "%s@%s.com" (randomItem words) (randomItem words)"""
-    | Name       -> pickAppropriateName """randomItem names"""
-    | Password   -> """"123123" """ |> trimEnd
-    | Dropdown _ -> "1s"
+    | Id              -> "-1L"
+    | Text            -> pickAppropriateText "randomItems 6 words"
+    | Paragraph       -> "randomItems 40 words"
+    | Number          -> pickAppropriateNumber "random.Next(100)"
+    | Decimal         -> "random.Next(100) |> double"
+    | Date            -> "System.DateTime.Now"
+    | Phone           -> """sprintf "%i-%i-%i" (random.Next(200,800)) (random.Next(200,800)) (random.Next(2000,8000))"""
+    | Email           -> """sprintf "%s@%s.com" (randomItem words) (randomItem words)"""
+    | Name            -> pickAppropriateName """randomItem names"""
+    | Password        -> """"123123" """ |> trimEnd
+    | ConfirmPassword -> """"123123" """ |> trimEnd
+    | Dropdown _      -> "1s"
   sprintf """%s = %s """ field.AsProperty value
 
 let fakePropertiesTemplate (page : Page) =
@@ -869,7 +914,9 @@ let generate (site : Site) =
   let views_results = site.Pages |> List.map (viewTemplate site) |> flatten
   let generated_views_result = generated_views_template site.Name views_results
 
-  let handler_results = site.Pages |> List.map handlerTemplate |> flatten
+  let page_handlers = site.Pages |> List.map pageHandlerTemplate |> flatten
+  let api_handlers = site.APIs |> List.map apiHandlerTemplate |> flatten
+  let handler_results = [page_handlers; api_handlers] |> flatten
   let generated_handlers_result = generated_handlers_template handler_results
 
   let forms_results = site.Pages |> List.map formTypeTemplate |> flatten
@@ -878,8 +925,12 @@ let generate (site : Site) =
   let types_results = site.Pages |> List.map typeTemplate |> flatten
   let generated_types_result = generated_types_template types_results
 
-  let paths_results = site.Pages |> List.map pathTemplate |> flatten
-  let routes_results = site.Pages |> List.map routeTemplate |> flatten
+  let page_paths = site.Pages |> List.map pagePathTemplate |> flatten
+  let api_paths = site.APIs |> List.map apiPathTemplate |> flatten
+  let paths_results = [page_paths; api_paths] |> flatten
+  let page_routes = site.Pages |> List.map pageRouteTemplate |> flatten
+  let api_routes = site.APIs |> List.map apiRouteTemplate |> flatten
+  let routes_results = [page_routes; api_routes] |> flatten
   let generated_paths_result = generated_paths_template paths_results routes_results
 
   let validations_results = site.Pages |> List.map validationTemplate |> flatten

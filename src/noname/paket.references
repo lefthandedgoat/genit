@@ -3,3 +3,6 @@ Suave.Experimental
 canopy
 Npgsql
 Http.fs
+BCrypt-Official
+FsPickler
+FsPickler.Json
