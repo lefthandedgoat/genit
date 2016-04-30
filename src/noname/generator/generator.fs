@@ -512,7 +512,7 @@ let pageLinkTemplate (page : Page) =
     | Search    -> template page.AsSearchHref (sprintf "Search %ss" page.Name)
     | Submit    -> template page.AsHref page.Name
     | Login     -> template page.AsHref page.Name
-    | Jumbotron -> template page.AsHref page.Name
+    | Jumbotron -> template "/" page.Name
 
   pageLinkTemplate page page.PageMode
 
@@ -532,7 +532,7 @@ let pagePathTemplate (page : Page) =
     | Search    -> template "search_" page.AsSearchHref false
     | Submit    -> template "submit_" page.AsHref false
     | Login     -> template "login_" page.AsHref false
-    | Jumbotron -> template "" page.AsHref false
+    | Jumbotron -> template "" "/" false
 
   pagePathTemplate page page.PageMode
 
@@ -661,7 +661,7 @@ let submit_%s =
         if validation = [] then
           let converted = convert%s %s
           let id = insert_%s converted
-          FOUND "/home"
+          FOUND "/"
         else
           OK (post_submit_errored_%s validation %s))
     ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsType page.AsVal page.AsFormVal
@@ -781,8 +781,8 @@ let onceTemplate (page : Page) =
    | List      -> page.AsSearchHref
    | Search    -> page.AsSearchHref
    | Submit
-   | Login
-   | Jumbotron -> page.AsHref
+   | Login     -> page.AsHref
+   | Jumbotron -> "/"
 
   sprintf """once (fun _ -> url "http://localhost:8083%s"; click ".btn") """ href
   |> pad 1

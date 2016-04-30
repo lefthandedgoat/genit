@@ -38,7 +38,7 @@ let convertLoadTest (loadTestForm : LoadTestForm) : LoadTest =
 
 let defaultLoadTest : LoadTest =
   {
-    URI = "http://localhost:8083/home"
+    URI = "http://localhost:8083/"
     NumberofRequests = 100
     MaxConcurrentRequests = 5
   }
