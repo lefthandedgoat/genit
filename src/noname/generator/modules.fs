@@ -105,7 +105,7 @@ let generated_data_access_template connectionString guts =
 
 open generated_types
 open generated_forms
-open adoHelper
+open adoHelpers
 open Npgsql
 open dsl
 open BCrypt.Net
