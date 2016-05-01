@@ -105,6 +105,7 @@ let generated_data_access_template connectionString guts =
 
 open generated_types
 open generated_forms
+open generalHelpers
 open adoHelpers
 open Npgsql
 open dsl
@@ -174,6 +175,7 @@ let generated_fake_data_template guts =
 
 open generated_types
 open generated_data_access
+open generalHelpers
 
 let concat values =
   if values = []

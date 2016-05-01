@@ -59,6 +59,7 @@
   </Target>
   -->
   <ItemGroup>
+    <Compile Include="generalHelpers.fs" />
     <Compile Include="generator/dsl.fs" />
     <Compile Include="generator/sql.fs" />
     <Compile Include="generator/modules.fs" />
@@ -66,7 +67,6 @@
     <Compile Include="generator/script.fs" />
     <Compile Include="prunner.fs" />
     <Compile Include="loadGenerator.fs" />
-    <Compile Include="generalHelpers.fs" />
     <Compile Include="adoHelpers.fs" />
     <Compile Include="validators.fs" />
     <Compile Include="forms.fs" />

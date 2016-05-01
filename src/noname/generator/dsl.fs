@@ -2,51 +2,7 @@ module dsl
 
 open System
 open System.Text.RegularExpressions
-
-let onlyIfValues values func =
-  let values = values |> List.filter (fun str -> str <> "")
-  if values = []
-  then ""
-  else values |> func
-
-let flatten values = onlyIfValues values (List.reduce (fun value1 value2 -> sprintf "%s%s%s" value1 Environment.NewLine value2))
-
-let flattenWith delimeter values = onlyIfValues values (List.reduce (fun value1 value2 -> sprintf "%s%s%s%s" value1 delimeter Environment.NewLine value2))
-
-let concat values = onlyIfValues values (List.reduce (fun value1 value2 -> sprintf "%s %s" value1 value2))
-
-let repeat (value : string) times = [1..times] |> List.map (fun _ -> value) |> List.reduce (+)
-let pad tabs field = sprintf "%s%s" (repeat "  " tabs) field
-let rightPad upto field = sprintf "%s%s" field (repeat " " (upto - field.Length))
-let clean (value : string) = Regex.Replace(value, "[^0-9a-zA-Z ]+", "")
-let lower (value : string) = value.ToLower()
-let trimEnd (value : string) = value.TrimEnd()
-let upperFirst (value : string) = Char.ToUpper(value.[0]).ToString() + value.Substring(1)
-let lowerFirst (value : string) = Char.ToLower(value.[0]).ToString() + value.Substring(1)
-let spaceToNothing (value : string) = value.Replace(" ", "")
-let spaceToUnderscore (value : string) = value.Replace(" ", "_")
-let camelCase = spaceToNothing >> lowerFirst
-let typeCase = spaceToNothing >> upperFirst
-let form value = sprintf "%sForm" value
-let pluralize = sprintf "%ss" //trrrrble
-
-let to_val = camelCase
-let to_type = typeCase
-let to_formVal = camelCase >> form
-let to_formType = typeCase >> form
-let to_href = camelCase >> sprintf "/%s"
-let to_createHref = camelCase >> sprintf "/%s/create"
-let to_viewHref = camelCase >> (fun page -> sprintf "/%s/view/%s" page "%i")
-let to_apiViewHref = camelCase >> (fun page -> sprintf "/api/%s/view/%s" page "%i")
-let to_editHref = camelCase >> (fun page -> sprintf "/%s/edit/%s" page "%i")
-let to_listHref = camelCase >> sprintf "/%s/list"
-let to_searchHref = camelCase >> sprintf "/%s/search"
-
-let to_property = typeCase
-
-let to_database = clean >> lower >> spaceToUnderscore
-let to_tableName = clean >> lower >> spaceToUnderscore >> pluralize
-let to_dbColumn = clean >> lower >> spaceToUnderscore
+open generalHelpers
 
 type PageMode =
   | CVELS
