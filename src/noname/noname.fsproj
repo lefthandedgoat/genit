@@ -82,6 +82,7 @@
     <Compile Include="generated/generated_fake_data.fs" />
     <Compile Include="generated/generated_validation.fs" />
     <Compile Include="generated/generated_views.fs" />
+    <Compile Include="generated/generated_bundles.fs" />
     <Compile Include="generated/generated_handlers.fs" />
     <Compile Include="generated/generated_paths.fs" />
     <Compile Include="generated/generated_unittests.fs" />
