@@ -19,3 +19,14 @@ let createOrGenerate req (bundle : Bundle<_>) =
       let data = bundle.single_fake ()
       OK <| bundle.get_edit data
   else OK bundle.get_create
+
+let search req (bundle : Bundle<_>) =
+  if hasQueryString req "field" && hasQueryString req "how" && hasQueryString req "value"
+  then
+    let field = getQueryStringValue req "field"
+    let how = getQueryStringValue req "how"
+    let value = getQueryStringValue req "value"
+    let data = bundle.getManyWhere field how value
+    OK <| bundle.get_search (Some field) (Some how) value data
+  else
+    OK <| bundle.get_search None None "" []

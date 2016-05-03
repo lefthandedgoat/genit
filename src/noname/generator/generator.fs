@@ -605,21 +605,13 @@ let search_%s =
   choose
     [
       GET >=> request (fun req ->
-        if hasQueryString req "field" && hasQueryString req "how" && hasQueryString req "value"
-        then
-          let field = getQueryStringValue req "field"
-          let how = getQueryStringValue req "how"
-          let value = getQueryStringValue req "value"
-          let data = getManyWhere_%s field how value
-          OK <| get_search_%s (Some field) (Some how) value data
-        else
-          OK <| get_search_%s None None "" [])
+          search req %sBundle)
       POST >=> bindToForm searchForm (fun searchForm ->
         let field = HttpUtility.UrlEncode(searchForm.Field)
         let how = HttpUtility.UrlEncode(searchForm.How)
         let value = HttpUtility.UrlEncode(searchForm.Value)
         FOUND <| sprintf "%s?field=%s&how=%s&value=%s" field how value)
-    ]""" page.AsVal page.AsType page.AsVal page.AsVal page.AsSearchHref "%s" "%s" "%s"
+    ]""" page.AsVal page.AsVal page.AsSearchHref "%s" "%s" "%s"
     | Jumbotron ->
       sprintf """
 let %s = GET >=> OK get_%s""" page.AsVal page.AsVal
@@ -727,9 +719,11 @@ let bundleTemplate (page : Page) =
     single_fake = fake_{0}
     many_fake = many_fake_{0}
     getMany = getMany_{1}
+    getManyWhere = getManyWhere_{1}
     get_list = get_list_{0}
     get_edit = get_edit_{0}
     get_create = get_create_{0}
+    get_search = get_search_{0}
   }}
   """, page.AsVal, page.AsType)
 
