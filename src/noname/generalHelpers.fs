@@ -93,4 +93,5 @@ type Bundle<'a> =
     get_edit : 'a -> string
     get_create : string
     get_search : string option -> string option -> string -> 'a list -> string
+    searchHref : string
   }

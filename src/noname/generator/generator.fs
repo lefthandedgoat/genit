@@ -605,13 +605,10 @@ let search_%s =
   choose
     [
       GET >=> request (fun req ->
-          search req %sBundle)
+        searchGET req %sBundle)
       POST >=> bindToForm searchForm (fun searchForm ->
-        let field = HttpUtility.UrlEncode(searchForm.Field)
-        let how = HttpUtility.UrlEncode(searchForm.How)
-        let value = HttpUtility.UrlEncode(searchForm.Value)
-        FOUND <| sprintf "%s?field=%s&how=%s&value=%s" field how value)
-    ]""" page.AsVal page.AsVal page.AsSearchHref "%s" "%s" "%s"
+        searchPOST searchForm %sBundle)
+    ]""" page.AsVal page.AsVal page.AsVal
     | Jumbotron ->
       sprintf """
 let %s = GET >=> OK get_%s""" page.AsVal page.AsVal
@@ -724,8 +721,9 @@ let bundleTemplate (page : Page) =
     get_edit = get_edit_{0}
     get_create = get_create_{0}
     get_search = get_search_{0}
+    searchHref = "{2}"
   }}
-  """, page.AsVal, page.AsType)
+  """, page.AsVal, page.AsType, page.AsSearchHref)
 
 let converterTemplate (page : Page) =
   if page.Fields = [] then ""
