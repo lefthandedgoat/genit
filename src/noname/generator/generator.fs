@@ -629,19 +629,7 @@ let create_%s =
   choose
     [
       GET >=> request (fun req ->
-        if hasQueryString req "generate"
-        then
-          let generate = getQueryStringValue req "generate"
-          let parsed, value = System.Int32.TryParse(generate)
-          if parsed && value > 1
-          then
-            many_fake_%s value
-            let data = getMany_%s()
-            OK <| get_list_%s data
-          else
-            let data = fake_%s ()
-            OK <| get_edit_%s data
-        else OK get_create_%s)
+        createOrGenerate req %sBundle)
       POST >=> bindToForm %s (fun %s ->
         let validation = validate%s %s
         if validation = [] then
@@ -650,7 +638,7 @@ let create_%s =
           FOUND <| sprintf "%s" id
         else
           OK (post_create_errored_%s validation %s))
-    ]""" page.AsVal page.AsVal page.AsType page.AsVal page.AsVal page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsType page.AsViewHref page.AsVal page.AsFormVal
+    ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsType page.AsViewHref page.AsVal page.AsFormVal
     | Submit    ->
       sprintf """
 let submit_%s =
@@ -730,6 +718,20 @@ let typeTemplate (page : Page) =
 %s
   }
   """ page.AsType (propertyTemplate page)
+
+let bundleTemplate (page : Page) =
+  if (not (page.PageMode = Create || page.PageMode = CVEL || page.PageMode = CVELS) ) || page.Fields = [] then ""
+  else
+    String.Format("""let {0}Bundle : Bundle<{1}> =
+  {{
+    single_fake = fake_{0}
+    many_fake = many_fake_{0}
+    getMany = getMany_{1}
+    get_list = get_list_{0}
+    get_edit = get_edit_{0}
+    get_create = get_create_{0}
+  }}
+  """, page.AsVal, page.AsType)
 
 let converterTemplate (page : Page) =
   if page.Fields = [] then ""
@@ -926,6 +928,9 @@ let generate (site : Site) =
   let types_results = site.Pages |> List.map typeTemplate |> flatten
   let generated_types_result = generated_types_template types_results
 
+  let bundles_results = site.Pages |> List.map bundleTemplate |> flatten
+  let generated_bundles_result = generated_bundles_template bundles_results
+
   let page_paths = site.Pages |> List.map pagePathTemplate |> flatten
   let api_paths = site.APIs |> List.map apiPathTemplate |> flatten
   let paths_results = [page_paths; api_paths] |> flatten
@@ -957,6 +962,7 @@ let generate (site : Site) =
   write (destination "generated_handlers.fs") generated_handlers_result
   write (destination "generated_forms.fs") generated_forms_result
   write (destination "generated_types.fs") generated_types_result
+  write (destination "generated_bundles.fs") generated_bundles_result
   write (destination "generated_paths.fs") generated_paths_result
   write (destination "generated_validation.fs") generated_validation_result
   write (destination "generated_unittests.fs") generated_unittests_result
