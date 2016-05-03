@@ -80,3 +80,15 @@ let streetNames = [ "Second";"Third";"First";"Fourth";"Park";"Fifth";"Main";"Six
 let streetNameSuffixes = [ "Alley";"Avenue";"Bluff";"Boulevard";"Circle";"Estates";"Junction";"Road";"Lane"]
 
 let citiesSatesZips = List.zip3 cities states zips |> List.map (fun (city, state, zip) -> { City = city; State = state; Zip = zip })
+
+//bundles
+
+type Bundle<'a> =
+  {
+    single_fake : unit -> 'a
+    many_fake : int -> unit
+    getMany : unit -> 'a list
+    get_list : 'a list -> string
+    get_edit : 'a -> string
+    get_create : string
+  }
