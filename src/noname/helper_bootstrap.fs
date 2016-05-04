@@ -1,8 +1,8 @@
-module bootstrapHelpers
+module helper_bootstrap
 open System
 
 open Suave.Html
-open htmlHelpers
+open helper_html
 
 (*
    This is just a huge dump of bootstrap helpers that I have collected from other projects

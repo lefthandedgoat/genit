@@ -1,10 +1,10 @@
-module handlerHelpers
+module helper_handler
 
 open System.Web
 open Suave
 open Suave.Successful
 open Suave.Redirection
-open generalHelpers
+open helper_general
 open forms
 
 let createOrGenerate req (bundle : Bundle<_>) =

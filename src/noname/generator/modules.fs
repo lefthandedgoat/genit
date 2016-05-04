@@ -5,8 +5,8 @@ let generated_html_template guts =
 
 open System
 open Suave.Html
-open htmlHelpers
-open bootstrapHelpers
+open helper_html
+open helper_bootstrap
 
 let base_header brand =
   navClass "navbar navbar-default" [
@@ -41,8 +41,8 @@ let generated_views_template brand guts =
   sprintf """module generated_views
 
 open Suave.Html
-open htmlHelpers
-open bootstrapHelpers
+open helper_html
+open helper_bootstrap
 open generated_html
 open generated_forms
 open generated_data_access
@@ -89,11 +89,11 @@ open generated_validation
 open generated_data_access
 open generated_fake_data
 open generated_bundles
-open htmlHelpers
+open helper_html
+open helper_handler
 open Nessos.FsPickler
 open Nessos.FsPickler.Json
 open forms
-open handlerHelpers
 
 %s""" guts
 
@@ -107,8 +107,8 @@ let generated_data_access_template connectionString guts =
 
 open generated_types
 open generated_forms
-open generalHelpers
-open adoHelpers
+open helper_general
+open helper_ado
 open Npgsql
 open dsl
 open BCrypt.Net
@@ -177,7 +177,7 @@ let generated_fake_data_template guts =
 
 open generated_types
 open generated_data_access
-open generalHelpers
+open helper_general
 
 %s
   """ guts
@@ -185,7 +185,7 @@ open generalHelpers
 let generated_bundles_template guts =
   sprintf """module generated_bundles
 
-open generalHelpers
+open helper_general
 open generated_fake_data
 open generated_types
 open generated_views

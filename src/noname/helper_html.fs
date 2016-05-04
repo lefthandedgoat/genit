@@ -1,4 +1,4 @@
-module htmlHelpers
+module helper_html
 
 open System
 

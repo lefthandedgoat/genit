@@ -1,8 +1,8 @@
 module loadGeneratorView
 
 open Suave.Html
-open htmlHelpers
-open bootstrapHelpers
+open helper_html
+open helper_bootstrap
 open loadGenerator
 
 let resultsTable (results : Result list) =

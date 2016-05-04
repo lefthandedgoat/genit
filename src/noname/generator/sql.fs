@@ -1,7 +1,7 @@
 module sql
 
 open dsl
-open generalHelpers
+open helper_general
 
 let createTemplate dbname =
   sprintf """

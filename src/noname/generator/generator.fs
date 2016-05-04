@@ -3,7 +3,7 @@ module generator
 open System
 open dsl
 open modules
-open generalHelpers
+open helper_general
 
 let write path value = IO.File.WriteAllText(path, value)
 let executingDir = IO.Path.GetDirectoryName(Reflection.Assembly.GetExecutingAssembly().CodeBase)

@@ -1,4 +1,4 @@
-module generalHelpers
+module helper_general
 
 open System
 open System.Text.RegularExpressions

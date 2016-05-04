@@ -1,8 +1,8 @@
 module generated_views
 
 open Suave.Html
-open htmlHelpers
-open bootstrapHelpers
+open helper_html
+open helper_bootstrap
 open generated_html
 open generated_forms
 open generated_data_access

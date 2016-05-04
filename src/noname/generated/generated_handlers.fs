@@ -13,8 +13,8 @@ open generated_validation
 open generated_data_access
 open generated_fake_data
 open generated_bundles
-open htmlHelpers
+open helper_html
+open helper_handler
 open Nessos.FsPickler
 open Nessos.FsPickler.Json
 open forms
-open handlerHelpers

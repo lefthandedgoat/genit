@@ -1,6 +1,6 @@
 module generated_bundles
 
-open generalHelpers
+open helper_general
 open generated_fake_data
 open generated_types
 open generated_views

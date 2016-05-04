@@ -1,4 +1,4 @@
-module adoHelpers
+module helper_ado
 
 open Npgsql
 

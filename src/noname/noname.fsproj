@@ -59,7 +59,7 @@
   </Target>
   -->
   <ItemGroup>
-    <Compile Include="generalHelpers.fs" />
+    <Compile Include="helper_general.fs" />
     <Compile Include="generator/dsl.fs" />
     <Compile Include="generator/sql.fs" />
     <Compile Include="generator/modules.fs" />
@@ -67,12 +67,12 @@
     <Compile Include="generator/script.fs" />
     <Compile Include="prunner.fs" />
     <Compile Include="loadGenerator.fs" />
-    <Compile Include="adoHelpers.fs" />
+    <Compile Include="helper_ado.fs" />
     <Compile Include="validators.fs" />
     <Compile Include="forms.fs" />
-    <Compile Include="htmlHelpers.fs" />
-    <Compile Include="bootstrapHelpers.fs" />
-    <Compile Include="handlerHelpers.fs" />
+    <Compile Include="helper_html.fs" />
+    <Compile Include="helper_bootstrap.fs" />
+    <Compile Include="helper_handler.fs" />
     <Compile Include="scripts.fs" />
     <Compile Include="loadGeneratorView.fs" />
     <Compile Include="generated/generated_html.fs" />

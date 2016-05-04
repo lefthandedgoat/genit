@@ -2,7 +2,7 @@ module dsl
 
 open System
 open System.Text.RegularExpressions
-open generalHelpers
+open helper_general
 
 type PageMode =
   | CVELS
