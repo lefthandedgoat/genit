@@ -142,6 +142,20 @@ Target "CreateDB" (fun _ ->
   Shell.Exec(command, args) |> ignore
 )
 
+Target "Help" (fun _ ->
+  printfn "build.cmd [<target>] [options]"
+  printfn @"for FAKE help: packages\FAKE\tools\FAKE.exe --help"
+  printfn "targets:"
+  printfn "  * `Clean` deletes bin and temp directories"
+  printfn "  * `Build` builds the site generator tool `noname.exe`"
+  printfn "  * `All` builds the generator and copies the binaries to the bin folder"
+  printfn "  * `Test` runs the test suite"
+  printfn "  * `Generate` runs the generator to generate a site"
+  printfn "  * `CreateDB` creates a PostgreSQL database from the generated SQL schema"
+  printfn "  * `RunSite` runs the generated web site"
+  printfn "  * `Help` prints this message"
+)
+
 // --------------------------------------------------------------------------------------
 // Run all targets by default. Invoke 'build <Target>' to override
 
@@ -165,4 +179,4 @@ Target "All" DoNothing
 "All"
   ==> "Test"
 
-RunTargetOrDefault "RunSite"
+RunTargetOrDefault "Help"
