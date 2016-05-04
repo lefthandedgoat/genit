@@ -12,7 +12,7 @@ type PageMode =
   | View
   | List
   | Search
-  | Submit
+  | Register
   | Login
   | Jumbotron
 
@@ -168,7 +168,7 @@ let precannedHome () =
   page_ "Home" Jumbotron "" DoNotCreateTable []
 
 let precannedRegister () =
-  page_ "Register" Submit "User" CreateTable
+  page_ "Register" Register "User" CreateTable
     [
       id_pk "User"
       name "First Name" Required

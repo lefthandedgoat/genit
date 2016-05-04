@@ -409,65 +409,65 @@ let view_search_%s field how value %ss =
     ]
     scripts.datatable_bundle""" page.AsVal page.AsVal page.AsVal page.AsType page.AsViewHref page.AsVal idField.AsProperty page.AsVal page.AsType (fieldsToTd page) page.Name page.Name (fieldsToHeaders page) page.AsVal
 
-let submitFormViewTemplate (page : Page) =
+let registerFormViewTemplate (page : Page) =
   sprintf """
-let view_submit_%s =
+let view_register =
   base_html
     "%s"
     [
       base_header brand
-      common_submit_form
+      common_register_form
         "%s"
         [
 %s
         ]
     ]
-    scripts.common""" page.AsVal page.Name page.Name (formatEditFields page.Fields 5)
+    scripts.common""" page.Name page.Name (formatEditFields page.Fields 5)
 
-let submitErroredFormViewTemplate (page : Page) =
+let registerErroredFormViewTemplate (page : Page) =
   sprintf """
-let view_submit_errored_%s errors (%s : %s) =
+let view_errored_register errors (%s : %s) =
   base_html
     "%s"
     [
       base_header brand
-      common_submit_form
+      common_register_form
         "%s"
         [
 %s
         ]
     ]
-    scripts.common""" page.AsVal page.AsFormVal page.AsFormType page.Name page.Name (formatErroredFields page page.Fields 5)
+    scripts.common""" page.AsFormVal page.AsFormType page.Name page.Name (formatErroredFields page page.Fields 5)
 
 let loginFormViewTemplate (page : Page) =
   sprintf """
-let view_login_%s =
+let view_login =
   base_html
     "%s"
     [
       base_header brand
-      common_submit_form
+      common_register_form
         "%s"
         [
 %s
         ]
     ]
-    scripts.common""" page.AsVal page.Name page.Name (formatEditFields page.Fields 5)
+    scripts.common""" page.Name page.Name (formatEditFields page.Fields 5)
 
 let loginErroredFormViewTemplate (page : Page) =
   sprintf """
-let view_login_errored_%s errors (%s : %s) =
+let view_errored_login errors (%s : %s) =
   base_html
     "%s"
     [
       base_header brand
-      common_submit_form
+      common_register_form
         "%s"
         [
 %s
         ]
     ]
-    scripts.common""" page.AsVal page.AsFormVal page.AsFormType page.Name page.Name (formatErroredFields page page.Fields 5)
+    scripts.common""" page.AsFormVal page.AsFormType page.Name page.Name (formatErroredFields page page.Fields 5)
 
 let jumbotronViewTemplate (site : Site) (page : Page) =
   sprintf """
@@ -494,7 +494,7 @@ let viewTemplate site page =
     | View      -> viewFormViewTemplate page
     | List      -> listFormViewTemplate page
     | Search    -> searchFormViewTemplate page
-    | Submit    -> [submitFormViewTemplate page; submitErroredFormViewTemplate page] |> flatten
+    | Register  -> [registerFormViewTemplate page; registerErroredFormViewTemplate page] |> flatten
     | Login     -> [loginFormViewTemplate page; loginErroredFormViewTemplate page] |> flatten
     | Jumbotron -> jumbotronViewTemplate site page
 
@@ -511,7 +511,7 @@ let pageLinkTemplate (page : Page) =
     | View      -> ""
     | List      -> template page.AsListHref (sprintf "List %ss" page.Name)
     | Search    -> template page.AsSearchHref (sprintf "Search %ss" page.Name)
-    | Submit    -> template page.AsHref page.Name
+    | Register  -> template page.AsHref page.Name
     | Login     -> template page.AsHref page.Name
     | Jumbotron -> template "/" page.Name
 
@@ -531,8 +531,8 @@ let pagePathTemplate (page : Page) =
     | View      -> template "view_" page.AsViewHref true
     | List      -> template "list_" page.AsListHref false
     | Search    -> template "search_" page.AsSearchHref false
-    | Submit    -> template "submit_" page.AsHref false
-    | Login     -> template "login_" page.AsHref false
+    | Register  -> template "" page.AsHref false
+    | Login     -> template "" page.AsHref false
     | Jumbotron -> template "" "/" false
 
   pagePathTemplate page page.PageMode
@@ -554,8 +554,8 @@ let pageRouteTemplate (page : Page) =
     | View      -> template "view_" true
     | List      -> template "list_" false
     | Search    -> template "search_" false
-    | Submit    -> template "submit_" false
-    | Login     -> template "login_" false
+    | Register  -> template "" false
+    | Login     -> template "" false
     | Jumbotron -> template "" false
 
   pageRouteTemplate page page.PageMode
@@ -628,12 +628,12 @@ let create_%s =
         else
           OK (view_create_errored_%s validation %s))
     ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsType page.AsViewHref page.AsVal page.AsFormVal
-    | Submit    ->
+    | Register    ->
       sprintf """
-let submit_%s =
+let register =
   choose
     [
-      GET >=> OK view_submit_%s
+      GET >=> OK view_register
       POST >=> bindToForm %s (fun %s ->
         let validation = validate%s %s
         if validation = [] then
@@ -641,14 +641,14 @@ let submit_%s =
           let id = insert_%s converted
           FOUND "/"
         else
-          OK (view_submit_errored_%s validation %s))
-    ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsType page.AsVal page.AsFormVal
+          OK (view_errored_%s validation %s))
+    ]""" page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsType page.AsVal page.AsFormVal
     | Login    ->
       sprintf """
-let login_%s =
+let login =
   choose
     [
-      GET >=> OK view_login_%s
+      GET >=> OK view_login
       POST >=> bindToForm %s (fun %s ->
         let validation = validate%s %s
         if validation = [] then
@@ -656,8 +656,8 @@ let login_%s =
           ignore converted
           OK ""
         else
-          OK (view_login_errored_%s validation %s))
-    ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsVal page.AsFormVal
+          OK (view_errored_%s validation %s))
+    ]"""  page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsVal page.AsFormVal
 
   pageHandlerTemplate page page.PageMode
 
@@ -775,7 +775,7 @@ let onceTemplate (page : Page) =
    | View      -> page.AsViewHref
    | List      -> page.AsSearchHref
    | Search    -> page.AsSearchHref
-   | Submit
+   | Register
    | Login     -> page.AsHref
    | Jumbotron -> "/"
 

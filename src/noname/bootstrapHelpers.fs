@@ -308,7 +308,7 @@ let common_static_form button decription formElements =
     ]
   ]
 
-let common_submit_form decription formElements =
+let common_register_form decription formElements =
   signup_container [
     divClass "middle-sign-up" [
       mcontent [

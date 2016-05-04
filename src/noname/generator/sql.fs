@@ -82,7 +82,7 @@ let shouldICreateTable page =
   | Edit
   | View
   | List
-  | Submit    -> true
+  | Register    -> true
   | Login
   | Search
   | Jumbotron -> false
@@ -314,7 +314,7 @@ let createQueriesForPage site page =
     | View      -> tryByIdTemplate site page
     | List      -> selectManyTemplate site page
     | Search    -> selectManyWhereTemplate site page
-    | Submit    -> insertTemplate site page
+    | Register  -> insertTemplate site page
     | Login
     | Jumbotron -> ""
 
