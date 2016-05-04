@@ -25,7 +25,7 @@ let editPOST (id : int64) form (bundle : Bundle<_,_>) =
   if validation = [] then
     let converted = bundle.convertForm form
     bundle.update converted
-    FOUND <| sprintf bundle.viewHref id
+    FOUND <| sprintf bundle.href_view id
   else
     OK (bundle.view_edit_errored validation form)
 
@@ -62,4 +62,4 @@ let searchPOST searchForm (bundle : Bundle<_,_>) =
   let field = HttpUtility.UrlEncode(searchForm.Field)
   let how = HttpUtility.UrlEncode(searchForm.How)
   let value = HttpUtility.UrlEncode(searchForm.Value)
-  FOUND <| sprintf "%s?field=%s&how=%s&value=%s" bundle.searchHref field how value
+  FOUND <| sprintf "%s?field=%s&how=%s&value=%s" bundle.href_search field how value

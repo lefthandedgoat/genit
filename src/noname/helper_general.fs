@@ -87,8 +87,8 @@ type Bundle<'a, 'b> =
   {
     validateForm : 'b -> (string * string) list
     convertForm : 'b -> 'a
-    single_fake : unit -> 'a
-    many_fake : int -> unit
+    fake_single : unit -> 'a
+    fake_many : int -> unit
     tryById : int64 -> 'a option
     getMany : unit -> 'a list
     getManyWhere : string -> string -> string -> 'a list
@@ -99,6 +99,6 @@ type Bundle<'a, 'b> =
     view_view : 'a -> string
     view_search : string option -> string option -> string -> 'a list -> string
     view_edit_errored : (string * string) list -> 'b -> string
-    searchHref : string
-    viewHref : PrintfFormat<(int64 -> string),unit,string,string,int64>
+    href_search : string
+    href_view : PrintfFormat<(int64 -> string),unit,string,string,int64>
   }

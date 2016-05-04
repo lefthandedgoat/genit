@@ -696,8 +696,8 @@ let bundleTemplate (page : Page) =
   {{
     validateForm = validate{1}Form
     convertForm = convert{1}Form
-    single_fake = fake_{0}
-    many_fake = many_fake_{0}
+    fake_single = fake_{0}
+    fake_many = fake_many_{0}
     tryById = tryById_{1}
     getMany = getMany_{1}
     getManyWhere = getManyWhere_{1}
@@ -708,8 +708,8 @@ let bundleTemplate (page : Page) =
     view_view = view_view_{0}
     view_search = view_search_{0}
     view_edit_errored = view_edit_errored_{0}
-    searchHref = "{2}"
-    viewHref = "{3}"
+    href_search = "{2}"
+    href_view = "{3}"
   }}
   """, page.AsVal, page.AsType, page.AsSearchHref, page.AsViewHref)
 
@@ -871,7 +871,7 @@ let fakeComplexValues (page : Page) =
   else ""
 
 let fakeManyDataTemplate (page: Page) =
-  sprintf """let many_fake_%s number =
+  sprintf """let fake_many_%s number =
   [| 1..number |]
   |> Array.map (fun _ -> fake_%s ()) //no parallel cause of RNG
   |> Array.Parallel.map insert_%s
