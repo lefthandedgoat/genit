@@ -591,17 +591,17 @@ let edit_%s id =
     | View  ->
       sprintf """
 let view_%s id =
-  GET >=> warbler (fun _ -> view id %sBundle)""" page.AsVal page.AsType
+  GET >=> warbler (fun _ -> view id bundle_%s)""" page.AsVal page.AsVal
     | List  ->
       sprintf """
-let list_%s = GET >=> warbler (fun _ -> OK <| view_list_%s <| getMany_%s ())""" page.AsVal page.AsVal page.AsType
+let list_%s = GET >=> warbler (fun _ -> getMany_%s () |> view_list_%s |> OK)""" page.AsVal page.AsType page.AsVal
     | Search ->
       sprintf """
 let search_%s =
   choose
     [
-      GET >=> request (fun req -> searchGET req %sBundle)
-      POST >=> bindToForm searchForm (fun searchForm -> searchPOST searchForm %sBundle)
+      GET >=> request (fun req -> searchGET req bundle_%s)
+      POST >=> bindToForm searchForm (fun searchForm -> searchPOST searchForm bundle_%s)
     ]""" page.AsVal page.AsVal page.AsVal
     | Jumbotron ->
       sprintf """
@@ -611,7 +611,7 @@ let %s = GET >=> OK view_jumbo_%s""" page.AsVal page.AsVal
 let create_%s =
   choose
     [
-      GET >=> request (fun req -> createOrGenerate req %sBundle)
+      GET >=> request (fun req -> createOrGenerate req bundle_%s)
       POST >=> bindToForm %s (fun %s ->
         let validation = validate%s %s
         if validation = [] then
@@ -704,15 +704,17 @@ let typeTemplate (page : Page) =
 let bundleTemplate (page : Page) =
   if (not (page.PageMode = Create || page.PageMode = CVEL || page.PageMode = CVELS) ) || page.Fields = [] then ""
   else
-    String.Format("""let {0}Bundle : Bundle<{1}> =
+    String.Format("""let bundle_{0} : Bundle<{1}> =
   {{
     single_fake = fake_{0}
     many_fake = many_fake_{0}
+    tryById = tryById_{1}
     getMany = getMany_{1}
     getManyWhere = getManyWhere_{1}
     view_list = view_list_{0}
     view_edit = view_edit_{0}
     view_create = view_create_{0}
+    view_view = view_view_{0}
     view_search = view_search_{0}
     searchHref = "{2}"
   }}
