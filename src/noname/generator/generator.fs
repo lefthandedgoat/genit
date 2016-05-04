@@ -582,7 +582,8 @@ let view_%s id =
   GET >=> warbler (fun _ -> viewGET id bundle_%s)""" page.AsVal page.AsVal
     | List  ->
       sprintf """
-let list_%s = GET >=> warbler (fun _ -> getMany_%s () |> view_list_%s |> OK)""" page.AsVal page.AsType page.AsVal
+let list_%s =
+  GET >=> warbler (fun _ -> getMany_%s () |> view_list_%s |> OK)""" page.AsVal page.AsType page.AsVal
     | Search ->
       sprintf """
 let search_%s =
