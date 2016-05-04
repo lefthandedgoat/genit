@@ -238,7 +238,7 @@ let formatErroredFields page (fields : Field list) tabs =
 
 let createFormViewTemplate (page : Page) =
   sprintf """
-let get_create_%s =
+let view_create_%s =
   base_html
     "Create %s"
     [
@@ -253,7 +253,7 @@ let get_create_%s =
 
 let createErroredFormViewTemplate (page : Page) =
   sprintf """
-let post_create_errored_%s errors (%s : %s) =
+let view_create_errored_%s errors (%s : %s) =
   base_html
     "Create %s"
     [
@@ -268,7 +268,7 @@ let post_create_errored_%s errors (%s : %s) =
 
 let editFormViewTemplate (page : Page) =
   sprintf """
-let get_edit_%s (%s : %s) =
+let view_edit_%s (%s : %s) =
   base_html
     "Edit %s"
     [
@@ -283,7 +283,7 @@ let get_edit_%s (%s : %s) =
 
 let editErroredFormViewTemplate (page : Page) =
   sprintf """
-let post_edit_errored_%s errors (%s : %s) =
+let view_edit_errored_%s errors (%s : %s) =
   base_html
     "Edit %s"
     [
@@ -299,7 +299,7 @@ let post_edit_errored_%s errors (%s : %s) =
 let viewFormViewTemplate (page : Page) =
   let idField = page.Fields |> List.find (fun field -> field.FieldType = Id)
   sprintf """
-let get_view_%s (%s : %s) =
+let view_view_%s (%s : %s) =
   let button = [ button_small_success (sprintf "%s" %s.%s) [ text "Edit"] ]
   base_html
     "%s"
@@ -328,7 +328,7 @@ let fieldsToTd (page : Page) =
 let listFormViewTemplate (page : Page) =
   let idField = page.Fields |> List.find (fun field -> field.FieldType = Id)
   sprintf """
-let get_list_%s %ss =
+let view_list_%s %ss =
   let toTr (%s : %s) inner =
     trLink (sprintf "%s" %s.%s) inner
 
@@ -363,7 +363,7 @@ let get_list_%s %ss =
 let searchFormViewTemplate (page : Page) =
   let idField = page.Fields |> List.find (fun field -> field.FieldType = Id)
   sprintf """
-let get_search_%s field how value %ss =
+let view_search_%s field how value %ss =
   let fields = ["Name", "Name"; "Food","Food"; "City", "City"]
   let hows = ["Equals", "Equals"; "Begins With","Begins With"]
   let toTr (%s : %s) inner =
@@ -411,7 +411,7 @@ let get_search_%s field how value %ss =
 
 let submitFormViewTemplate (page : Page) =
   sprintf """
-let get_submit_%s =
+let view_submit_%s =
   base_html
     "%s"
     [
@@ -426,7 +426,7 @@ let get_submit_%s =
 
 let submitErroredFormViewTemplate (page : Page) =
   sprintf """
-let post_submit_errored_%s errors (%s : %s) =
+let view_submit_errored_%s errors (%s : %s) =
   base_html
     "%s"
     [
@@ -441,7 +441,7 @@ let post_submit_errored_%s errors (%s : %s) =
 
 let loginFormViewTemplate (page : Page) =
   sprintf """
-let get_login_%s =
+let view_login_%s =
   base_html
     "%s"
     [
@@ -456,7 +456,7 @@ let get_login_%s =
 
 let loginErroredFormViewTemplate (page : Page) =
   sprintf """
-let post_login_errored_%s errors (%s : %s) =
+let view_login_errored_%s errors (%s : %s) =
   base_html
     "%s"
     [
@@ -471,7 +471,7 @@ let post_login_errored_%s errors (%s : %s) =
 
 let jumbotronViewTemplate (site : Site) (page : Page) =
   sprintf """
-let get_%s =
+let view_jumbo_%s =
   base_html
     "%s"
     [
@@ -578,7 +578,7 @@ let edit_%s id =
         let data = tryById_%s id
         match data with
         | None -> OK error_404
-        | Some(data) -> OK <| get_edit_%s data)
+        | Some(data) -> OK <| view_edit_%s data)
       POST >=> bindToForm %s (fun %s ->
         let validation = validate%s %s
         if validation = [] then
@@ -586,7 +586,7 @@ let edit_%s id =
           update_%s converted
           FOUND <| sprintf "%s" converted.%s
         else
-          OK (post_edit_errored_%s validation %s))
+          OK (view_edit_errored_%s validation %s))
     ]""" page.AsVal page.AsType page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsType page.AsViewHref idField.AsProperty page.AsVal page.AsFormVal
     | View  ->
       sprintf """
@@ -595,10 +595,10 @@ let view_%s id =
     let data = tryById_%s id
     match data with
     | None -> OK error_404
-    | Some(data) -> OK <| get_view_%s data)""" page.AsVal page.AsType page.AsVal
+    | Some(data) -> OK <| view_view_%s data)""" page.AsVal page.AsType page.AsVal
     | List  ->
       sprintf """
-let list_%s = GET >=> warbler (fun _ -> OK <| get_list_%s (getMany_%s ()))""" page.AsVal page.AsVal page.AsType
+let list_%s = GET >=> warbler (fun _ -> OK <| view_list_%s (getMany_%s ()))""" page.AsVal page.AsVal page.AsType
     | Search ->
       sprintf """
 let search_%s =
@@ -611,7 +611,7 @@ let search_%s =
     ]""" page.AsVal page.AsVal page.AsVal
     | Jumbotron ->
       sprintf """
-let %s = GET >=> OK get_%s""" page.AsVal page.AsVal
+let %s = GET >=> OK view_jumbo_%s""" page.AsVal page.AsVal
     | Create ->
       sprintf """
 let create_%s =
@@ -626,14 +626,14 @@ let create_%s =
           let id = insert_%s converted
           FOUND <| sprintf "%s" id
         else
-          OK (post_create_errored_%s validation %s))
+          OK (view_create_errored_%s validation %s))
     ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsType page.AsViewHref page.AsVal page.AsFormVal
     | Submit    ->
       sprintf """
 let submit_%s =
   choose
     [
-      GET >=> OK get_submit_%s
+      GET >=> OK view_submit_%s
       POST >=> bindToForm %s (fun %s ->
         let validation = validate%s %s
         if validation = [] then
@@ -641,14 +641,14 @@ let submit_%s =
           let id = insert_%s converted
           FOUND "/"
         else
-          OK (post_submit_errored_%s validation %s))
+          OK (view_submit_errored_%s validation %s))
     ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsType page.AsVal page.AsFormVal
     | Login    ->
       sprintf """
 let login_%s =
   choose
     [
-      GET >=> OK get_login_%s
+      GET >=> OK view_login_%s
       POST >=> bindToForm %s (fun %s ->
         let validation = validate%s %s
         if validation = [] then
@@ -656,7 +656,7 @@ let login_%s =
           ignore converted
           OK ""
         else
-          OK (post_login_errored_%s validation %s))
+          OK (view_login_errored_%s validation %s))
     ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsVal page.AsFormVal
 
   pageHandlerTemplate page page.PageMode
@@ -717,10 +717,10 @@ let bundleTemplate (page : Page) =
     many_fake = many_fake_{0}
     getMany = getMany_{1}
     getManyWhere = getManyWhere_{1}
-    get_list = get_list_{0}
-    get_edit = get_edit_{0}
-    get_create = get_create_{0}
-    get_search = get_search_{0}
+    view_list = view_list_{0}
+    view_edit = view_edit_{0}
+    view_create = view_create_{0}
+    view_search = view_search_{0}
     searchHref = "{2}"
   }}
   """, page.AsVal, page.AsType, page.AsSearchHref)

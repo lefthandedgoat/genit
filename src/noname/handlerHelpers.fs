@@ -16,11 +16,11 @@ let createOrGenerate req (bundle : Bundle<_>) =
     then
       bundle.many_fake value
       let data = bundle.getMany ()
-      OK <| bundle.get_list data
+      OK <| bundle.view_list data
     else
       let data = bundle.single_fake ()
-      OK <| bundle.get_edit data
-  else OK bundle.get_create
+      OK <| bundle.view_edit data
+  else OK bundle.view_create
 
 let searchGET req (bundle : Bundle<_>) =
   if hasQueryString req "field" && hasQueryString req "how" && hasQueryString req "value"
@@ -29,9 +29,9 @@ let searchGET req (bundle : Bundle<_>) =
     let how = getQueryStringValue req "how"
     let value = getQueryStringValue req "value"
     let data = bundle.getManyWhere field how value
-    OK <| bundle.get_search (Some field) (Some how) value data
+    OK <| bundle.view_search (Some field) (Some how) value data
   else
-    OK <| bundle.get_search None None "" []
+    OK <| bundle.view_search None None "" []
 
 let searchPOST searchForm (bundle : Bundle<_>) =
   let field = HttpUtility.UrlEncode(searchForm.Field)

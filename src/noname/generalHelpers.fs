@@ -89,9 +89,9 @@ type Bundle<'a> =
     many_fake : int -> unit
     getMany : unit -> 'a list
     getManyWhere : string -> string -> string -> 'a list
-    get_list : 'a list -> string
-    get_edit : 'a -> string
-    get_create : string
-    get_search : string option -> string option -> string -> 'a list -> string
+    view_list : 'a list -> string
+    view_edit : 'a -> string
+    view_create : string
+    view_search : string option -> string option -> string -> 'a list -> string
     searchHref : string
   }
