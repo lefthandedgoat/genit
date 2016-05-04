@@ -47,6 +47,15 @@ let createOrGenerateGET req (bundle : Bundle<_,_>) =
 let createGET (bundle : Bundle<_,_>) =
   OK bundle.view_create
 
+let createPOST form (bundle : Bundle<_,_>) =
+  let validation = bundle.validateForm form
+  if validation = [] then
+    let converted = bundle.convertForm form
+    let id = bundle.insert converted
+    FOUND <| sprintf bundle.href_view id
+  else
+    OK (bundle.view_create_errored validation form)
+
 let searchGET req (bundle : Bundle<_,_>) =
   if hasQueryString req "field" && hasQueryString req "how" && hasQueryString req "value"
   then

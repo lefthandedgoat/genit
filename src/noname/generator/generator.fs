@@ -600,15 +600,8 @@ let create_%s =
   choose
     [
       GET >=> request (fun req -> createOrGenerateGET req bundle_%s)
-      POST >=> bindToForm %s (fun %s ->
-        let validation = validate%s %s
-        if validation = [] then
-          let converted = convert%s %s
-          let id = insert_%s converted
-          FOUND <| sprintf "%s" id
-        else
-          OK (view_create_errored_%s validation %s))
-    ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsType page.AsViewHref page.AsVal page.AsFormVal
+      POST >=> bindToForm %s (fun form -> createPOST form bundle_%s)
+    ]""" page.AsVal page.AsVal page.AsFormVal page.AsVal
     | Register    ->
       sprintf """
 let register =
@@ -701,6 +694,7 @@ let bundleTemplate (page : Page) =
     tryById = tryById_{1}
     getMany = getMany_{1}
     getManyWhere = getManyWhere_{1}
+    insert = insert_{1}
     update = update_{1}
     view_list = view_list_{0}
     view_edit = view_edit_{0}
@@ -708,6 +702,7 @@ let bundleTemplate (page : Page) =
     view_view = view_view_{0}
     view_search = view_search_{0}
     view_edit_errored = view_edit_errored_{0}
+    view_create_errored = view_create_errored_{0}
     href_search = "{2}"
     href_view = "{3}"
   }}

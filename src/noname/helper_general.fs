@@ -92,6 +92,7 @@ type Bundle<'a, 'b> =
     tryById : int64 -> 'a option
     getMany : unit -> 'a list
     getManyWhere : string -> string -> string -> 'a list
+    insert : 'a -> int64
     update : 'a -> unit
     view_list : 'a list -> string
     view_edit : 'a -> string
@@ -99,6 +100,7 @@ type Bundle<'a, 'b> =
     view_view : 'a -> string
     view_search : string option -> string option -> string -> 'a list -> string
     view_edit_errored : (string * string) list -> 'b -> string
+    view_create_errored : (string * string) list -> 'b -> string
     href_search : string
     href_view : PrintfFormat<(int64 -> string),unit,string,string,int64>
   }

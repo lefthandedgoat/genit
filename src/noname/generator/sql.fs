@@ -213,7 +213,7 @@ INSERT INTO %s.%s
   command
 %s
   |> executeScalar
-  |> string |> int
+  |> string |> int64
   """ page.AsType page.AsVal page.AsType site.AsDatabase page.AsTable (insertColumns page) (insertValues page) idField.AsDBColumn (passwordTemplate page) (insertParamsTemplate page)
 
 (*
