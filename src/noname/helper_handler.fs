@@ -36,11 +36,11 @@ let createOrGenerateGET req (bundle : Bundle<_,_>) =
     let parsed, value = System.Int32.TryParse(generate)
     if parsed && value > 1
     then
-      bundle.many_fake value
+      bundle.fake_many value
       let data = bundle.getMany ()
       OK <| bundle.view_list data
     else
-      let data = bundle.single_fake ()
+      let data = bundle.fake_single ()
       OK <| bundle.view_edit data
   else OK bundle.view_create
 
