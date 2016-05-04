@@ -574,11 +574,7 @@ let pageHandlerTemplate page =
 let edit_%s id =
   choose
     [
-      GET >=> warbler (fun _ ->
-        let data = tryById_%s id
-        match data with
-        | None -> OK error_404
-        | Some(data) -> OK <| view_edit_%s data)
+      GET >=> warbler (fun _ -> editGET id bundle_%s)
       POST >=> bindToForm %s (fun %s ->
         let validation = validate%s %s
         if validation = [] then
@@ -587,11 +583,11 @@ let edit_%s id =
           FOUND <| sprintf "%s" converted.%s
         else
           OK (view_edit_errored_%s validation %s))
-    ]""" page.AsVal page.AsType page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsType page.AsViewHref idField.AsProperty page.AsVal page.AsFormVal
+    ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsType page.AsViewHref idField.AsProperty page.AsVal page.AsFormVal
     | View  ->
       sprintf """
 let view_%s id =
-  GET >=> warbler (fun _ -> view id bundle_%s)""" page.AsVal page.AsVal
+  GET >=> warbler (fun _ -> viewGET id bundle_%s)""" page.AsVal page.AsVal
     | List  ->
       sprintf """
 let list_%s = GET >=> warbler (fun _ -> getMany_%s () |> view_list_%s |> OK)""" page.AsVal page.AsType page.AsVal
@@ -611,7 +607,7 @@ let %s = GET >=> OK view_jumbo_%s""" page.AsVal page.AsVal
 let create_%s =
   choose
     [
-      GET >=> request (fun req -> createOrGenerate req bundle_%s)
+      GET >=> request (fun req -> createOrGenerateGET req bundle_%s)
       POST >=> bindToForm %s (fun %s ->
         let validation = validate%s %s
         if validation = [] then

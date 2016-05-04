@@ -8,13 +8,19 @@ open helper_general
 open helper_html
 open forms
 
-let view id (bundle : Bundle<_>) =
+let viewGET id (bundle : Bundle<_>) =
   let data = bundle.tryById id
   match data with
   | None -> OK error_404
   | Some(data) -> OK <| bundle.view_view data
 
-let createOrGenerate req (bundle : Bundle<_>) =
+let editGET id (bundle : Bundle<_>) =
+  let data = bundle.tryById id
+  match data with
+  | None -> OK error_404
+  | Some(data) -> OK <| bundle.view_edit data
+
+let createOrGenerateGET req (bundle : Bundle<_>) =
   if hasQueryString req "generate"
   then
     let generate = getQueryStringValue req "generate"
@@ -28,6 +34,9 @@ let createOrGenerate req (bundle : Bundle<_>) =
       let data = bundle.single_fake ()
       OK <| bundle.view_edit data
   else OK bundle.view_create
+
+let createGET (bundle : Bundle<_>) =
+  OK bundle.view_create
 
 let searchGET req (bundle : Bundle<_>) =
   if hasQueryString req "field" && hasQueryString req "how" && hasQueryString req "value"
