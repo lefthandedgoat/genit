@@ -34,4 +34,46 @@ let someSite () =
         ]
     ]
 
+  page "EarlyOrder" CVELS
+    [
+      text "Name" Required
+      text "Food" Null
+      text "Drinks" Null
+      dollar "Tip" Null
+      paragraph "Notes" Null
+      date "Delivery Date" Required
+      phone "Phone Number" Required
+      text "Address" Null
+      text "City" Null
+      text "State" Null
+      text "Zip" Null
+      dropdown "Free Soda"
+        [
+          "Cola"
+          "Orange"
+          "Root Beer"
+        ]
+    ]
+
+  page "LateOrder" CVELS
+    [
+      text "Name" Required
+      text "Food" Null
+      text "Drinks" Null
+      dollar "Tip" Null
+      paragraph "Notes" Null
+      date "Delivery Date" Required
+      phone "Phone Number" Required
+      text "Address" Null
+      text "City" Null
+      text "State" Null
+      text "Zip" Null
+      dropdown "Free Soda"
+        [
+          "Cola"
+          "Orange"
+          "Root Beer"
+        ]
+    ]
+
   currentSite

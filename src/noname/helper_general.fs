@@ -87,11 +87,13 @@ type Bundle<'a> =
   {
     single_fake : unit -> 'a
     many_fake : int -> unit
+    tryById : int64 -> 'a option
     getMany : unit -> 'a list
     getManyWhere : string -> string -> string -> 'a list
     view_list : 'a list -> string
     view_edit : 'a -> string
     view_create : string
+    view_view : 'a -> string
     view_search : string option -> string option -> string -> 'a list -> string
     searchHref : string
   }

@@ -521,7 +521,7 @@ let pagePathTemplate (page : Page) =
   let template extra href withId =
     match withId with
     | false -> sprintf """let path_%s%s = "%s" """ extra page.AsVal href |> trimEnd
-    | true -> sprintf """let path_%s%s : IntPath = "%s" """ extra page.AsVal href |> trimEnd
+    | true -> sprintf """let path_%s%s : Int64Path = "%s" """ extra page.AsVal href |> trimEnd
   let rec pagePathTemplate page pageMode =
     match pageMode with
     | CVELS     -> [Create; View; Edit; List; Search] |> List.map (pagePathTemplate page) |> flatten
@@ -538,7 +538,7 @@ let pagePathTemplate (page : Page) =
   pagePathTemplate page page.PageMode
 
 let apiPathTemplate (api : API) =
-  sprintf """let path_api_%s : IntPath = "%s" """ api.AsVal api.AsViewHref |> trimEnd
+  sprintf """let path_api_%s : Int64Path = "%s" """ api.AsVal api.AsViewHref |> trimEnd
 
 let pageRouteTemplate (page : Page) =
   let template extra withId =
@@ -591,23 +591,17 @@ let edit_%s id =
     | View  ->
       sprintf """
 let view_%s id =
-  GET >=> warbler (fun _ ->
-    let data = tryById_%s id
-    match data with
-    | None -> OK error_404
-    | Some(data) -> OK <| view_view_%s data)""" page.AsVal page.AsType page.AsVal
+  GET >=> warbler (fun _ -> view id %sBundle)""" page.AsVal page.AsType
     | List  ->
       sprintf """
-let list_%s = GET >=> warbler (fun _ -> OK <| view_list_%s (getMany_%s ()))""" page.AsVal page.AsVal page.AsType
+let list_%s = GET >=> warbler (fun _ -> OK <| view_list_%s <| getMany_%s ())""" page.AsVal page.AsVal page.AsType
     | Search ->
       sprintf """
 let search_%s =
   choose
     [
-      GET >=> request (fun req ->
-        searchGET req %sBundle)
-      POST >=> bindToForm searchForm (fun searchForm ->
-        searchPOST searchForm %sBundle)
+      GET >=> request (fun req -> searchGET req %sBundle)
+      POST >=> bindToForm searchForm (fun searchForm -> searchPOST searchForm %sBundle)
     ]""" page.AsVal page.AsVal page.AsVal
     | Jumbotron ->
       sprintf """
@@ -617,8 +611,7 @@ let %s = GET >=> OK view_jumbo_%s""" page.AsVal page.AsVal
 let create_%s =
   choose
     [
-      GET >=> request (fun req ->
-        createOrGenerate req %sBundle)
+      GET >=> request (fun req -> createOrGenerate req %sBundle)
       POST >=> bindToForm %s (fun %s ->
         let validation = validate%s %s
         if validation = [] then

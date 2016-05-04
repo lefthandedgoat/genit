@@ -5,7 +5,14 @@ open Suave
 open Suave.Successful
 open Suave.Redirection
 open helper_general
+open helper_html
 open forms
+
+let view id (bundle : Bundle<_>) =
+  let data = bundle.tryById id
+  match data with
+  | None -> OK error_404
+  | Some(data) -> OK <| bundle.view_view data
 
 let createOrGenerate req (bundle : Bundle<_>) =
   if hasQueryString req "generate"
