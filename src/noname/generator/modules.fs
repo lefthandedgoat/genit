@@ -190,6 +190,8 @@ open generated_fake_data
 open generated_types
 open generated_views
 open generated_data_access
+open generated_forms
+open generated_validation
 
 %s
   """ guts

@@ -569,21 +569,13 @@ let pageHandlerTemplate page =
     | CVELS -> [Create; View; Edit; List; Search] |> List.map (pageHandlerTemplate page) |> flatten
     | CVEL  -> [Create; View; Edit; List] |> List.map (pageHandlerTemplate page) |> flatten
     | Edit  ->
-      let idField = page.Fields |> List.find (fun field -> field.FieldType = Id)
       sprintf """
 let edit_%s id =
   choose
     [
       GET >=> warbler (fun _ -> editGET id bundle_%s)
-      POST >=> bindToForm %s (fun %s ->
-        let validation = validate%s %s
-        if validation = [] then
-          let converted = convert%s %s
-          update_%s converted
-          FOUND <| sprintf "%s" converted.%s
-        else
-          OK (view_edit_errored_%s validation %s))
-    ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsType page.AsViewHref idField.AsProperty page.AsVal page.AsFormVal
+      POST >=> bindToForm %s (fun %s -> editPOST id %s bundle_%s)
+    ]""" page.AsVal page.AsVal page.AsFormVal page.AsFormVal page.AsFormVal page.AsVal
     | View  ->
       sprintf """
 let view_%s id =
@@ -700,21 +692,26 @@ let typeTemplate (page : Page) =
 let bundleTemplate (page : Page) =
   if (not (page.PageMode = Create || page.PageMode = CVEL || page.PageMode = CVELS) ) || page.Fields = [] then ""
   else
-    String.Format("""let bundle_{0} : Bundle<{1}> =
+    String.Format("""let bundle_{0} : Bundle<{1}, {1}Form> =
   {{
+    validateForm = validate{1}Form
+    convertForm = convert{1}Form
     single_fake = fake_{0}
     many_fake = many_fake_{0}
     tryById = tryById_{1}
     getMany = getMany_{1}
     getManyWhere = getManyWhere_{1}
+    update = update_{1}
     view_list = view_list_{0}
     view_edit = view_edit_{0}
     view_create = view_create_{0}
     view_view = view_view_{0}
     view_search = view_search_{0}
+    view_edit_errored = view_edit_errored_{0}
     searchHref = "{2}"
+    viewHref = "{3}"
   }}
-  """, page.AsVal, page.AsType, page.AsSearchHref)
+  """, page.AsVal, page.AsType, page.AsSearchHref, page.AsViewHref)
 
 let converterTemplate (page : Page) =
   if page.Fields = [] then ""
