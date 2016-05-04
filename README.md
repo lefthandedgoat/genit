@@ -1,6 +1,6 @@
 # noname
 
-Website Generator using [F#](http://fsharp.org/), [Suave](https://suave.io/) and [PostgreSQL](http://www.postgresql.org/).
+A cross-platform website generator using [F#](http://fsharp.org/), [Suave](https://suave.io/) and [PostgreSQL](http://www.postgresql.org/).
 
 ## Building the Generator
 
@@ -16,4 +16,11 @@ Once you have a working `noname.exe`, you can use it to take the following actio
 * Run the site: `noname.exe`
 
 > NOTE: on Linux or Mac OS X, you will need to run these commands with `mono noname.exe *`.
+
+If working from the `noname` repository, you can use the following FAKE targets:
+
+* `Generate`: generates the site
+* `CreateDB`: creates the database (PostgreSQL must be running)
+* `Test`: runs tests
+* `RunSite`: runs the generated site
 
