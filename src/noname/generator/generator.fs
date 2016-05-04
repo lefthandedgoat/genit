@@ -751,8 +751,7 @@ let validationTemplate (page : Page) =
   else
     let validations =
       page.Fields
-      |> List.map (fun field -> [fieldToValidation field page] @ [attributeToValidation field page])
-      |> List.concat
+      |> List.collect (fun field -> [fieldToValidation field page] @ [attributeToValidation field page])
       |> List.choose id
       |> List.map (pad 2)
       |> flatten
@@ -810,7 +809,7 @@ let toTest (field : Field) =
 let uitestTemplate (page : Page) =
   if page.Fields = [] then ""
   else
-    let tests = page.Fields |> List.map toTest |> List.concat |> List.choose id |> flatten
+    let tests = page.Fields |> List.collect toTest |> List.choose id |> flatten
     sprintf """%s
 
 %s
