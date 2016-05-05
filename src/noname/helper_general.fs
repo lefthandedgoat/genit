@@ -101,6 +101,7 @@ type Bundle<'a, 'b> =
     view_search : (string option -> string option -> string -> 'a list -> string) option
     view_edit_errored : ((string * string) list -> 'b -> string) option
     view_create_errored : ((string * string) list -> 'b -> string) option
+    href_create : string
     href_search : string
     href_view : PrintfFormat<(int64 -> string),unit,string,string,int64>
   }

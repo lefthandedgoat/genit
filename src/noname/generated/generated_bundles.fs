@@ -1,5 +1,6 @@
 module generated_bundles
 
+open forms
 open helper_general
 open generated_fake_data
 open generated_types

@@ -39,18 +39,21 @@ let editPOST (id : int64) form (bundle : Bundle<_,_>) =
       OK (bundle.view_edit_errored.Value validation form)
 
 let createOrGenerateGET req (bundle : Bundle<_,_>) =
-  if bundle.fake_many.IsNone || bundle.getMany.IsNone || bundle.view_list.IsNone || bundle.fake_single.IsNone || bundle.view_edit.IsNone || bundle.view_create.IsNone then
+  if bundle.fake_many.IsNone || bundle.fake_single.IsNone || bundle.view_create.IsNone then
     OK error_404
   else
-    if hasQueryString req "generate"
+    if hasQueryString req "generate" && bundle.view_edit.IsSome
     then
       let generate = getQueryStringValue req "generate"
       let parsed, value = System.Int32.TryParse(generate)
       if parsed && value > 1
       then
         bundle.fake_many.Value value
-        let data = bundle.getMany.Value ()
-        OK <| bundle.view_list.Value data
+        if bundle.getMany.IsNone || bundle.view_list.IsNone then
+          OK bundle.href_create
+        else
+          let data = bundle.getMany.Value ()
+          OK <| bundle.view_list.Value data
       else
         let data = bundle.fake_single.Value ()
         OK <| bundle.view_edit.Value data
@@ -70,7 +73,10 @@ let createPOST form (bundle : Bundle<_,_>) =
     if validation = [] then
       let converted = bundle.convertForm.Value form
       let id = bundle.insert.Value converted
-      FOUND <| sprintf bundle.href_view id
+      if bundle.view_view.IsSome then
+        FOUND <| sprintf bundle.href_view id
+      else
+        FOUND bundle.href_create
     else
       OK (bundle.view_create_errored.Value validation form)
 

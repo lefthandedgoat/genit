@@ -185,6 +185,7 @@ open helper_general
 let generated_bundles_template guts =
   sprintf """module generated_bundles
 
+open forms
 open helper_general
 open generated_fake_data
 open generated_types

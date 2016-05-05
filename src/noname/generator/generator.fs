@@ -683,6 +683,7 @@ let typeTemplate (page : Page) =
   }
   """ page.AsType (propertyTemplate page)
 
+let bundleSecondTypeTemplate page = if page.PageMode = Search then sprintf "SearchForm" else sprintf "%s" page.AsFormType
 let bundleValidateFormTemplate page = if needsValidation page then sprintf "Some validate%s" page.AsFormType else "None"
 let bundleConvertFormTemplate page = if needsConvert page then sprintf "Some convert%s" page.AsFormType else "None"
 let bundleFakeSingleTemplate page = if needsFakeData page then sprintf "Some fake_%s" page.AsVal else "None"
@@ -721,13 +722,14 @@ let bundleTemplate (page : Page) =
       view_search = %s
       view_edit_errored = %s
       view_create_errored = %s
+      href_create = "%s"
       href_search = "%s"
       href_view = "%s"
     }
     """
       page.AsVal
       page.AsType
-      page.AsFormType
+      (bundleSecondTypeTemplate page)
       (bundleValidateFormTemplate page)
       (bundleConvertFormTemplate page)
       (bundleFakeSingleTemplate page)
@@ -744,6 +746,7 @@ let bundleTemplate (page : Page) =
       (bundleViewSearchTemplate page)
       (bundleViewEditErroredTemplate page)
       (bundleViewCreateErroredTemplate page)
+      page.AsCreateHref
       page.AsSearchHref
       page.AsViewHref
 

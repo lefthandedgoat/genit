@@ -83,9 +83,9 @@ let shouldICreateTable page =
   | View
   | List
   | Register    -> true
-  | Login
-  | Search
-  | Jumbotron -> false
+  | Login       -> false
+  | Search      -> true
+  | Jumbotron   -> false
 
 let createTableTemplates (site : Site) =
   site.Pages

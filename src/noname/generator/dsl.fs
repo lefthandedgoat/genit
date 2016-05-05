@@ -213,10 +213,11 @@ let isCreateEditRegisterHasFields page = isCreateEditRegister page && hasFields 
 let isCreateEditRegisterLoginHasFields page = isCreateEditRegisterLogin page && hasFields page
 let isNotRegisterLoginJumbotron page = not (page.PageMode = Register || page.PageMode = Login || page.PageMode = Jumbotron)
 let isNotLoginJumbotron page = not (page.PageMode = Login || page.PageMode = Jumbotron)
+let isNotJumbotron page = not (page.PageMode = Jumbotron)
 
 let needsBundle = isNotRegisterLoginJumbotron
 let needsFormType = isCreateEditRegisterLoginHasFields
-let needsType = isCreateEditRegisterLoginHasFields
+let needsType = isNotJumbotron
 let needsValidation = isCreateEditRegisterLoginHasFields
 let needsConvert = isCreateEditRegisterLoginHasFields
 let needsFakeData = isCreateEditHasFields
