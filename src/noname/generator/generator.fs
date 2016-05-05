@@ -23,6 +23,32 @@ let zipOptions (options : string list) =
     |> List.map (fun (i, s) -> string i, s)
   ["0", ""] @ results
 
+let hasFields page = page.Fields <> []
+let isCreate page = page.PageMode = Create || page.PageMode = CVEL || page.PageMode = CVELS
+let isEdit page = page.PageMode = Edit || page.PageMode = CVEL || page.PageMode = CVELS
+let isView page = page.PageMode = View || page.PageMode = CVEL || page.PageMode = CVELS
+let isList page = page.PageMode = List || page.PageMode = CVEL || page.PageMode = CVELS
+let isSearch page = page.PageMode = Search || page.PageMode = CVELS
+let isCreateOrEdit page = isCreate page || isEdit page
+let isCreateOrEditHasFields page = isCreateOrEdit page && hasFields page
+let isNotRegisterLoginJumbotron page = not (page.PageMode = Register || page.PageMode = Login || page.PageMode = Jumbotron)
+
+let needsBundle = isNotRegisterLoginJumbotron
+let needsForm = isCreateOrEditHasFields
+let needsValidation = isCreateOrEditHasFields
+let needsConvert = isCreateOrEditHasFields
+let needsFakeData = isCreateOrEditHasFields
+let needsTryById = isView
+let needsGetMany = isList
+let needsGetManyWhere = isSearch
+let needsInsert = isCreate
+let needsUpdate = isEdit
+let needsViewList = isList
+let needsViewEdit = isEdit
+let needsViewCreate = isCreate
+let needsViewView = isView
+let needsViewSearch = isSearch
+
 let fieldToHtml (field : Field) =
   let template tag = sprintf """%s "%s" "" """ tag field.Name |> trimEnd
   let iconTemplate tag icon = sprintf """%s "%s" "" "%s" """ tag field.Name icon |> trimEnd
@@ -683,31 +709,69 @@ let typeTemplate (page : Page) =
   }
   """ page.AsType (propertyTemplate page)
 
+let bundleValidateFormTemplate page = if needsValidation page then sprintf "Some validate%s" page.AsFormType else "None"
+let bundleConvertFormTemplate page = if needsConvert page then sprintf "Some convert%s" page.AsFormType else "None"
+let bundleFakeSingleTemplate page = if needsFakeData page then sprintf "Some fake_%s" page.AsVal else "None"
+let bundleFakeManyTemplate page = if needsFakeData page then sprintf "Some fake_many_%s" page.AsVal else "None"
+let bundleTryByIdTemplate page = if needsTryById page then sprintf "Some tryById_%s" page.AsType else "None"
+let bundleGetManyTemplate page = if needsGetMany page then sprintf "Some getMany_%s" page.AsType else "None"
+let bundleGetManyWhereTemplate page = if needsGetManyWhere page then sprintf "Some getManyWhere_%s" page.AsType else "None"
+let bundleInsertTemplate page = if needsInsert page then sprintf "Some insert_%s" page.AsType else "None"
+let bundleUpdateTemplate page = if needsUpdate page then sprintf "Some update_%s" page.AsType else "None"
+let bundleViewListTemplate page = if needsViewList page then sprintf "Some view_list_%s" page.AsVal else "None"
+let bundleViewEditTemplate page = if needsViewEdit page then sprintf "Some view_edit_%s" page.AsVal else "None"
+let bundleViewCreateTemplate page = if needsViewCreate page then sprintf "Some view_create_%s" page.AsVal else "None"
+let bundleViewViewTemplate page = if needsViewView page then sprintf "Some view_view_%s" page.AsVal else "None"
+let bundleViewSearchTemplate page = if needsViewSearch page then sprintf "Some view_search_%s" page.AsVal else "None"
+let bundleViewEditErroredTemplate page = if needsViewEdit page then sprintf "Some view_edit_errored_%s" page.AsVal else "None"
+let bundleViewCreateErroredTemplate page = if needsViewCreate page then sprintf "Some view_create_errored_%s" page.AsVal else "None"
+
 let bundleTemplate (page : Page) =
-  if (not (page.PageMode = Create || page.PageMode = CVEL || page.PageMode = CVELS) ) || page.Fields = [] then ""
+  if needsBundle page |> not then ""
   else
-    String.Format("""let bundle_{0} : Bundle<{1}, {1}Form> =
-  {{
-    validateForm = validate{1}Form
-    convertForm = convert{1}Form
-    fake_single = fake_{0}
-    fake_many = fake_many_{0}
-    tryById = tryById_{1}
-    getMany = getMany_{1}
-    getManyWhere = getManyWhere_{1}
-    insert = insert_{1}
-    update = update_{1}
-    view_list = view_list_{0}
-    view_edit = view_edit_{0}
-    view_create = view_create_{0}
-    view_view = view_view_{0}
-    view_search = view_search_{0}
-    view_edit_errored = view_edit_errored_{0}
-    view_create_errored = view_create_errored_{0}
-    href_search = "{2}"
-    href_view = "{3}"
-  }}
-  """, page.AsVal, page.AsType, page.AsSearchHref, page.AsViewHref)
+    sprintf """let bundle_%s : Bundle<%s, %s> =
+    {
+      validateForm = %s
+      convertForm = %s
+      fake_single = %s
+      fake_many = %s
+      tryById = %s
+      getMany = %s
+      getManyWhere = %s
+      insert = %s
+      update = %s
+      view_list = %s
+      view_edit = %s
+      view_create = %s
+      view_view = %s
+      view_search = %s
+      view_edit_errored = %s
+      view_create_errored = %s
+      href_search = "%s"
+      href_view = "%s"
+    }
+    """
+      page.AsVal
+      page.AsType
+      page.AsFormType
+      (bundleValidateFormTemplate page)
+      (bundleConvertFormTemplate page)
+      (bundleFakeSingleTemplate page)
+      (bundleFakeManyTemplate page)
+      (bundleTryByIdTemplate page)
+      (bundleGetManyTemplate page)
+      (bundleGetManyWhereTemplate page)
+      (bundleInsertTemplate page)
+      (bundleUpdateTemplate page)
+      (bundleViewListTemplate page)
+      (bundleViewEditTemplate page)
+      (bundleViewCreateTemplate page)
+      (bundleViewViewTemplate page)
+      (bundleViewSearchTemplate page)
+      (bundleViewEditErroredTemplate page)
+      (bundleViewCreateErroredTemplate page)
+      page.AsSearchHref
+      page.AsViewHref
 
 let converterTemplate (page : Page) =
   if page.Fields = [] then ""
@@ -875,7 +939,7 @@ let fakeManyDataTemplate (page: Page) =
  """ page.AsVal page.AsVal page.AsType
 
 let fakeDataTemplate (page : Page) =
-  if (not (page.PageMode = Create || page.PageMode = CVEL || page.PageMode = CVELS) ) || page.Fields = [] then ""
+  if needsFakeData page |> not then ""
   else
     sprintf """let fake_%s () =%s
   {

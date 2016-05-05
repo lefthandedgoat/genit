@@ -85,22 +85,22 @@ let citiesSatesZips = List.zip3 cities states zips |> List.map (fun (city, state
 
 type Bundle<'a, 'b> =
   {
-    validateForm : 'b -> (string * string) list
-    convertForm : 'b -> 'a
-    fake_single : unit -> 'a
-    fake_many : int -> unit
-    tryById : int64 -> 'a option
-    getMany : unit -> 'a list
-    getManyWhere : string -> string -> string -> 'a list
-    insert : 'a -> int64
-    update : 'a -> unit
-    view_list : 'a list -> string
-    view_edit : 'a -> string
-    view_create : string
-    view_view : 'a -> string
-    view_search : string option -> string option -> string -> 'a list -> string
-    view_edit_errored : (string * string) list -> 'b -> string
-    view_create_errored : (string * string) list -> 'b -> string
+    validateForm : ('b -> (string * string) list) option
+    convertForm : ('b -> 'a) option
+    fake_single : (unit -> 'a) option
+    fake_many : (int -> unit) option
+    tryById : (int64 -> 'a option) option
+    getMany : (unit -> 'a list) option
+    getManyWhere : (string -> string -> string -> 'a list) option
+    insert : ('a -> int64) option
+    update : ('a -> unit) option
+    view_list : ('a list -> string) option
+    view_edit : ('a -> string) option
+    view_create : string option
+    view_view : ('a -> string) option
+    view_search : (string option -> string option -> string -> 'a list -> string) option
+    view_edit_errored : ((string * string) list -> 'b -> string) option
+    view_create_errored : ((string * string) list -> 'b -> string) option
     href_search : string
     href_view : PrintfFormat<(int64 -> string),unit,string,string,int64>
   }
