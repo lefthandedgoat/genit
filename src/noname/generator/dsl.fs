@@ -196,3 +196,39 @@ let page name pageMode fields =
   let id = id_pk name
   let fields = id :: fields
   page_ name pageMode name CreateTable fields
+
+let hasFields page = page.Fields <> []
+let isCreate page = page.PageMode = Create || page.PageMode = CVEL || page.PageMode = CVELS
+let isEdit page = page.PageMode = Edit || page.PageMode = CVEL || page.PageMode = CVELS
+let isView page = page.PageMode = View || page.PageMode = CVEL || page.PageMode = CVELS
+let isList page = page.PageMode = List || page.PageMode = CVEL || page.PageMode = CVELS
+let isSearch page = page.PageMode = Search || page.PageMode = CVELS
+let isRegister page = page.PageMode = Register
+let isLogin page = page.PageMode = Login
+let isCreateEdit page = isCreate page || isEdit page
+let isCreateEditRegister page = isCreate page || isEdit page || isRegister page
+let isCreateEditRegisterLogin page = isCreate page || isEdit page || isRegister page || isLogin page
+let isCreateEditHasFields page = isCreateEdit page && hasFields page
+let isCreateEditRegisterHasFields page = isCreateEditRegister page && hasFields page
+let isCreateEditRegisterLoginHasFields page = isCreateEditRegisterLogin page && hasFields page
+let isNotRegisterLoginJumbotron page = not (page.PageMode = Register || page.PageMode = Login || page.PageMode = Jumbotron)
+let isNotLoginJumbotron page = not (page.PageMode = Login || page.PageMode = Jumbotron)
+
+let needsBundle = isNotRegisterLoginJumbotron
+let needsFormType = isCreateEditRegisterLoginHasFields
+let needsType = isCreateEditRegisterLoginHasFields
+let needsValidation = isCreateEditRegisterLoginHasFields
+let needsConvert = isCreateEditRegisterLoginHasFields
+let needsFakeData = isCreateEditHasFields
+let needsTryById = isView
+let needsGetMany = isList
+let needsGetManyWhere = isSearch
+let needsInsert = isCreate
+let needsUpdate = isEdit
+let needsViewList = isList
+let needsViewEdit = isEdit
+let needsViewCreate = isCreate
+let needsViewView = isView
+let needsViewSearch = isSearch
+let needsUITests = isCreateEditHasFields
+let needsDataReader = isNotRegisterLoginJumbotron

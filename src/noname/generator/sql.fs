@@ -319,7 +319,7 @@ let createQueriesForPage site page =
     | Jumbotron -> ""
 
   let queries = createQueriesForPage page.PageMode
-  if page.PageMode = CVEL || page.PageMode = CVELS || page.PageMode = View || page.PageMode = List
+  if needsDataReader page
   then sprintf "%s%s%s" (dataReaderTemplate page) System.Environment.NewLine queries
   else queries
 

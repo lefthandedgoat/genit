@@ -23,32 +23,6 @@ let zipOptions (options : string list) =
     |> List.map (fun (i, s) -> string i, s)
   ["0", ""] @ results
 
-let hasFields page = page.Fields <> []
-let isCreate page = page.PageMode = Create || page.PageMode = CVEL || page.PageMode = CVELS
-let isEdit page = page.PageMode = Edit || page.PageMode = CVEL || page.PageMode = CVELS
-let isView page = page.PageMode = View || page.PageMode = CVEL || page.PageMode = CVELS
-let isList page = page.PageMode = List || page.PageMode = CVEL || page.PageMode = CVELS
-let isSearch page = page.PageMode = Search || page.PageMode = CVELS
-let isCreateOrEdit page = isCreate page || isEdit page
-let isCreateOrEditHasFields page = isCreateOrEdit page && hasFields page
-let isNotRegisterLoginJumbotron page = not (page.PageMode = Register || page.PageMode = Login || page.PageMode = Jumbotron)
-
-let needsBundle = isNotRegisterLoginJumbotron
-let needsForm = isCreateOrEditHasFields
-let needsValidation = isCreateOrEditHasFields
-let needsConvert = isCreateOrEditHasFields
-let needsFakeData = isCreateOrEditHasFields
-let needsTryById = isView
-let needsGetMany = isList
-let needsGetManyWhere = isSearch
-let needsInsert = isCreate
-let needsUpdate = isEdit
-let needsViewList = isList
-let needsViewEdit = isEdit
-let needsViewCreate = isCreate
-let needsViewView = isView
-let needsViewSearch = isSearch
-
 let fieldToHtml (field : Field) =
   let template tag = sprintf """%s "%s" "" """ tag field.Name |> trimEnd
   let iconTemplate tag icon = sprintf """%s "%s" "" "%s" """ tag field.Name icon |> trimEnd
@@ -701,7 +675,7 @@ let converterPropertyTemplate (page : Page) =
   |> flatten
 
 let typeTemplate (page : Page) =
-  if page.Fields = [] then ""
+  if needsType page |> not then ""
   else
     sprintf """type %s =
   {
@@ -774,7 +748,7 @@ let bundleTemplate (page : Page) =
       page.AsViewHref
 
 let converterTemplate (page : Page) =
-  if page.Fields = [] then ""
+  if needsConvert page |> not then ""
   else
     sprintf """let convert%s (%s : %s) : %s =
   {
@@ -783,7 +757,7 @@ let converterTemplate (page : Page) =
   """ page.AsFormType page.AsFormVal page.AsFormType page.AsType (converterPropertyTemplate page)
 
 let formTypeTemplate (page : Page) =
-  if page.Fields = [] then ""
+  if needsFormType page |> not then ""
   else
     sprintf """type %s =
   {
@@ -795,7 +769,7 @@ let %s : Form<%s> = Form ([],[])
 %s""" page.AsFormType (formPropertyTemplate page) page.AsFormVal page.AsFormType (converterTemplate page)
 
 let validationTemplate (page : Page) =
-  if page.Fields = [] then ""
+  if needsValidation page |> not then ""
   else
     let validations =
       page.Fields
@@ -855,7 +829,7 @@ let toTest (field : Field) =
   [attributeUITestTemplate name field; fieldUITestTemplate name2 field]
 
 let uitestTemplate (page : Page) =
-  if page.Fields = [] then ""
+  if needsUITests page |> not then ""
   else
     let tests = page.Fields |> List.collect toTest |> List.choose id |> flatten
     sprintf """%s
