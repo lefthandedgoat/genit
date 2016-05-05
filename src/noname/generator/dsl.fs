@@ -205,9 +205,11 @@ let isList page = page.PageMode = List || page.PageMode = CVEL || page.PageMode 
 let isSearch page = page.PageMode = Search || page.PageMode = CVELS
 let isRegister page = page.PageMode = Register
 let isLogin page = page.PageMode = Login
+let isEditView page = isEdit page || isView page
 let isCreateEdit page = isCreate page || isEdit page
 let isCreateEditRegister page = isCreate page || isEdit page || isRegister page
 let isCreateEditRegisterLogin page = isCreate page || isEdit page || isRegister page || isLogin page
+let isCreateHasFields page = isCreate page && hasFields page
 let isCreateEditHasFields page = isCreateEdit page && hasFields page
 let isCreateEditRegisterHasFields page = isCreateEditRegister page && hasFields page
 let isCreateEditRegisterLoginHasFields page = isCreateEditRegisterLogin page && hasFields page
@@ -220,8 +222,8 @@ let needsFormType = isCreateEditRegisterLoginHasFields
 let needsType = isNotJumbotron
 let needsValidation = isCreateEditRegisterLoginHasFields
 let needsConvert = isCreateEditRegisterLoginHasFields
-let needsFakeData = isCreateEditHasFields
-let needsTryById = isView
+let needsFakeData = isCreateHasFields
+let needsTryById = isEditView
 let needsGetMany = isList
 let needsGetManyWhere = isSearch
 let needsInsert = isCreate

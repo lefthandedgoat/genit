@@ -296,11 +296,16 @@ let view_edit_errored_%s errors (%s : %s) =
     ]
     scripts.common""" page.AsVal page.AsFormVal page.AsFormType page.Name page.Name (formatErroredFields page page.Fields 5)
 
+let editButtonTemplate (page : Page) idField =
+  if isEdit page
+  then sprintf """[ button_small_success (sprintf "%s" %s.%s) [ text "Edit"] ]""" page.AsEditHref page.AsVal idField.AsProperty
+  else "[]"
+
 let viewFormViewTemplate (page : Page) =
   let idField = page.Fields |> List.find (fun field -> field.FieldType = Id)
   sprintf """
 let view_view_%s (%s : %s) =
-  let button = [ button_small_success (sprintf "%s" %s.%s) [ text "Edit"] ]
+  let button = %s
   base_html
     "%s"
     [
@@ -311,7 +316,7 @@ let view_view_%s (%s : %s) =
 %s
         ]
     ]
-    scripts.common""" page.AsVal page.AsVal page.AsType page.AsEditHref page.AsVal idField.AsProperty page.Name page.Name (formatStaticFields page page.Fields 5)
+    scripts.common""" page.AsVal page.AsVal page.AsType (editButtonTemplate page idField) page.Name page.Name (formatStaticFields page page.Fields 5)
 
 let fieldsToHeaders (page : Page) =
     page.Fields
@@ -325,12 +330,22 @@ let fieldsToTd (page : Page) =
     |> List.map (pad 4)
     |> flatten
 
+let toTrLinkTemplate (page : Page) idField =
+  if isEdit page
+  then sprintf """trLink (sprintf "%s" %s.%s) inner""" page.AsViewHref page.AsVal idField.AsProperty
+  else """trLink "" inner"""
+
+let createButtonTemplate (page : Page) =
+  if isCreate page
+  then sprintf """pull_right [ button_small_success "%s" [ text "Create"] ]""" page.AsCreateHref
+  else ""
+
 let listFormViewTemplate (page : Page) =
   let idField = page.Fields |> List.find (fun field -> field.FieldType = Id)
   sprintf """
 let view_list_%s %ss =
   let toTr (%s : %s) inner =
-    trLink (sprintf "%s" %s.%s) inner
+    %s
 
   let toTd (%s : %s) =
     [
@@ -345,7 +360,7 @@ let view_list_%s %ss =
         row [
           mcontent [
             block_flat [
-              header [ h3Inner "List %ss" [ pull_right [ button_small_success "%s" [ text "Create"] ] ] ]
+              header [ h3Inner "List %ss" [ %s ] ]
               content [
                 table_bordered_linked_tr
                   [
@@ -358,7 +373,7 @@ let view_list_%s %ss =
         ]
       ]
     ]
-    scripts.datatable_bundle""" page.AsVal page.AsVal page.AsVal page.AsType page.AsViewHref page.AsVal idField.AsProperty page.AsVal page.AsType (fieldsToTd page) page.Name page.Name page.AsCreateHref (fieldsToHeaders page) page.AsVal
+    scripts.datatable_bundle""" page.AsVal page.AsVal page.AsVal page.AsType (toTrLinkTemplate page idField) page.AsVal page.AsType (fieldsToTd page) page.Name page.Name (createButtonTemplate page) (fieldsToHeaders page) page.AsVal
 
 let searchFormViewTemplate (page : Page) =
   let idField = page.Fields |> List.find (fun field -> field.FieldType = Id)
@@ -683,7 +698,7 @@ let typeTemplate (page : Page) =
   }
   """ page.AsType (propertyTemplate page)
 
-let bundleSecondTypeTemplate page = if page.PageMode = Search then sprintf "SearchForm" else sprintf "%s" page.AsFormType
+let bundleSecondTypeTemplate page = if needsFormType page then sprintf "%s" page.AsFormType else sprintf "DummyForm"
 let bundleValidateFormTemplate page = if needsValidation page then sprintf "Some validate%s" page.AsFormType else "None"
 let bundleConvertFormTemplate page = if needsConvert page then sprintf "Some convert%s" page.AsFormType else "None"
 let bundleFakeSingleTemplate page = if needsFakeData page then sprintf "Some fake_%s" page.AsVal else "None"
@@ -725,6 +740,7 @@ let bundleTemplate (page : Page) =
       href_create = "%s"
       href_search = "%s"
       href_view = "%s"
+      href_edit = "%s"
     }
     """
       page.AsVal
@@ -749,6 +765,7 @@ let bundleTemplate (page : Page) =
       page.AsCreateHref
       page.AsSearchHref
       page.AsViewHref
+      page.AsEditHref
 
 let converterTemplate (page : Page) =
   if needsConvert page |> not then ""

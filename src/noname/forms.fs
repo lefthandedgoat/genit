@@ -36,5 +36,10 @@ type SearchForm =
     Value : string
   }
 
+type DummyForm =
+  {
+    Dummy : string
+  }
+
 let searchForm : Form<SearchForm> = Form ([],[])
 let loadTestForm : Form<LoadTestForm> = Form ([],[])

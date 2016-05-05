@@ -34,7 +34,10 @@ let editPOST (id : int64) form (bundle : Bundle<_,_>) =
     if validation = [] then
       let converted = bundle.convertForm.Value form
       bundle.update.Value converted
-      FOUND <| sprintf bundle.href_view id
+      if bundle.view_view.IsSome then
+        FOUND <| sprintf bundle.href_view id
+      else
+        FOUND <| sprintf bundle.href_edit id
     else
       OK (bundle.view_edit_errored.Value validation form)
 

@@ -307,10 +307,10 @@ LIMIT 500" field
 let createQueriesForPage site page =
   let rec createQueriesForPage pageMode =
     match pageMode with
-    | CVELS     -> [Create; View; Edit; List; Search] |> List.map createQueriesForPage |> flatten
-    | CVEL      -> [Create; View; Edit; List] |> List.map createQueriesForPage |> flatten
+    | CVELS     -> [Create; Edit; List; Search] |> List.map createQueriesForPage |> flatten
+    | CVEL      -> [Create; Edit; List] |> List.map createQueriesForPage |> flatten
     | Create    -> insertTemplate site page
-    | Edit      -> updateTemplate site page
+    | Edit      -> [updateTemplate site page; tryByIdTemplate site page] |> flatten
     | View      -> tryByIdTemplate site page
     | List      -> selectManyTemplate site page
     | Search    -> selectManyWhereTemplate site page

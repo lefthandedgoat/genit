@@ -104,4 +104,5 @@ type Bundle<'a, 'b> =
     href_create : string
     href_search : string
     href_view : PrintfFormat<(int64 -> string),unit,string,string,int64>
+    href_edit : PrintfFormat<(int64 -> string),unit,string,string,int64>
   }
