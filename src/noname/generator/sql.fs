@@ -214,7 +214,7 @@ INSERT INTO %s.%s
 %s
   |> executeScalar
   |> string |> int64
-  """ page.AsType page.AsVal page.AsType site.AsDatabase page.AsTable (insertColumns page) (insertValues page) idField.AsDBColumn (passwordTemplate page) (insertParamsTemplate page)
+  """ page.AsVal page.AsVal page.AsType site.AsDatabase page.AsTable (insertColumns page) (insertValues page) idField.AsDBColumn (passwordTemplate page) (insertParamsTemplate page)
 
 (*
 
@@ -251,7 +251,7 @@ WHERE %s = :%s;
   command
 %s
   |> executeNonQuery
-  """ page.AsType page.AsVal page.AsType site.AsDatabase page.AsTable (updateColumns page) idField.AsDBColumn idField.AsDBColumn (updateParamsTemplate page)
+  """ page.AsVal page.AsVal page.AsType site.AsDatabase page.AsTable (updateColumns page) idField.AsDBColumn idField.AsDBColumn (updateParamsTemplate page)
 
 (*
 
@@ -272,7 +272,7 @@ WHERE %s = :%s
   command
   |> param "%s" id
   |> read to%s
-  |> firstOrNone""" page.AsType site.AsDatabase page.AsTable idField.AsDBColumn idField.AsDBColumn idField.AsDBColumn page.AsType
+  |> firstOrNone""" page.AsVal site.AsDatabase page.AsTable idField.AsDBColumn idField.AsDBColumn idField.AsDBColumn page.AsType
 
 let selectManyTemplate site page =
   sprintf """
@@ -285,7 +285,7 @@ LIMIT 500
   use command = command connection sql
   command
   |> read to%s
-  """ page.AsType site.AsDatabase page.AsTable page.AsType
+  """ page.AsVal site.AsDatabase page.AsTable page.AsType
 
 let selectManyWhereTemplate site page =
   sprintf """
@@ -302,7 +302,7 @@ LIMIT 500" field
   command
   |> param "search" search
   |> read to%s
-  """ page.AsType site.AsDatabase page.AsTable "%s" page.AsType
+  """ page.AsVal site.AsDatabase page.AsTable "%s" page.AsType
 
 let createQueriesForPage site page =
   let rec createQueriesForPage pageMode =

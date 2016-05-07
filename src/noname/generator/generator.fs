@@ -598,7 +598,7 @@ let view_%s id =
     | List  ->
       sprintf """
 let list_%s =
-  GET >=> warbler (fun _ -> getMany_%s () |> view_list_%s |> OK)""" page.AsVal page.AsType page.AsVal
+  GET >=> warbler (fun _ -> getMany_%s () |> view_list_%s |> OK)""" page.AsVal page.AsVal page.AsVal
     | Search ->
       sprintf """
 let search_%s =
@@ -632,7 +632,7 @@ let register =
           FOUND "/"
         else
           OK (view_errored_%s validation %s))
-    ]""" page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsType page.AsVal page.AsFormVal
+    ]""" page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsVal page.AsVal page.AsFormVal
     | Login    ->
       sprintf """
 let login =
@@ -703,11 +703,11 @@ let bundleValidateFormTemplate page = if needsValidation page then sprintf "Some
 let bundleConvertFormTemplate page = if needsConvert page then sprintf "Some convert%s" page.AsFormType else "None"
 let bundleFakeSingleTemplate page = if needsFakeData page then sprintf "Some fake_%s" page.AsVal else "None"
 let bundleFakeManyTemplate page = if needsFakeData page then sprintf "Some fake_many_%s" page.AsVal else "None"
-let bundleTryByIdTemplate page = if needsTryById page then sprintf "Some tryById_%s" page.AsType else "None"
-let bundleGetManyTemplate page = if needsGetMany page then sprintf "Some getMany_%s" page.AsType else "None"
-let bundleGetManyWhereTemplate page = if needsGetManyWhere page then sprintf "Some getManyWhere_%s" page.AsType else "None"
-let bundleInsertTemplate page = if needsInsert page then sprintf "Some insert_%s" page.AsType else "None"
-let bundleUpdateTemplate page = if needsUpdate page then sprintf "Some update_%s" page.AsType else "None"
+let bundleTryByIdTemplate page = if needsTryById page then sprintf "Some tryById_%s" page.AsVal else "None"
+let bundleGetManyTemplate page = if needsGetMany page then sprintf "Some getMany_%s" page.AsVal else "None"
+let bundleGetManyWhereTemplate page = if needsGetManyWhere page then sprintf "Some getManyWhere_%s" page.AsVal else "None"
+let bundleInsertTemplate page = if needsInsert page then sprintf "Some insert_%s" page.AsVal else "None"
+let bundleUpdateTemplate page = if needsUpdate page then sprintf "Some update_%s" page.AsVal else "None"
 let bundleViewListTemplate page = if needsViewList page then sprintf "Some view_list_%s" page.AsVal else "None"
 let bundleViewEditTemplate page = if needsViewEdit page then sprintf "Some view_edit_%s" page.AsVal else "None"
 let bundleViewCreateTemplate page = if needsViewCreate page then sprintf "Some view_create_%s" page.AsVal else "None"
@@ -930,7 +930,7 @@ let fakeManyDataTemplate (page: Page) =
   |> Array.map (fun _ -> fake_%s ()) //no parallel cause of RNG
   |> Array.Parallel.map insert_%s
   |> ignore
- """ page.AsVal page.AsVal page.AsType
+ """ page.AsVal page.AsVal page.AsVal
 
 let fakeDataTemplate (page : Page) =
   if needsFakeData page |> not then ""
@@ -984,7 +984,7 @@ let generate (site : Site) =
   let generated_fake_data_result = generated_fake_data_template fake_data_results
 
   let connectionString = sprintf "Server=127.0.0.1;User Id=%s; Password=secure123;Database=%s;" site.AsDatabase site.AsDatabase
-  let generated_data_result = generated_data_access_template connectionString (sql.createQueries site)
+  let generated_data_access_result = generated_data_access_template connectionString (sql.createQueries site)
 
   let generated_sql_createdb_result = sql.createTemplate site.AsDatabase
   let generated_sql_initialSetup_result = sql.initialSetupTemplate site.AsDatabase
@@ -1002,7 +1002,7 @@ let generate (site : Site) =
   write (destination "generated_uitests.fs") generated_uitests_result
   write (destination "generated_fake_data.fs") generated_fake_data_result
 
-  write (destination "generated_data_access.fs") generated_data_result
+  write (destination "generated_data_access.fs") generated_data_access_result
 
   write (destination "generated_dbname.txt") site.AsDatabase
   write (destination "generated_sql_createdb.sql") generated_sql_createdb_result
