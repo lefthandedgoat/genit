@@ -625,14 +625,14 @@ let register =
     [
       GET >=> OK view_register
       POST >=> bindToForm %s (fun %s ->
-        let validation = validate%s %s
+        let validation = validation_%s %s
         if validation = [] then
           let converted = convert%s %s
           let id = insert_%s converted
           FOUND "/"
         else
           OK (view_errored_%s validation %s))
-    ]""" page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsVal page.AsVal page.AsFormVal
+    ]""" page.AsFormVal page.AsFormVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsVal page.AsVal page.AsFormVal
     | Login    ->
       sprintf """
 let login =
@@ -640,14 +640,14 @@ let login =
     [
       GET >=> OK view_login
       POST >=> bindToForm %s (fun %s ->
-        let validation = validate%s %s
+        let validation = validation_%s %s
         if validation = [] then
           let converted = convert%s %s
           ignore converted
           OK ""
         else
           OK (view_errored_%s validation %s))
-    ]"""  page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsFormType page.AsFormVal page.AsVal page.AsFormVal
+    ]"""  page.AsFormVal page.AsFormVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsVal page.AsFormVal
 
   pageHandlerTemplate page page.PageMode
 
@@ -699,7 +699,7 @@ let typeTemplate (page : Page) =
   """ page.AsType (propertyTemplate page)
 
 let bundleSecondTypeTemplate page = if needsFormType page then sprintf "%s" page.AsFormType else sprintf "DummyForm"
-let bundleValidateFormTemplate page = if needsValidation page then sprintf "Some validate%s" page.AsFormType else "None"
+let bundleValidateFormTemplate page = if needsValidation page then sprintf "Some validation_%s" page.AsFormVal else "None"
 let bundleConvertFormTemplate page = if needsConvert page then sprintf "Some convert%s" page.AsFormType else "None"
 let bundleFakeSingleTemplate page = if needsFakeData page then sprintf "Some fake_%s" page.AsVal else "None"
 let bundleFakeManyTemplate page = if needsFakeData page then sprintf "Some fake_many_%s" page.AsVal else "None"
@@ -798,11 +798,11 @@ let validationTemplate (page : Page) =
       |> List.map (pad 2)
       |> flatten
 
-    sprintf """let validate%s (%s : %s) =
+    sprintf """let validation_%s (%s : %s) =
   [
 %s
   ] |> List.choose id
-  """ page.AsFormType page.AsFormVal page.AsFormType validations
+  """ page.AsFormVal page.AsFormVal page.AsFormType validations
 
 let contextTemplate (page : Page) = sprintf """context "%s" """ page.Name |> trimEnd |> pad 1
 
