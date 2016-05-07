@@ -34,9 +34,11 @@ noname generates valid data based on your defined data types and validation rule
 
 ![Create Order page with generated test data](https://raw.githubusercontent.com/panesofglass/noname/docs/docs/img/generated-create-order.png?token=AAAiYxpzZPdQFbbYrRP-FpqkptzkfZlRks5XMr49wA%3D%3D)
 
+You can generate more than one record by using `?generate=<number>`. noname will generate and insert the requested number of records and redirect you to the `/<page>/list` page.
+
 ## Load Testing
 
-TODO
+noname comes with a built-in load testing tool. Navigate to http://localhost:8083/loadtest to see the form. Type the url you wish to hit, the number of requests, and the number of concurrent requests to run, then click Submit.
 
 ## UI Testing
 
