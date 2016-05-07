@@ -8,6 +8,15 @@ open helper_general
 open helper_html
 open forms
 
+(*
+   NOTE
+   These are just helpers used by the generated code
+   They may not be exactly what you like, or do what you need
+   Feel free to copy/paste/modify them into what you need
+   They have a focus on preventing runtime exceptions by checking
+   all optional values for data, thus they are kind of ugly
+*)
+
 let viewGET id (bundle : Bundle<_,_>) =
   if bundle.tryById.IsNone || bundle.view_view.IsNone then
     OK error_404
