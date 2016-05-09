@@ -627,12 +627,12 @@ let register =
       POST >=> bindToForm %s (fun %s ->
         let validation = validation_%s %s
         if validation = [] then
-          let converted = convert%s %s
+          let converted = convert_%s %s
           let id = insert_%s converted
           FOUND "/"
         else
           OK (view_errored_%s validation %s))
-    ]""" page.AsFormVal page.AsFormVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsVal page.AsVal page.AsFormVal
+    ]""" page.AsFormVal page.AsFormVal page.AsFormVal page.AsFormVal page.AsFormVal page.AsFormVal page.AsVal page.AsVal page.AsFormVal
     | Login    ->
       sprintf """
 let login =
@@ -642,12 +642,12 @@ let login =
       POST >=> bindToForm %s (fun %s ->
         let validation = validation_%s %s
         if validation = [] then
-          let converted = convert%s %s
+          let converted = convert_%s %s
           ignore converted
           OK ""
         else
           OK (view_errored_%s validation %s))
-    ]"""  page.AsFormVal page.AsFormVal page.AsFormVal page.AsFormVal page.AsFormType page.AsFormVal page.AsVal page.AsFormVal
+    ]"""  page.AsFormVal page.AsFormVal page.AsFormVal page.AsFormVal page.AsFormVal page.AsFormVal page.AsVal page.AsFormVal
 
   pageHandlerTemplate page page.PageMode
 
@@ -700,7 +700,7 @@ let typeTemplate (page : Page) =
 
 let bundleSecondTypeTemplate page = if needsFormType page then sprintf "%s" page.AsFormType else sprintf "DummyForm"
 let bundleValidateFormTemplate page = if needsValidation page then sprintf "Some validation_%s" page.AsFormVal else "None"
-let bundleConvertFormTemplate page = if needsConvert page then sprintf "Some convert%s" page.AsFormType else "None"
+let bundleConvertFormTemplate page = if needsConvert page then sprintf "Some convert_%s" page.AsFormVal else "None"
 let bundleFakeSingleTemplate page = if needsFakeData page then sprintf "Some fake_%s" page.AsVal else "None"
 let bundleFakeManyTemplate page = if needsFakeData page then sprintf "Some fake_many_%s" page.AsVal else "None"
 let bundleTryByIdTemplate page = if needsTryById page then sprintf "Some tryById_%s" page.AsVal else "None"
@@ -770,11 +770,11 @@ let bundleTemplate (page : Page) =
 let converterTemplate (page : Page) =
   if needsConvert page |> not then ""
   else
-    sprintf """let convert%s (%s : %s) : %s =
+    sprintf """let convert_%s (%s : %s) : %s =
   {
 %s
   }
-  """ page.AsFormType page.AsFormVal page.AsFormType page.AsType (converterPropertyTemplate page)
+  """ page.AsFormVal page.AsFormVal page.AsFormType page.AsType (converterPropertyTemplate page)
 
 let formTypeTemplate (page : Page) =
   if needsFormType page |> not then ""
