@@ -8,6 +8,7 @@ open Suave.Model.Binding
 open Suave.Form
 open Suave.ServerErrors
 open forms
+open helper_handler
 open generated_handlers
 
 type Int64Path = PrintfFormat<(int64 -> string),unit,string,string,int64>

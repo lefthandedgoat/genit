@@ -2,17 +2,40 @@ module helper_handler
 
 open System.Web
 open Suave
+open Suave.Authentication
+open Suave.Cookie
 open Suave.State.CookieStateStore
 open Suave.Successful
 open Suave.Redirection
+open Suave.Operators
 open helper_general
 open helper_html
 open forms
+
+let withParam (key,value) path = sprintf "%s?%s=%s" path key value
 
 let sessionStore setF = context (fun x ->
     match HttpContext.state x with
     | Some state -> setF state
     | None -> never)
+
+let redirectWithReturnPath redirection =
+  request (fun x ->
+    let path = x.url.AbsolutePath
+    Redirection.FOUND (redirection |> withParam ("returnPath", path)))
+
+let reset loginPath =
+  unsetPair SessionAuthCookie
+  >=> unsetPair StateCookie
+  >=> FOUND loginPath
+
+let loggedOn loginPath f_success =
+  authenticate
+    Cookie.CookieLife.Session
+    false
+    (fun () -> Choice2Of2 (redirectWithReturnPath loginPath))
+    (fun _ -> Choice2Of2 (reset loginPath))
+    f_success
 
 (*
    NOTE
