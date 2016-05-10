@@ -37,6 +37,12 @@ let loggedOn loginPath f_success =
     (fun _ -> Choice2Of2 (reset loginPath))
     f_success
 
+let setAuthCookieAndRedirect id redirectTo =
+  authenticated Cookie.CookieLife.Session false
+  >=> statefulForSession
+  >=> sessionStore (fun store -> store.set "user_id" id)
+  >=> request (fun _ -> FOUND redirectTo)
+
 (*
    NOTE
    These are just helpers used by the generated code

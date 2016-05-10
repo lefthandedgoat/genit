@@ -644,7 +644,7 @@ let register =
         if validation = [] then
           let converted = convert_%s %s
           let id = insert_%s converted
-          FOUND "/"
+          setAuthCookieAndRedirect id "/"
         else
           OK (view_errored_%s validation %s))
     ]""" page.AsFormVal page.AsFormVal page.AsFormVal page.AsFormVal page.AsFormVal page.AsFormVal page.AsVal page.AsVal page.AsFormVal
@@ -660,11 +660,7 @@ let login =
           let converted = convert_%s %s
           let loginAttempt = authenticate converted
           match loginAttempt with
-            | Some(loginAttempt) ->
-              authenticated Cookie.CookieLife.Session false
-              >=> statefulForSession
-              >=> sessionStore (fun store -> store.set "user_id" loginAttempt.UserID)
-              >=> request (fun _ -> FOUND "/")
+            | Some(loginAttempt) -> setAuthCookieAndRedirect id "/"
             | None -> OK <| view_login true loginForm.Email
         else
           OK (view_errored_%s validation %s))
