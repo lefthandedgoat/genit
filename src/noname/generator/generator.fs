@@ -454,20 +454,28 @@ let view_errored_register errors (%s : %s) =
     ]
     scripts.common""" page.AsFormVal page.AsFormType page.Name page.Name (formatErroredFields page page.Fields 5)
 
-let loginFormViewTemplate (page : Page) =
+let loginFormViewTemplate =
   sprintf """
-let view_login =
+let view_login error email =
+  let errorTag =
+    if error
+    then stand_alone_error "Invalid email or password"
+    else emptyText
+
   base_html
-    "%s"
+    "Login"
     [
       base_header brand
       common_register_form
-        "%s"
+        "Login"
         [
-%s
+          errorTag
+          hiddenInput "UserID" "-1"
+          icon_label_text "Email" email "envelope"
+          icon_password_text "Password" "" "lock"
         ]
     ]
-    scripts.common""" page.Name page.Name (formatEditFields page.Fields 5)
+    scripts.common"""
 
 let loginErroredFormViewTemplate (page : Page) =
   sprintf """
@@ -510,7 +518,7 @@ let viewTemplate site page =
     | List      -> listFormViewTemplate page
     | Search    -> searchFormViewTemplate page
     | Register  -> [registerFormViewTemplate page; registerErroredFormViewTemplate page] |> flatten
-    | Login     -> [loginFormViewTemplate page; loginErroredFormViewTemplate page] |> flatten
+    | Login     -> [loginFormViewTemplate; loginErroredFormViewTemplate page] |> flatten
     | Jumbotron -> jumbotronViewTemplate site page
 
   viewTemplate site page page.PageMode
@@ -638,7 +646,7 @@ let register =
 let login =
   choose
     [
-      GET >=> OK view_login
+      GET >=> (OK <| view_login false "")
       POST >=> bindToForm %s (fun %s ->
         let validation = validation_%s %s
         if validation = [] then
@@ -650,7 +658,7 @@ let login =
               >=> statefulForSession
               >=> sessionStore (fun store -> store.set "user_id" loginAttempt.UserID)
               >=> request (fun _ -> FOUND "/")
-            | None -> OK view_login
+            | None -> OK <| view_login true loginForm.Email
         else
           OK (view_errored_%s validation %s))
     ]"""  page.AsFormVal page.AsFormVal page.AsFormVal page.AsFormVal page.AsFormVal page.AsFormVal page.AsVal page.AsFormVal
