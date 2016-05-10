@@ -654,16 +654,20 @@ let login =
   choose
     [
       GET >=> (OK <| view_login false "")
-      POST >=> bindToForm %s (fun %s ->
+      POST >=> request (fun req ->
+        bindToForm %s (fun %s ->
         let validation = validation_%s %s
         if validation = [] then
           let converted = convert_%s %s
           let loginAttempt = authenticate converted
           match loginAttempt with
-            | Some(loginAttempt) -> setAuthCookieAndRedirect id "/"
+            | Some(loginAttempt) ->
+              let returnPath = getQueryStringValue req "returnPath"
+              let returnPath = if returnPath = "" then "/" else returnPath
+              setAuthCookieAndRedirect id returnPath
             | None -> OK <| view_login true loginForm.Email
         else
-          OK (view_errored_%s validation %s))
+          OK (view_errored_%s validation %s)))
     ]"""  page.AsFormVal page.AsFormVal page.AsFormVal page.AsFormVal page.AsFormVal page.AsFormVal page.AsVal page.AsFormVal
 
   pageHandlerTemplate page page.PageMode
