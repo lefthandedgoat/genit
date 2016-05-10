@@ -643,8 +643,14 @@ let login =
         let validation = validation_%s %s
         if validation = [] then
           let converted = convert_%s %s
-          ignore converted
-          OK ""
+          let loginAttempt = authenticate converted
+          match loginAttempt with
+            | Some(loginAttempt) ->
+              authenticated Cookie.CookieLife.Session false
+              >=> statefulForSession
+              >=> sessionStore (fun store -> store.set "user_id" loginAttempt.UserID)
+              >=> request (fun _ -> FOUND "/")
+            | None -> OK view_login
         else
           OK (view_errored_%s validation %s))
     ]"""  page.AsFormVal page.AsFormVal page.AsFormVal page.AsFormVal page.AsFormVal page.AsFormVal page.AsVal page.AsFormVal

@@ -78,6 +78,8 @@ let generated_handlers_template guts =
 
 open System.Web
 open Suave
+open Suave.Authentication
+open Suave.State.CookieStateStore
 open Suave.Filters
 open Suave.Successful
 open Suave.Redirection

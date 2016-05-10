@@ -304,6 +304,41 @@ LIMIT 500" field
   |> read to%s
   """ page.AsVal site.AsDatabase page.AsTable "%s" page.AsType
 
+(*
+
+Authentication
+
+*)
+
+let authenticateTemplate site page =
+  sprintf """
+let authenticate (%s : %s) =
+  let sql = "
+SELECT * FROM %s.users
+WHERE email = :email
+"
+  use connection = connection connectionString
+  use command = command connection sql
+  let user =
+    command
+    |> param "email" %s.Email
+    |> read toLogin
+    |> firstOrNone
+  match user with
+    | None -> None
+    | Some(user) ->
+      let verified = BCrypt.Verify(%s.Password, user.Password)
+      if verified
+      then Some(user)
+      else None
+  """ page.AsVal page.AsType site.AsDatabase page.AsVal page.AsVal
+
+(*
+
+Everything else
+
+*)
+
 let createQueriesForPage site page =
   let rec createQueriesForPage pageMode =
     match pageMode with
@@ -315,7 +350,7 @@ let createQueriesForPage site page =
     | List      -> selectManyTemplate site page
     | Search    -> selectManyWhereTemplate site page
     | Register  -> insertTemplate site page
-    | Login
+    | Login     -> authenticateTemplate site page
     | Jumbotron -> ""
 
   let queries = createQueriesForPage page.PageMode
@@ -325,6 +360,5 @@ let createQueriesForPage site page =
 
 let createQueries (site : Site) =
   site.Pages
-  |> List.filter (fun page -> page.CreateTable = CreateTable)
   |> List.map (createQueriesForPage site)
   |> flatten

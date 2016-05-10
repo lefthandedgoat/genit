@@ -2,11 +2,17 @@ module helper_handler
 
 open System.Web
 open Suave
+open Suave.State.CookieStateStore
 open Suave.Successful
 open Suave.Redirection
 open helper_general
 open helper_html
 open forms
+
+let sessionStore setF = context (fun x ->
+    match HttpContext.state x with
+    | Some state -> setF state
+    | None -> never)
 
 (*
    NOTE
