@@ -75,6 +75,7 @@
     <Compile Include="helper_handler.fs" />
     <Compile Include="scripts.fs" />
     <Compile Include="loadGeneratorView.fs" />
+    <Compile Include="generated/generated_security.fs" />
     <Compile Include="generated/generated_html.fs" />
     <Compile Include="generated/generated_types.fs" />
     <Compile Include="generated/generated_forms.fs" />

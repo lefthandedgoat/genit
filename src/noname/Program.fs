@@ -40,4 +40,5 @@ else if test then
   generated_unittests.run()
   generated_uitests.run()
 else
-  startWebServer defaultConfig routes
+  let config = { defaultConfig with serverKey = generated_security.serverKey }
+  startWebServer config routes

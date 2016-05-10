@@ -992,6 +992,9 @@ let generate (site : Site) =
   let connectionString = sprintf "Server=127.0.0.1;User Id=%s; Password=secure123;Database=%s;" site.AsDatabase site.AsDatabase
   let generated_data_access_result = generated_data_access_template connectionString (sql.createQueries site)
 
+  let serverKey = sprintf """let serverKey = %A""" (Suave.Utils.Crypto.generateKey Suave.Http.HttpRuntime.ServerKeyLength)
+  let generated_security_result = generated_security_template serverKey
+
   let generated_sql_createdb_result = sql.createTemplate site.AsDatabase
   let generated_sql_initialSetup_result = sql.initialSetupTemplate site.AsDatabase
   let generated_sql_createTables_result = sql.createTables (sql.createTableTemplates site) (sql.grantPrivileges site)
@@ -1009,6 +1012,8 @@ let generate (site : Site) =
   write (destination "generated_fake_data.fs") generated_fake_data_result
 
   write (destination "generated_data_access.fs") generated_data_access_result
+
+  write (destination "generated_security.fs") generated_security_result
 
   write (destination "generated_dbname.txt") site.AsDatabase
   write (destination "generated_sql_createdb.sql") generated_sql_createdb_result

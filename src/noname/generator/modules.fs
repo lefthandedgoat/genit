@@ -198,3 +198,9 @@ open generated_validation
 
 %s
   """ guts
+
+let generated_security_template guts =
+  sprintf """module generated_security
+
+%s
+  """ guts
