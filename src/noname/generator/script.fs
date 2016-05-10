@@ -34,4 +34,11 @@ let someSite () =
         ]
     ]
 
+  advancedPage "Reserveration" CVELS RequiresLogin
+    [
+      text "Name" Required
+      date "Date" Required
+      phone "Phone Number" Required
+    ]
+
   currentSite

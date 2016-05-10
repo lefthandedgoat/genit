@@ -16,6 +16,10 @@ type PageMode =
   | Login
   | Jumbotron
 
+type PageAttribute =
+  | Standard
+  | RequiresLogin
+
 type CreateTable =
   | CreateTable
   | DoNotCreateTable
@@ -34,7 +38,7 @@ type FieldType =
   | ConfirmPassword
   | Dropdown of options:string list
 
-type Attribute =
+type FieldAttribute =
   | PK
   | Null
   | Required
@@ -46,7 +50,7 @@ type Field =
   {
     Name : string
     FieldType : FieldType
-    Attribute : Attribute
+    Attribute : FieldAttribute
     AsProperty : string
     AsDBColumn : string
   }
@@ -86,6 +90,7 @@ type Page =
     Name : string
     PageMode : PageMode
     Fields : Field list
+    Attribute : PageAttribute
     CreateTable : CreateTable
     AsVal : string
     AsType : string
@@ -120,12 +125,13 @@ let mutable currentSite = defaultSite
 
 let site name = currentSite <- { currentSite with Name = name; AsDatabase = to_database name }
 
-let private page_ name pageMode tableName createTable fields =
+let private page_ name pageMode tableName attribute createTable fields =
   let page =
     {
       Name = name
       PageMode = pageMode
       Fields = fields
+      Attribute = attribute
       CreateTable = createTable
       AsVal = to_val name
       AsType = to_type name
@@ -165,10 +171,10 @@ let registration = RegisterPage
 let login = LoginPage
 
 let precannedHome () =
-  page_ "Home" Jumbotron "" DoNotCreateTable []
+  page_ "Home" Jumbotron "" Standard DoNotCreateTable []
 
 let precannedRegister () =
-  page_ "Register" Register "User" CreateTable
+  page_ "Register" Register "User" Standard CreateTable
     [
       id_pk "User"
       name "First Name" Required
@@ -179,7 +185,7 @@ let precannedRegister () =
     ]
 
 let precannedLogin () =
-  page_ "Login" Login "" DoNotCreateTable
+  page_ "Login" Login "" Standard DoNotCreateTable
     [
       id_pk "User"
       email "Email"
@@ -196,7 +202,13 @@ let page name pageMode fields =
   //auto add id
   let id = id_pk name
   let fields = id :: fields
-  page_ name pageMode name CreateTable fields
+  page_ name pageMode name Standard CreateTable fields
+
+let advancedPage name pageMode attribute fields =
+  //auto add id
+  let id = id_pk name
+  let fields = id :: fields
+  page_ name pageMode name attribute CreateTable fields
 
 let hasFields page = page.Fields <> []
 let isCreate page = page.PageMode = Create || page.PageMode = CVEL || page.PageMode = CVELS

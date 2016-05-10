@@ -194,7 +194,7 @@ let attributeToValidation field page =
   | Max(max)   -> Some (sprintf """validate_max "%s" %s %i""" field.Name property max)
   | Range(min,max) -> Some (sprintf """validate_range "%s" %s %i %i""" field.Name property min max)
 
-let attributeToTestName field =
+let attributeToTestName (field : Field) =
   match field.Attribute with
   | PK         -> None
   | Null       -> None
@@ -203,7 +203,7 @@ let attributeToTestName field =
   | Max(max)   -> Some (sprintf """"%s must be less than %i" """ field.Name max |> trimEnd)
   | Range(min,max) -> Some (sprintf """"%s must be between %i and %i" """ field.Name min max |> trimEnd)
 
-let attributeToTestBody field =
+let attributeToTestBody (field : Field) =
   match field.Attribute with
   | PK         -> None
   | Null       -> None
@@ -566,8 +566,15 @@ let apiPathTemplate (api : API) =
 let pageRouteTemplate (page : Page) =
   let template extra withId =
     match withId with
-    | false -> sprintf """path path_%s%s >=> %s%s""" extra page.AsVal extra page.AsVal |> pad 2
-    | true -> sprintf """pathScan path_%s%s %s%s""" extra page.AsVal extra page.AsVal |> pad 2
+    | false ->
+        match page.Attribute with
+        | Standard      -> sprintf """path path_%s%s >=> %s%s""" extra page.AsVal extra page.AsVal |> pad 2
+        | RequiresLogin -> sprintf """path path_%s%s >=> loggedOn path_login %s%s""" extra page.AsVal extra page.AsVal |> pad 2
+    | true ->
+        match page.Attribute with
+        | Standard     -> sprintf """pathScan path_%s%s %s%s""" extra page.AsVal extra page.AsVal |> pad 2
+        | RequiresLogin -> sprintf """pathScan path_%s%s (fun id -> loggedOn path_login (%s%s id))""" extra page.AsVal extra page.AsVal |> pad 2
+
   let rec pageRouteTemplate page pageMode =
     match pageMode with
     | CVELS     -> [Create; View; Edit; List; Search] |> List.map (pageRouteTemplate page) |> flatten

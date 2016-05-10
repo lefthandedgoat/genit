@@ -42,7 +42,7 @@ let columnTypeTemplate field =
   | Dropdown (_)    -> "smallint"
 
 //http://www.postgresql.org/docs/9.5/static/ddl-constraints.html
-let columnAttributesTemplate field =
+let columnAttributesTemplate (field : Field) =
   match field.Attribute with
   | PK              -> "PRIMARY KEY NOT NULL"
   | Null            -> "NULL"
