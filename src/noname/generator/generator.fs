@@ -688,7 +688,7 @@ let api_%s id =
       | "json" | _ ->
          let serializer = FsPickler.CreateJsonSerializer(indent = true)
          Writers.setMimeType "application/json"
-         >=> OK (serializer.PickleToString(data)))""" api.AsVal api.AsType
+         >=> OK (serializer.PickleToString(data)))""" api.AsVal api.AsVal
 
 let propertyTemplate (page : Page) =
   page.Fields
