@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2010
-Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "noname", "src\noname\noname.fsproj", "{64EDF01D-DC76-43CF-8BC2-5157B841510E}"
+Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "genit", "src\genit\genit.fsproj", "{64EDF01D-DC76-43CF-8BC2-5157B841510E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

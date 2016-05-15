@@ -23,7 +23,7 @@ open System.IO
 
 // The name of the project
 // (used by attributes in AssemblyInfo, name of a NuGet package and directory in 'src')
-let project = "noname"
+let project = "genit"
 
 // Short summary of the project
 // (used as description in AssemblyInfo and as a short summary for NuGet package)
@@ -40,10 +40,10 @@ let authors = [ "Chris Holt" ]
 let tags = "f# load testing"
 
 // File system information
-let solutionFile  = "noname.sln"
+let solutionFile  = "genit.sln"
 
 // Pattern specifying assemblies to be tested using NUnit
-let exe = "src/noname/bin/Debug/"
+let exe = "src/genit/bin/Debug/"
 
 let executingDir = __SOURCE_DIRECTORY__
 // --------------------------------------------------------------------------------------
@@ -116,7 +116,7 @@ Target "Build" (fun _ ->
 let execProcess arg =
   ExecProcess
     (fun info ->
-     info.FileName <- (exe @@ "noname.exe")
+     info.FileName <- (exe @@ "genit.exe")
      info.Arguments <- arg
     ) (System.TimeSpan.FromMinutes 60.)
   |> ignore
@@ -129,16 +129,16 @@ Target "Test" (fun _ -> execProcess "test")
 
 Target "CreateDB" (fun _ ->
   let path template = String.Format(template, System.IO.Path.DirectorySeparatorChar)
-  let dbname = System.IO.File.ReadAllText(path "src{0}noname{0}generated{0}generated_dbname.txt")
-  
+  let dbname = System.IO.File.ReadAllText(path "src{0}genit{0}generated{0}generated_dbname.txt")
+
   let command = "psql"
-  let args = path "-a -f src{0}noname{0}generated{0}generated_sql_createdb.sql"
+  let args = path "-a -f src{0}genit{0}generated{0}generated_sql_createdb.sql"
   Shell.Exec(command, args) |> ignore
 
-  let args = path (sprintf "-d %s -a -f src{0}noname{0}generated{0}generated_sql_initialSetup.sql" dbname)
+  let args = path (sprintf "-d %s -a -f src{0}genit{0}generated{0}generated_sql_initialSetup.sql" dbname)
   Shell.Exec(command, args) |> ignore
 
-  let args = path (sprintf "-d %s -a -f src{0}noname{0}generated{0}generated_sql_createTables.sql" dbname)
+  let args = path (sprintf "-d %s -a -f src{0}genit{0}generated{0}generated_sql_createTables.sql" dbname)
   Shell.Exec(command, args) |> ignore
 )
 
@@ -147,7 +147,7 @@ Target "Help" (fun _ ->
   printfn @"for FAKE help: packages\FAKE\tools\FAKE.exe --help"
   printfn "targets:"
   printfn "  * `Clean` deletes bin and temp directories"
-  printfn "  * `Build` builds the site generator tool `noname.exe`"
+  printfn "  * `Build` builds the site generator tool `genit.exe`"
   printfn "  * `Generate` runs the generator to generate a site"
   printfn "  * `CreateDB` creates a PostgreSQL database from the generated SQL schema"
   printfn "  * `RunSite` runs the generated web site"
