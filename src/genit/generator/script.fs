@@ -34,46 +34,13 @@ let someSite () =
         ]
     ]
 
+  api "Order"
 
-
-
-
-
-
-
-
-
-
-
-
-  //api "Order"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  //advancedPage "Reserveration" CVELS RequiresLogin
-  //  [
-  //    text  "Name"         Required
-  //    date  "Date"         Required
-  //    phone "Phone Number" Required
-  //  ]
-
+  advancedPage "Reserveration" CVELS RequiresLogin
+    [
+      text  "Name"         Required
+      date  "Date"         Required
+      phone "Phone Number" Required
+    ]
 
   currentSite
