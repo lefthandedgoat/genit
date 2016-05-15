@@ -24,15 +24,15 @@ TODO
 
 genit can generate test data according to your specified data types and validations. To see this in action using the default "Bob's Burgers" sample, build and run the site, then navigate to the create page.
 
-![navigate to Create Order page](https://raw.githubusercontent.com/panesofglass/noname/docs/docs/img/nav-to-create-order.png?token=AAAiYz_2t2lzjr6OEvHInnTTXygPPAxXks5XMr5SwA%3D%3D)
+![navigate to Create Order page](https://raw.githubusercontent.com/lefthandedgoat/genit/master/docs/img/nav-to-create-order.png?token=AAsQ6S9w_PS2OEWyi2-Yh4AbETBdB7wjks5XQjhKwA%3D%3D)
 
 You should initially see an empty order form. Now, add a query string to the url with `?generate=true` and hit enter. You should see the order form populated with test data.
 
-![Empty Create Order page](https://raw.githubusercontent.com/panesofglass/noname/docs/docs/img/empty-create-order.png?token=AAAiY4mCrxiYnR-aO3-EJhviSY4W9hDDks5XMr3uwA%3D%3D)
+![Empty Create Order page](https://raw.githubusercontent.com/lefthandedgoat/genit/master/docs/img/empty-create-order.png?token=AAsQ6TNlj_o4PhfGTX5hxJN6YYbtk2RDks5XQjgIwA%3D%3D)
 
 genit generates valid data based on your defined data types and validation rules.
 
-![Create Order page with generated test data](https://raw.githubusercontent.com/panesofglass/noname/docs/docs/img/generated-create-order.png?token=AAAiYxpzZPdQFbbYrRP-FpqkptzkfZlRks5XMr49wA%3D%3D)
+![Create Order page with generated test data](https://raw.githubusercontent.com/lefthandedgoat/genit/master/docs/img/generated-create-order.png?token=AAsQ6f9w2LLaZ4woS3mUix4VnKHvG_r0ks5XQjgswA%3D%3D)
 
 You can generate more than one record by using `?generate=<number>`. genit will generate and insert the requested number of records and redirect you to the `/<page>/list` page.
 
