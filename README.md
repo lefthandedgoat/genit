@@ -9,7 +9,7 @@ The DSL includes built-in types and data validations that produces both the UI a
 
 genit was developed to increase iterative interactions with project stakeholders. With genit, you can quickly generate a working web site and begin iterating on the functionality while working out the finer points of the design. genit generates F# using [Suave](https://suave.io/) and SQL scripts for use with PostgreSQL. You can easily migrate the generated Suave code once you have formed a solid baseline for the project and continue to iterate outside of genit. Suave provides a fast, stable, cross-platform web server and integrates nicely with the [OWIN](http://owin.org/) components with which you may be familiar from using other .NET web frameworks such as [ASP.NET](http://www.asp.net/).
 
-Creating a genit application is easy. Clone this repository into a new folder, modify the [web site specification](https://github.com/panesofglass/noname/blob/docs/src/noname/generator/script.fs), and run `./build.sh` (or `.\build.cmd` on Windows). Follow the steps below to generate, create the database, run the site and run tests.
+Creating a genit application is easy. Clone this repository into a new folder, modify the [web site specification](src/genit/generator/script.fs), and run `./build.sh` (or `.\build.cmd` on Windows). Follow the steps below to generate, create the database, run the site and run tests.
 
 1. `Generate`: generates the site
 1. `CreateDB`: creates -- or drops and re-creates -- the database (PostgreSQL must be installed and running)
