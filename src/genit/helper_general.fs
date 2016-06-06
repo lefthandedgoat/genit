@@ -106,3 +106,16 @@ type Bundle<'a, 'b> =
     href_view : PrintfFormat<(int64 -> string),unit,string,string,int64>
     href_edit : PrintfFormat<(int64 -> string),unit,string,string,int64>
   }
+
+let option2Val (p:'a option) :'a =
+  match p with
+  | Some(s) -> s
+  | None -> Unchecked.defaultof<'a>
+
+let zipOptions (options : string list) =
+  //clean out empty strings, append one at the end
+  let options = options |> List.filter (fun str -> str <> "")
+  let results =
+    List.zip [ 1 .. options.Length ] options
+    |> List.map (fun (i, s) -> string i, s)
+  ["0", ""] @ results

@@ -15,7 +15,7 @@ let command connection sql =
   let command = new NpgsqlCommand(sql, connection)
   command
 
-let param name value (command : NpgsqlCommand) =
+let param (name:string) value (command : NpgsqlCommand) =
   command.Parameters.AddWithValue(name, value) |> ignore
   command
 
