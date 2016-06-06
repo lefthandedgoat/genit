@@ -6,3 +6,4 @@ Http.fs
 BCrypt-Official
 FsPickler
 FsPickler.Json
+FSharp.Data.SqlClient

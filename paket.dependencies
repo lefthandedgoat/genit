@@ -9,3 +9,4 @@ nuget Http.fs
 nuget BCrypt-Official
 nuget FsPickler
 nuget FsPickler.Json
+nuget FSharp.Data.SqlClient

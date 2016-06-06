@@ -37,6 +37,7 @@ type FieldType =
   | Password
   | ConfirmPassword
   | Dropdown of options:string list
+  | Referenced
 
 type FieldAttribute =
   | PK
@@ -45,6 +46,7 @@ type FieldAttribute =
   | Min of value:int
   | Max of value:int
   | Range of min:int * max:int
+  | Reference of referencedPage:string * required:bool
 
 type Field =
   {
@@ -63,6 +65,14 @@ let field name attribute fieldType =
     AsProperty = to_property name
     AsDBColumn = to_dbColumn name
   }
+let fieldEx name attribute fieldType asProperty asDBColumn =
+  {
+    Name = name
+    FieldType = fieldType
+    Attribute = attribute
+    AsProperty = to_property asProperty
+    AsDBColumn = to_dbColumn asDBColumn
+  }
 
 let id_pk name = field (sprintf "%s ID" name) PK Id
 let text name attribute = field name attribute Text
@@ -76,6 +86,7 @@ let phone name attribute = field name attribute Phone
 let password name = field name Required Password
 let confirm name = field name Required ConfirmPassword
 let dropdown name options = field name Null (Dropdown(options))
+let reference name required = fieldEx name (Reference(name,required)) Referenced name (sprintf "%s ID" name)
 
 type API =
   {

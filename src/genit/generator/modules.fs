@@ -1,5 +1,7 @@
 module modules
 
+open sql
+
 let generated_html_template guts =
   sprintf """module generated_html
 
@@ -47,6 +49,8 @@ open generated_html
 open generated_forms
 open generated_data_access
 open generated_types
+open generator
+open helper_general
 
 let brand = "%s"
 %s""" brand guts
@@ -105,30 +109,9 @@ let generated_types_template guts =
 
 %s""" guts
 
-let generated_data_access_template connectionString guts =
-  sprintf """module generated_data_access
-
-open generated_types
-open generated_forms
-open helper_general
-open helper_ado
-open Npgsql
-open dsl
-open BCrypt.Net
-
-type BCryptScheme =
-  {
-    Id : int
-    WorkFactor : int
-  }
-
-let bCryptSchemes : BCryptScheme list = [ { Id = 1; WorkFactor = 8; } ]
-let getBCryptScheme id = bCryptSchemes |> List.find (fun scheme -> scheme.Id = id)
-let currentBCryptScheme = 1
-
-let connectionString = "%s"
-
-%s""" connectionString guts
+let generated_data_access_template (engine:Engine) connectionString guts =
+  match engine with
+  | MicrosoftSQL -> mssql.generated_data_access_template connectionString guts
 
 let generated_forms_template guts =
   sprintf """module generated_forms
@@ -136,6 +119,7 @@ let generated_forms_template guts =
 open Suave.Model.Binding
 open Suave.Form
 open generated_types
+open generated_data_access
 
 %s""" guts
 

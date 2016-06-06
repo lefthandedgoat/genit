@@ -2,23 +2,22 @@ module sql
 
 open dsl
 open helper_general
+open psql
 
-let createTemplate dbname =
-  sprintf """
-DROP DATABASE IF EXISTS %s;
-CREATE DATABASE %s;""" dbname dbname
+type Engine =
+  | PostgreSQL
+  | MicrosoftSQL
 
-let initialSetupTemplate (dbname : string) = System.String.Format("""
-DROP OWNED BY {0};
-DROP USER IF EXISTS {0};
+let createTemplate dbname engine =
+  match engine with
+  | PostgreSQL -> psql.createTemplate dbname
+  | MicrosoftSQL -> mssql.createTemplate dbname
 
-DROP SCHEMA IF EXISTS {0};
-CREATE SCHEMA {0};
 
-CREATE USER {0} WITH ENCRYPTED PASSWORD 'secure123';
-GRANT USAGE ON SCHEMA {0} to {0};
-ALTER DEFAULT PRIVILEGES IN SCHEMA {0} GRANT SELECT ON TABLES TO {0};
-GRANT CONNECT ON DATABASE "{0}" to {0};""", dbname)
+let initialSetupTemplate (dbname : string) engine =
+  match engine with
+  | PostgreSQL -> psql.initialSetupTemplate dbname
+  | MicrosoftSQL -> mssql.initialSetupTemplate dbname
 
 (*
 
@@ -26,50 +25,39 @@ CREATE TABLES
 
 *)
 
-let columnTypeTemplate field =
-  match field.FieldType with
-  | Id              -> "SERIAL"
-  | Text            -> "varchar(1024)"
-  | Paragraph       -> "text"
-  | Number          -> "integer"
-  | Decimal         -> "decimal(12, 2)"
-  | Date            -> "timestamptz"
-  | Phone           -> "varchar(15)"
-  | Email           -> "varchar(128)"
-  | Name            -> "varchar(128)"
-  | Password        -> "varchar(60)"
-  | ConfirmPassword -> ""
-  | Dropdown (_)    -> "smallint"
+let columnTypeTemplate field engine =
+  match engine with
+  | PostgreSQL -> psql.columnTypeTemplate field
+  | MicrosoftSQL -> mssql.columnTypeTemplate field
 
 //http://www.postgresql.org/docs/9.5/static/ddl-constraints.html
-let columnAttributesTemplate (field : Field) =
-  match field.Attribute with
-  | PK              -> "PRIMARY KEY NOT NULL"
-  | Null            -> "NULL"
-  | Required        -> "NOT NULL"
-  | Min(min)        -> sprintf "CHECK (%s > %i)" field.AsDBColumn min
-  | Max(max)        -> sprintf "CHECK (%s < %i)" field.AsDBColumn max
-  | Range(min, max) -> sprintf "CHECK (%i < %s < %i)" min field.AsDBColumn max
+let columnAttributesTemplate (field : Field) engine =
+  match engine with
+  | PostgreSQL -> psql.columnAttributesTemplate field
+  | MicrosoftSQL -> mssql.columnAttributesTemplate field
 
-let columnTemplate namePad typePad (field : Field) =
- sprintf "%s %s %s" (rightPad namePad field.AsDBColumn) (rightPad typePad (columnTypeTemplate field)) (columnAttributesTemplate field)
+let columnTemplate namePad typePad engine (field : Field)  =
+ sprintf "%s %s %s" (rightPad namePad field.AsDBColumn) (rightPad typePad (columnTypeTemplate field engine)) (columnAttributesTemplate field engine)
 
-let createColumns (page : Page) =
+let createColumns (page : Page) engine =
   let maxName = page.Fields |> List.map (fun field -> field.AsDBColumn.Length) |> List.max
   let maxName = if maxName > 20 then maxName else 20
-  let maxType = page.Fields |> List.map (fun field -> (columnTypeTemplate field).Length) |> List.max
+  let maxType = page.Fields |> List.map (fun field -> (columnTypeTemplate field engine).Length) |> List.max
   let maxType = if maxType > 20 then maxType else 20
 
   page.Fields
   |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
-  |> List.map (columnTemplate maxName maxType)
+  |> List.map (columnTemplate maxName maxType engine)
   |> List.map (pad 1)
   |> flattenWith ","
 
-let createTableTemplate (dbname : string) (page : Page) =
-  let columns = createColumns page
+let createTableTemplate (dbname : string) (engine:Engine) (page : Page) =
+  let columns = createColumns page engine
   sprintf """
-CREATE TABLE %s.%s(
+USE %s
+GO
+
+CREATE TABLE %s(
 %s
 );
   """ dbname page.AsTable columns
@@ -87,18 +75,17 @@ let shouldICreateTable page =
   | Search      -> true
   | Jumbotron   -> false
 
-let createTableTemplates (site : Site) =
+let createTableTemplates (site : Site) (engine:Engine) =
   site.Pages
   |> List.filter (fun page -> shouldICreateTable page)
   |> List.filter (fun page -> page.CreateTable = CreateTable)
-  |> List.map (createTableTemplate site.AsDatabase)
+  |> List.map (createTableTemplate site.AsDatabase engine)
   |> flatten
 
-let grantPrivileges (site : Site) =
-  sprintf """
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA %s TO %s;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA %s TO %s;
-  """ site.AsDatabase site.AsDatabase site.AsDatabase site.AsDatabase
+let grantPrivileges (site : Site) (engine:Engine)  =
+  match engine with
+  | PostgreSQL -> psql.grantPrivileges site
+  | MicrosoftSQL -> mssql.grantPrivileges site
 
 let createTables guts1 guts2 =
   sprintf """
@@ -127,6 +114,7 @@ let conversionTemplate field =
   | Password        -> "getString"
   | ConfirmPassword -> ""
   | Dropdown (_)    -> "getInt16"
+  | Referenced      -> "getInt64"
 
 let dataReaderPropertyTemplate field =
  sprintf """%s = %s "%s" reader""" field.AsProperty (conversionTemplate field) field.AsDBColumn
@@ -339,26 +327,34 @@ Everything else
 
 *)
 
-let createQueriesForPage site page =
-  let rec createQueriesForPage pageMode =
-    match pageMode with
-    | CVELS     -> [Create; Edit; List; Search] |> List.map createQueriesForPage |> flatten
-    | CVEL      -> [Create; Edit; List] |> List.map createQueriesForPage |> flatten
-    | Create    -> insertTemplate site page
-    | Edit      -> [updateTemplate site page; tryByIdTemplate site page] |> flatten
-    | View      -> tryByIdTemplate site page
-    | List      -> selectManyTemplate site page
-    | Search    -> selectManyWhereTemplate site page
-    | Register  -> insertTemplate site page
-    | Login     -> authenticateTemplate site page
-    | Jumbotron -> ""
+let createQueriesForPage site (engine:Engine) page =
+  match engine with
+  | PostgreSQL -> psql.createQueriesForPage site page
+  | MicrosoftSQL -> mssql.createQueriesForPage site page
 
-  let queries = createQueriesForPage page.PageMode
-  if needsDataReader page
-  then sprintf "%s%s%s" (dataReaderTemplate page) System.Environment.NewLine queries
-  else queries
-
-let createQueries (site : Site) =
+let createQueries (site : Site) (engine:Engine) =
   site.Pages
-  |> List.map (createQueriesForPage site)
+  |> List.map (createQueriesForPage site engine)
   |> flatten
+
+let fieldLine (field : Field ) (engine:Engine) =
+  match engine with
+  | PostgreSQL -> psql.fieldLine field
+  | MicrosoftSQL -> mssql.fieldLine field
+
+
+let fieldToConvertProperty page field (engine:Engine) =
+  match engine with
+  | PostgreSQL -> psql.fieldToConvertProperty page field
+  | MicrosoftSQL -> mssql.fieldToConvertProperty page field
+
+let fakePropertyTemplate (field : Field) (engine:Engine) =
+  match engine with
+  | PostgreSQL -> psql.fakePropertyTemplate field
+  | MicrosoftSQL -> mssql.fakePropertyTemplate field
+
+let fieldToPopulatedHtml page (field : Field) (engine:Engine) =
+  match engine with
+  | PostgreSQL -> psql.fieldToPopulatedHtml page field
+  | MicrosoftSQL -> mssql.fieldToPopulatedHtml page field
+
