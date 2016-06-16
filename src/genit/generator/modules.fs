@@ -109,9 +109,9 @@ let generated_types_template guts =
 
 %s""" guts
 
-let generated_data_access_template (engine:Engine) connectionString guts =
-  match engine with
-  | MicrosoftSQL -> mssql.generated_data_access_template connectionString guts
+let generated_data_access_template database connectionString guts =
+  match database with
+  | SQLServer -> mssql.generated_data_access_template connectionString guts
 
 let generated_forms_template guts =
   sprintf """module generated_forms

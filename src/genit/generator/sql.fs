@@ -4,20 +4,15 @@ open dsl
 open helper_general
 open psql
 
-type Engine =
-  | PostgreSQL
-  | MicrosoftSQL
+let createTemplate dbname database =
+  match database with
+  | Postgres  -> psql.createTemplate dbname
+  | SQLServer -> mssql.createTemplate dbname
 
-let createTemplate dbname engine =
-  match engine with
-  | PostgreSQL -> psql.createTemplate dbname
-  | MicrosoftSQL -> mssql.createTemplate dbname
-
-
-let initialSetupTemplate (dbname : string) engine =
-  match engine with
-  | PostgreSQL -> psql.initialSetupTemplate dbname
-  | MicrosoftSQL -> mssql.initialSetupTemplate dbname
+let initialSetupTemplate dbname database =
+  match database with
+  | Postgres  -> psql.initialSetupTemplate dbname
+  | SQLServer -> mssql.initialSetupTemplate dbname
 
 (*
 
@@ -25,16 +20,16 @@ CREATE TABLES
 
 *)
 
-let columnTypeTemplate field engine =
-  match engine with
-  | PostgreSQL -> psql.columnTypeTemplate field
-  | MicrosoftSQL -> mssql.columnTypeTemplate field
+let columnTypeTemplate field database =
+  match database with
+  | Postgres  -> psql.columnTypeTemplate field
+  | SQLServer -> mssql.columnTypeTemplate field
 
 //http://www.postgresql.org/docs/9.5/static/ddl-constraints.html
-let columnAttributesTemplate (field : Field) engine =
-  match engine with
-  | PostgreSQL -> psql.columnAttributesTemplate field
-  | MicrosoftSQL -> mssql.columnAttributesTemplate field
+let columnAttributesTemplate (field : Field) database =
+  match database with
+  | Postgres  -> psql.columnAttributesTemplate field
+  | SQLServer -> mssql.columnAttributesTemplate field
 
 let columnTemplate namePad typePad engine (field : Field)  =
  sprintf "%s %s %s" (rightPad namePad field.AsDBColumn) (rightPad typePad (columnTypeTemplate field engine)) (columnAttributesTemplate field engine)
@@ -51,8 +46,8 @@ let createColumns (page : Page) engine =
   |> List.map (pad 1)
   |> flattenWith ","
 
-let createTableTemplate (dbname : string) (engine:Engine) (page : Page) =
-  let columns = createColumns page engine
+let createTableTemplate (dbname : string) database (page : Page) =
+  let columns = createColumns page database
   sprintf """
 USE %s
 GO
@@ -75,17 +70,17 @@ let shouldICreateTable page =
   | Search      -> true
   | Jumbotron   -> false
 
-let createTableTemplates (site : Site) (engine:Engine) =
+let createTableTemplates (site : Site) database =
   site.Pages
   |> List.filter (fun page -> shouldICreateTable page)
   |> List.filter (fun page -> page.CreateTable = CreateTable)
-  |> List.map (createTableTemplate site.AsDatabase engine)
+  |> List.map (createTableTemplate site.AsDatabase database)
   |> flatten
 
-let grantPrivileges (site : Site) (engine:Engine)  =
-  match engine with
-  | PostgreSQL -> psql.grantPrivileges site
-  | MicrosoftSQL -> mssql.grantPrivileges site
+let grantPrivileges (site : Site) database =
+  match database with
+  | Postgres  -> psql.grantPrivileges site
+  | SQLServer -> mssql.grantPrivileges site
 
 let createTables guts1 guts2 =
   sprintf """
@@ -327,34 +322,32 @@ Everything else
 
 *)
 
-let createQueriesForPage site (engine:Engine) page =
-  match engine with
-  | PostgreSQL -> psql.createQueriesForPage site page
-  | MicrosoftSQL -> mssql.createQueriesForPage site page
+let createQueriesForPage site database page =
+  match database with
+  | Postgres  -> psql.createQueriesForPage site page
+  | SQLServer -> mssql.createQueriesForPage site page
 
-let createQueries (site : Site) (engine:Engine) =
+let createQueries (site : Site) database =
   site.Pages
-  |> List.map (createQueriesForPage site engine)
+  |> List.map (createQueriesForPage site database)
   |> flatten
 
-let fieldLine (field : Field ) (engine:Engine) =
-  match engine with
-  | PostgreSQL -> psql.fieldLine field
-  | MicrosoftSQL -> mssql.fieldLine field
+let fieldLine (field : Field ) database =
+  match database with
+  | Postgres  -> psql.fieldLine field
+  | SQLServer -> mssql.fieldLine field
 
+let fieldToConvertProperty page field database =
+  match database with
+  | Postgres  -> psql.fieldToConvertProperty page field
+  | SQLServer -> mssql.fieldToConvertProperty page field
 
-let fieldToConvertProperty page field (engine:Engine) =
-  match engine with
-  | PostgreSQL -> psql.fieldToConvertProperty page field
-  | MicrosoftSQL -> mssql.fieldToConvertProperty page field
+let fakePropertyTemplate (field : Field) database =
+  match database with
+  | Postgres  -> psql.fakePropertyTemplate field
+  | SQLServer -> mssql.fakePropertyTemplate field
 
-let fakePropertyTemplate (field : Field) (engine:Engine) =
-  match engine with
-  | PostgreSQL -> psql.fakePropertyTemplate field
-  | MicrosoftSQL -> mssql.fakePropertyTemplate field
-
-let fieldToPopulatedHtml page (field : Field) (engine:Engine) =
-  match engine with
-  | PostgreSQL -> psql.fieldToPopulatedHtml page field
-  | MicrosoftSQL -> mssql.fieldToPopulatedHtml page field
-
+let fieldToPopulatedHtml page (field : Field) database =
+  match database with
+  | Postgres  -> psql.fieldToPopulatedHtml page field
+  | SQLServer -> mssql.fieldToPopulatedHtml page field

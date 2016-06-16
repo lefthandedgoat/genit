@@ -95,7 +95,7 @@ let createTableTemplates (site : Site) =
 
 let grantPrivileges (site : Site) =
   """
-  """ 
+  """
 
 let createTables guts1 guts2 =
   sprintf """
@@ -143,12 +143,12 @@ let dataReaderTemplate page =
 [<Literal>]
 let {0}QuerySQL = "DECLARE @id int = @p0; SELECT TOP 500 * FROM %s WHERE %s=(CASE WHEN @id=0 THEN %s ELSE @id END )"
 type {0}Query = SqlCommandProvider<{0}QuerySQL, connectionString>
-  
+
 let to{0} (a:{0}Query.Record seq )  : %s list =
-  a |> Seq.map( fun record -> 
-  {{ 
+  a |> Seq.map( fun record ->
+  {{
     %s
-  }} ) 
+  }} )
   |> Seq.toList
     """ (if page.AsVal="login" then "users" else page.AsTable) idField.AsDBColumn idField.AsDBColumn page.AsType (dataReaderPropertiesTemplate page), page.AsVal)
 
@@ -188,8 +188,8 @@ let insertValues page =
 
 let insertParamTemplate page field =
   if field.FieldType = Password
-  then sprintf """password""" 
-  else if field.FieldType = Referenced 
+  then sprintf """password"""
+  else if field.FieldType = Referenced
   then sprintf """int %s.%s.%sID""" page.AsVal field.AsProperty field.AsProperty
   else if field.Attribute = Null then
     sprintf """option2Val %s.%s""" page.AsVal field.AsProperty
@@ -238,10 +238,10 @@ let updateColumns page =
 let updateParamsTemplate page =
   page.Fields
   |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
-  |> List.map (fun field -> 
-    if field.FieldType = Referenced 
+  |> List.map (fun field ->
+    if field.FieldType = Referenced
       then sprintf """int %s.%s.%sID""" page.AsVal field.AsProperty field.AsProperty
-      else 
+      else
         if field.Attribute = Null then
           sprintf """option2Val %s.%s""" page.AsVal field.AsProperty
         else
@@ -279,11 +279,11 @@ let tryByIdTemplate site page =
 
 let tryById_{0} (id:int64) =
   use cmd = new SqlCommandProvider<{0}QuerySQL, connectionString>(connectionString)
-  cmd.Execute(int id) |> to{0} |> List.tryHead    
-  
+  cmd.Execute(int id) |> to{0} |> List.tryHead
+
 let get_{0}ById (id:int) =
   (tryById_{0} (int64 id)).Value
-  
+
 let get_{0}BySId (id:string) =
   (tryById_{0} (int64 (System.Int32.Parse(id)))).Value
 
@@ -297,7 +297,7 @@ let getMany_{0} ()=
   cmd.Execute(0) |> to{0}
 
 let getMany_{0}_Names =
-  getMany_{0} () |> List.map ( fun p-> p.ToString() ) 
+  getMany_{0} () |> List.map ( fun p-> p.ToString() )
     """ , page.AsVal )
 
 let selectManyWhereTemplate site page =
@@ -321,16 +321,16 @@ WHERE email = @email
 "
 type authenticateQuery = SqlCommandProvider<sql_authenticate, connectionString>
 let toLogin (a:authenticateQuery.Record seq )  : Login list =
-  a |> Seq.map( fun record -> 
-  { 
+  a |> Seq.map( fun record ->
+  {
           UserID = int64 record.user_id;
       Email =  record.email;
       Password =  record.password;
-  } ) 
+  } )
   |> Seq.toList
 let authenticate (%s : %s) =
   use cmd = new authenticateQuery(connectionString)
-  
+
   let user =
     cmd.Execute(%s.Email)
     |> toLogin
@@ -400,7 +400,7 @@ let connectionString = "%s"
 %s""" connectionString guts
 
 let fieldToProperty field =
-  let result = 
+  let result =
     match field.FieldType with
     | Id              -> "int64"
     | Text            -> "string"
@@ -419,45 +419,44 @@ let fieldToProperty field =
   else
     result
 
-
 let fieldLine (field : Field ) =
   match field.Attribute with
   | FieldAttribute.Reference( page, required ) -> sprintf """%s : %s""" field.AsProperty page
-  | _ -> sprintf """%s : %s""" field.AsProperty (fieldToProperty field)    
+  | _ -> sprintf """%s : %s""" field.AsProperty (fieldToProperty field)
 
 let fieldToConvertProperty page (field:Field) =
   let property = sprintf "%s.%s" page.AsFormVal field.AsProperty
-  let string () = 
+  let string () =
     if field.Attribute=Null then
       sprintf """%s = Some(%s)""" field.AsProperty property
     else
       sprintf """%s = %s""" field.AsProperty property
-  let int () = 
+  let int () =
     if field.Attribute=Null then
       sprintf """%s = Some(int %s)""" field.AsProperty property
     else
       sprintf """%s = int %s""" field.AsProperty property
-  let int16 () = 
+  let int16 () =
     if field.Attribute=Null then
        sprintf """%s = Some(int16 %s)""" field.AsProperty property
     else
        sprintf """%s = int16 %s""" field.AsProperty property
-  let int64 () = 
+  let int64 () =
     if field.Attribute=Null then
       sprintf """%s = Some(int64 %s)""" field.AsProperty property
     else
       sprintf """%s = int64 %s""" field.AsProperty property
-  let decimal () = 
+  let decimal () =
     if field.Attribute=Null then
       sprintf """%s = Some(decimal %s)""" field.AsProperty property
     else
       sprintf """%s = decimal %s""" field.AsProperty property
-  let datetime () = 
+  let datetime () =
     if field.Attribute=Null then
       sprintf """%s = Some(System.DateTime.Parse(%s))""" field.AsProperty property
     else
       sprintf """%s = System.DateTime.Parse(%s)""" field.AsProperty property
-  let referenced () = 
+  let referenced () =
       sprintf """%s = get_%sBySId(%s)""" field.AsProperty (lower field.AsProperty) property
   match field.FieldType with
   | Id              -> int64 ()
@@ -526,10 +525,10 @@ let fakePropertyTemplate (field : Field) =
 
 
 let fieldToPopulatedHtml page (field : Field) =
-  let template tag = 
+  let template tag =
     if field.Attribute = Null then
       sprintf """%s "%s" (option2Val %s.%s) """ tag field.Name page.AsVal field.AsProperty |> trimEnd
-    else 
+    else
       sprintf """%s "%s" %s.%s """ tag field.Name page.AsVal field.AsProperty |> trimEnd
   let iconTemplate tag icon = sprintf """%s "%s" %s.%s "%s" """ tag field.Name page.AsVal field.AsProperty icon |> trimEnd
   match field.FieldType with

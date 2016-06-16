@@ -383,7 +383,7 @@ let fieldToProperty field =
 let fieldLine (field : Field ) =
   match field.Attribute with
   | FieldAttribute.Reference( page, required ) -> sprintf """%s : %s""" field.AsProperty page
-  | _ -> sprintf """%s : %s""" field.AsProperty (fieldToProperty field)    
+  | _ -> sprintf """%s : %s""" field.AsProperty (fieldToProperty field)
 
 let fieldToConvertProperty page field =
   let property = sprintf "%s.%s" page.AsFormVal field.AsProperty

@@ -4,6 +4,10 @@ open System
 open System.Text.RegularExpressions
 open helper_general
 
+type Database =
+  | Postgres
+  | SQLServer
+
 type PageMode =
   | CVELS
   | CVEL
@@ -122,6 +126,7 @@ type Site =
     AsDatabase : string
     Pages : Page list
     APIs : API list
+    Database : Database
   }
 
 let private defaultSite =
@@ -130,9 +135,12 @@ let private defaultSite =
     AsDatabase = ""
     Pages = []
     APIs = []
+    Database = Postgres
   }
 
 let mutable currentSite = defaultSite
+
+let db database = currentSite <- { currentSite with Database = database }
 
 let site name = currentSite <- { currentSite with Name = name; AsDatabase = to_database name }
 

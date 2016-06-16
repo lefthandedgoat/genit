@@ -31,10 +31,10 @@ let fieldToHtml (field : Field) =
   | Password          -> iconTemplate "icon_password_text" "lock"
   | ConfirmPassword   -> iconTemplate "icon_password_text" "lock"
   | Dropdown options  -> sprintf """label_select "%s" %A """ field.Name (zipOptions options) |> trimEnd
-  | Referenced        -> sprintf """label_select "%s" %s """ field.Name (sprintf "(zipOptions getMany_%s_Names)" (lower field.Name) ) |> trimEnd
+  | Referenced        -> sprintf """label_select "%s" %s """ field.Name (sprintf "(zipOptions getMany_%s_Names)" (lower field.Name)) |> trimEnd
 
 let fieldToPopulatedHtml page (field : Field) =
-  sql.fieldToPopulatedHtml page field sql.Engine.MicrosoftSQL
+  sql.fieldToPopulatedHtml page field SQLServer
 
 let fieldToStaticHtml page (field : Field) =
   let template tag = sprintf """%s "%s" %s.%s """ tag field.Name page.AsVal field.AsProperty
@@ -69,10 +69,10 @@ let fieldToErroredHtml page (field : Field) =
   | Password          -> iconTemplate "errored_icon_password_text" "lock"
   | ConfirmPassword   -> iconTemplate "errored_icon_password_text" "lock"
   | Dropdown options  -> sprintf """errored_label_select "%s" %A (Some %s.%s) errors""" field.Name (zipOptions options) page.AsFormVal field.AsProperty
-  | Referenced  -> sprintf """errored_label_select "%s" %s (Some %s.%s) errors""" field.Name (sprintf "(zipOptions getMany_%s_Names)" (lower field.Name) ) page.AsFormVal field.AsProperty
+  | Referenced  -> sprintf """errored_label_select "%s" %s (Some %s.%s) errors""" field.Name (sprintf "(zipOptions getMany_%s_Names)" (lower field.Name)) page.AsFormVal field.AsProperty
 
 let fieldToConvertProperty page field =
-  sql.fieldToConvertProperty page field (sql.Engine.MicrosoftSQL)
+  sql.fieldToConvertProperty page field SQLServer
 
 let fieldToValidation (field : Field) page =
   let template validation = sprintf """%s "%s" %s.%s""" validation field.Name page.AsFormVal field.AsProperty
@@ -643,8 +643,8 @@ let api_%s id =
          Writers.setMimeType "application/json"
          >=> OK (serializer.PickleToString(data)))""" api.AsVal api.AsVal
 
-let fieldLine (field : Field ) =
-  sql.fieldLine field (sql.Engine.MicrosoftSQL)
+let fieldLine (field : Field) =
+  sql.fieldLine field SQLServer
 
 let propertyTemplate (page : Page) =
   page.Fields
@@ -838,7 +838,7 @@ let uitestTemplate (page : Page) =
 
 //let cityStateZip = randomItem citiesSatesZips
 let fakePropertyTemplate (field : Field) =
-  sql.fakePropertyTemplate field (sql.Engine.MicrosoftSQL)
+  sql.fakePropertyTemplate field SQLServer
 
 let fakePropertiesTemplate (page : Page) =
   page.Fields
@@ -918,15 +918,15 @@ let generate (site : Site) =
   let fake_data_results = site.Pages |> List.map fakeDataTemplate |> flatten
   let generated_fake_data_result = generated_fake_data_template fake_data_results
 
-  let connectionString = sprintf @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=%s;Integrated Security=True" site.AsDatabase 
-  let generated_data_access_result = generated_data_access_template sql.Engine.MicrosoftSQL connectionString (sql.createQueries site sql.Engine.MicrosoftSQL)
+  let connectionString = sprintf @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=%s;Integrated Security=True" site.AsDatabase
+  let generated_data_access_result = generated_data_access_template SQLServer connectionString (sql.createQueries site SQLServer)
 
   let serverKey = sprintf """let serverKey = %A""" (Suave.Utils.Crypto.generateKey Suave.Http.HttpRuntime.ServerKeyLength)
   let generated_security_result = generated_security_template serverKey
 
-  let generated_sql_createdb_result = sql.createTemplate site.AsDatabase sql.Engine.MicrosoftSQL
-  let generated_sql_initialSetup_result = sql.initialSetupTemplate site.AsDatabase sql.Engine.MicrosoftSQL
-  let generated_sql_createTables_result = sql.createTables (sql.createTableTemplates site sql.Engine.MicrosoftSQL) (sql.grantPrivileges site sql.Engine.MicrosoftSQL)
+  let generated_sql_createdb_result = sql.createTemplate site.AsDatabase SQLServer
+  let generated_sql_initialSetup_result = sql.initialSetupTemplate site.AsDatabase SQLServer
+  let generated_sql_createTables_result = sql.createTables (sql.createTableTemplates site SQLServer) (sql.grantPrivileges site SQLServer)
 
   write (destination "generated_html.fs") generated_html_result
   write (destination "generated_views.fs") generated_views_result
