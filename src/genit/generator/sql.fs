@@ -70,15 +70,15 @@ let shouldICreateTable page =
   | Search      -> true
   | Jumbotron   -> false
 
-let createTableTemplates (site : Site) database =
+let createTableTemplates site =
   site.Pages
   |> List.filter (fun page -> shouldICreateTable page)
   |> List.filter (fun page -> page.CreateTable = CreateTable)
-  |> List.map (createTableTemplate site.AsDatabase database)
+  |> List.map (createTableTemplate site.AsDatabase site.Database)
   |> flatten
 
-let grantPrivileges (site : Site) database =
-  match database with
+let grantPrivileges site =
+  match site.Database with
   | Postgres  -> psql.grantPrivileges site
   | SQLServer -> mssql.grantPrivileges site
 
@@ -322,32 +322,32 @@ Everything else
 
 *)
 
-let createQueriesForPage site database page =
-  match database with
+let createQueriesForPage site page =
+  match site.Database with
   | Postgres  -> psql.createQueriesForPage site page
   | SQLServer -> mssql.createQueriesForPage site page
 
-let createQueries (site : Site) database =
+let createQueries site =
   site.Pages
-  |> List.map (createQueriesForPage site database)
+  |> List.map (createQueriesForPage site)
   |> flatten
 
-let fieldLine (field : Field ) database =
-  match database with
+let fieldLine site field =
+  match site.Database with
   | Postgres  -> psql.fieldLine field
   | SQLServer -> mssql.fieldLine field
 
-let fieldToConvertProperty page field database =
-  match database with
+let fieldToConvertProperty site page field =
+  match site.Database with
   | Postgres  -> psql.fieldToConvertProperty page field
   | SQLServer -> mssql.fieldToConvertProperty page field
 
-let fakePropertyTemplate (field : Field) database =
-  match database with
+let fakePropertyTemplate site field =
+  match site.Database with
   | Postgres  -> psql.fakePropertyTemplate field
   | SQLServer -> mssql.fakePropertyTemplate field
 
-let fieldToPopulatedHtml page (field : Field) database =
-  match database with
+let fieldToPopulatedHtml site page field =
+  match site.Database with
   | Postgres  -> psql.fieldToPopulatedHtml page field
   | SQLServer -> mssql.fieldToPopulatedHtml page field

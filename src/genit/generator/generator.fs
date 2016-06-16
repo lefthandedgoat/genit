@@ -33,8 +33,8 @@ let fieldToHtml (field : Field) =
   | Dropdown options  -> sprintf """label_select "%s" %A """ field.Name (zipOptions options) |> trimEnd
   | Referenced        -> sprintf """label_select "%s" %s """ field.Name (sprintf "(zipOptions getMany_%s_Names)" (lower field.Name)) |> trimEnd
 
-let fieldToPopulatedHtml page (field : Field) =
-  sql.fieldToPopulatedHtml page field SQLServer
+let fieldToPopulatedHtml site page field =
+  sql.fieldToPopulatedHtml site page field
 
 let fieldToStaticHtml page (field : Field) =
   let template tag = sprintf """%s "%s" %s.%s """ tag field.Name page.AsVal field.AsProperty
@@ -71,8 +71,8 @@ let fieldToErroredHtml page (field : Field) =
   | Dropdown options  -> sprintf """errored_label_select "%s" %A (Some %s.%s) errors""" field.Name (zipOptions options) page.AsFormVal field.AsProperty
   | Referenced  -> sprintf """errored_label_select "%s" %s (Some %s.%s) errors""" field.Name (sprintf "(zipOptions getMany_%s_Names)" (lower field.Name)) page.AsFormVal field.AsProperty
 
-let fieldToConvertProperty page field =
-  sql.fieldToConvertProperty page field SQLServer
+let fieldToConvertProperty site page field =
+  sql.fieldToConvertProperty site page field
 
 let fieldToValidation (field : Field) page =
   let template validation = sprintf """%s "%s" %s.%s""" validation field.Name page.AsFormVal field.AsProperty
@@ -165,9 +165,9 @@ let attributeToTestBody (field : Field) =
   | Range(min,max) -> Some (sprintf """displayed "%s must be between %i and %i" """ field.Name min max |> trimEnd)
   | Reference(page,required) -> None
 
-let formatPopulatedEditFields page (fields : Field list) tabs =
+let formatPopulatedEditFields site page (fields : Field list) tabs =
   fields
-  |> List.map (fieldToPopulatedHtml page)
+  |> List.map (fieldToPopulatedHtml site page)
   |> List.map (pad tabs)
   |> List.reduce (fun field1 field2 -> sprintf "%s%s%s" field1 Environment.NewLine field2)
 
@@ -219,7 +219,7 @@ let view_create_errored_%s errors (%s : %s) =
     ]
     scripts.common""" page.AsVal page.AsFormVal page.AsFormType page.Name page.Name (formatErroredFields page page.Fields 5)
 
-let editFormViewTemplate (page : Page) =
+let editFormViewTemplate site (page : Page) =
   sprintf """
 let view_edit_%s (%s : %s) =
   base_html
@@ -232,7 +232,7 @@ let view_edit_%s (%s : %s) =
 %s
         ]
     ]
-    scripts.common""" page.AsVal page.AsVal page.AsType page.Name page.Name (formatPopulatedEditFields page page.Fields 5)
+    scripts.common""" page.AsVal page.AsVal page.AsType page.Name page.Name (formatPopulatedEditFields site page page.Fields 5)
 
 let editErroredFormViewTemplate (page : Page) =
   sprintf """
@@ -466,7 +466,7 @@ let viewTemplate site page =
     | CVELS     -> [Create; View; Edit; List; Search] |> List.map (viewTemplate site page) |> flatten
     | CVEL      -> [Create; View; Edit; List] |> List.map (viewTemplate site page) |> flatten
     | Create    -> [createFormViewTemplate page; createErroredFormViewTemplate page] |> flatten
-    | Edit      -> [editFormViewTemplate page; editErroredFormViewTemplate page] |> flatten
+    | Edit      -> [editFormViewTemplate site page; editErroredFormViewTemplate page] |> flatten
     | View      -> viewFormViewTemplate page
     | List      -> listFormViewTemplate page
     | Search    -> searchFormViewTemplate page
@@ -643,13 +643,13 @@ let api_%s id =
          Writers.setMimeType "application/json"
          >=> OK (serializer.PickleToString(data)))""" api.AsVal api.AsVal
 
-let fieldLine (field : Field) =
-  sql.fieldLine field SQLServer
+let fieldLine site field =
+  sql.fieldLine site field
 
-let propertyTemplate (page : Page) =
+let propertyTemplate site (page : Page) =
   page.Fields
   |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
-  |> List.map (fun field -> fieldLine field)
+  |> List.map (fun field -> fieldLine site field)
   |> List.map (pad 2)
   |> flatten
 
@@ -659,21 +659,21 @@ let formPropertyTemplate (page : Page) =
   |> List.map (pad 2)
   |> flatten
 
-let converterPropertyTemplate (page : Page) =
+let converterPropertyTemplate site (page : Page) =
   page.Fields
   |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
-  |> List.map (fieldToConvertProperty page)
+  |> List.map (fieldToConvertProperty site page)
   |> List.map (pad 2)
   |> flatten
 
-let typeTemplate (page : Page) =
+let typeTemplate site (page : Page) =
   if needsType page |> not then ""
   else
     sprintf """type %s =
   {
 %s
   }
-  """ page.AsType (propertyTemplate page)
+  """ page.AsType (propertyTemplate site page)
 
 let bundleSecondTypeTemplate page = if needsFormType page then sprintf "%s" page.AsFormType else sprintf "DummyForm"
 let bundleValidateFormTemplate page = if needsValidation page then sprintf "Some validation_%s" page.AsFormVal else "None"
@@ -744,16 +744,16 @@ let bundleTemplate (page : Page) =
       page.AsViewHref
       page.AsEditHref
 
-let converterTemplate (page : Page) =
+let converterTemplate site (page : Page) =
   if needsConvert page |> not then ""
   else
     sprintf """let convert_%s (%s : %s) : %s =
   {
 %s
   }
-  """ page.AsFormVal page.AsFormVal page.AsFormType page.AsType (converterPropertyTemplate page)
+  """ page.AsFormVal page.AsFormVal page.AsFormType page.AsType (converterPropertyTemplate site page)
 
-let formTypeTemplate (page : Page) =
+let formTypeTemplate site (page : Page) =
   if needsFormType page |> not then ""
   else
     sprintf """type %s =
@@ -763,7 +763,7 @@ let formTypeTemplate (page : Page) =
 
 let %s : Form<%s> = Form ([],[])
 
-%s""" page.AsFormType (formPropertyTemplate page) page.AsFormVal page.AsFormType (converterTemplate page)
+%s""" page.AsFormType (formPropertyTemplate page) page.AsFormVal page.AsFormType (converterTemplate site page)
 
 let validationTemplate (page : Page) =
   if needsValidation page |> not then ""
@@ -837,12 +837,12 @@ let uitestTemplate (page : Page) =
     """ (contextTemplate page) (onceTemplate page) tests
 
 //let cityStateZip = randomItem citiesSatesZips
-let fakePropertyTemplate (field : Field) =
-  sql.fakePropertyTemplate field SQLServer
+let fakePropertyTemplate site field =
+  sql.fakePropertyTemplate site field
 
-let fakePropertiesTemplate (page : Page) =
+let fakePropertiesTemplate site (page : Page) =
   page.Fields
-  |> List.map fakePropertyTemplate
+  |> List.map (fakePropertyTemplate site)
   |> List.map (pad 2)
   |> flatten
 
@@ -859,7 +859,7 @@ let fakeComplexValues (page : Page) =
   let cityStateZip = randomItem citiesSatesZips"
   else ""
 
-let fakeManyDataTemplate (page: Page) =
+let fakeManyDataTemplate site (page: Page) =
   sprintf """let fake_many_%s number =
   [| 1..number |]
   |> Array.map (fun _ -> fake_%s ()) //no parallel cause of RNG
@@ -867,7 +867,7 @@ let fakeManyDataTemplate (page: Page) =
   |> ignore
  """ page.AsVal page.AsVal page.AsVal
 
-let fakeDataTemplate (page : Page) =
+let fakeDataTemplate site (page : Page) =
   if needsFakeData page |> not then ""
   else
     sprintf """let fake_%s () =%s
@@ -876,7 +876,7 @@ let fakeDataTemplate (page : Page) =
   }
 
 %s
- """ page.AsVal (fakeComplexValues page) (fakePropertiesTemplate page) (fakeManyDataTemplate page)
+ """ page.AsVal (fakeComplexValues page) (fakePropertiesTemplate site page) (fakeManyDataTemplate site page)
 
 let generate (site : Site) =
   let html_results = site.Pages |> List.map pageLinkTemplate |> flatten
@@ -890,10 +890,10 @@ let generate (site : Site) =
   let handler_results = [page_handlers; api_handlers] |> flatten
   let generated_handlers_result = generated_handlers_template handler_results
 
-  let forms_results = site.Pages |> List.map formTypeTemplate |> flatten
+  let forms_results = site.Pages |> List.map (formTypeTemplate site) |> flatten
   let generated_forms_result = generated_forms_template forms_results
 
-  let types_results = site.Pages |> List.map typeTemplate |> flatten
+  let types_results = site.Pages |> List.map (typeTemplate site) |> flatten
   let generated_types_result = generated_types_template types_results
 
   let bundles_results = site.Pages |> List.map bundleTemplate |> flatten
@@ -915,18 +915,18 @@ let generate (site : Site) =
   let uitests_results = site.Pages |> List.map uitestTemplate |> flatten
   let generated_uitests_result = generated_uitests_template uitests_results
 
-  let fake_data_results = site.Pages |> List.map fakeDataTemplate |> flatten
+  let fake_data_results = site.Pages |> List.map (fakeDataTemplate site) |> flatten
   let generated_fake_data_result = generated_fake_data_template fake_data_results
 
   let connectionString = sprintf @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=%s;Integrated Security=True" site.AsDatabase
-  let generated_data_access_result = generated_data_access_template SQLServer connectionString (sql.createQueries site SQLServer)
+  let generated_data_access_result = generated_data_access_template site.Database connectionString (sql.createQueries site)
 
   let serverKey = sprintf """let serverKey = %A""" (Suave.Utils.Crypto.generateKey Suave.Http.HttpRuntime.ServerKeyLength)
   let generated_security_result = generated_security_template serverKey
 
-  let generated_sql_createdb_result = sql.createTemplate site.AsDatabase SQLServer
-  let generated_sql_initialSetup_result = sql.initialSetupTemplate site.AsDatabase SQLServer
-  let generated_sql_createTables_result = sql.createTables (sql.createTableTemplates site SQLServer) (sql.grantPrivileges site SQLServer)
+  let generated_sql_createdb_result = sql.createTemplate site.AsDatabase site.Database
+  let generated_sql_initialSetup_result = sql.initialSetupTemplate site.AsDatabase site.Database
+  let generated_sql_createTables_result = sql.createTables (sql.createTableTemplates site) (sql.grantPrivileges site)
 
   write (destination "generated_html.fs") generated_html_result
   write (destination "generated_views.fs") generated_views_result
