@@ -1,6 +1,7 @@
 module modules
 
 open sql
+open dsl
 
 let generated_html_template guts =
   sprintf """module generated_html
@@ -111,6 +112,7 @@ let generated_types_template guts =
 
 let generated_data_access_template database connectionString guts =
   match database with
+  | Postgres  -> psql.generated_data_access_template connectionString guts
   | SQLServer -> mssql.generated_data_access_template connectionString guts
 
 let generated_forms_template guts =

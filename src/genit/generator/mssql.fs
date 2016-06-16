@@ -15,7 +15,8 @@ GO
 CREATE DATABASE {0};""", dbname )
 
 let initialSetupTemplate (dbname : string) = System.String.Format("""
-""" )
+
+""", dbname)
 
 (*
 
@@ -93,9 +94,8 @@ let createTableTemplates (site : Site) =
   |> List.map (createTableTemplate site.AsDatabase)
   |> flatten
 
-let grantPrivileges (site : Site) =
-  """
-  """
+let grantPrivileges (site : Site) = System.String.Format("""
+  """, site)
 
 let createTables guts1 guts2 =
   sprintf """
@@ -203,7 +203,7 @@ let insertParamsTemplate page =
   |> List.map (pad 1)
   |> flattenWith ","
 
-let insertTemplate site page =
+let insertTemplate _ page =
   String.Format(
     sprintf """
 
@@ -250,7 +250,7 @@ let updateParamsTemplate page =
   |> List.map (pad 1)
   |> flattenWith ","
 
-let updateTemplate site page =
+let updateTemplate _ page =
   let idField = page.Fields |> List.find (fun field -> field.FieldType = Id)
   String.Format(
     sprintf """
@@ -273,7 +273,7 @@ SELECT
 
 *)
 
-let tryByIdTemplate site page =
+let tryByIdTemplate _ page =
   System.String.Format(
     sprintf """
 
@@ -289,7 +289,7 @@ let get_{0}BySId (id:string) =
 
     """, page.AsVal )
 
-let selectManyTemplate site page =
+let selectManyTemplate _ page =
   System.String.Format(
     sprintf """
 let getMany_{0} ()=
@@ -300,7 +300,7 @@ let getMany_{0}_Names =
   getMany_{0} () |> List.map ( fun p-> p.ToString() )
     """ , page.AsVal )
 
-let selectManyWhereTemplate site page =
+let selectManyWhereTemplate _ page =
   sprintf """
 let getManyWhere_%s field how value =
   getMany_%s ()
@@ -312,7 +312,7 @@ Authentication
 
 *)
 
-let authenticateTemplate site page =
+let authenticateTemplate _ page =
   sprintf """
 [<Literal>]
 let sql_authenticate = "
@@ -384,16 +384,6 @@ open FSharp.Data
 open dsl
 open BCrypt.Net
 
-type BCryptScheme =
-  {
-    Id : int
-    WorkFactor : int
-  }
-
-let bCryptSchemes : BCryptScheme list = [ { Id = 1; WorkFactor = 8; } ]
-let getBCryptScheme id = bCryptSchemes |> List.find (fun scheme -> scheme.Id = id)
-let currentBCryptScheme = 1
-
 [<Literal>]
 let connectionString = "%s"
 
@@ -414,6 +404,7 @@ let fieldToProperty field =
     | Password        -> "string"
     | ConfirmPassword -> "string"
     | Dropdown _      -> "int16"
+    | Referenced      -> "int64"
   if field.Attribute = Null then
     result + " option"
   else
@@ -421,38 +412,38 @@ let fieldToProperty field =
 
 let fieldLine (field : Field ) =
   match field.Attribute with
-  | FieldAttribute.Reference( page, required ) -> sprintf """%s : %s""" field.AsProperty page
+  | FieldAttribute.Reference(page, _) -> sprintf """%s : %s""" field.AsProperty page
   | _ -> sprintf """%s : %s""" field.AsProperty (fieldToProperty field)
 
 let fieldToConvertProperty page (field:Field) =
   let property = sprintf "%s.%s" page.AsFormVal field.AsProperty
   let string () =
-    if field.Attribute=Null then
+    if field.Attribute = Null then
       sprintf """%s = Some(%s)""" field.AsProperty property
     else
       sprintf """%s = %s""" field.AsProperty property
   let int () =
-    if field.Attribute=Null then
+    if field.Attribute = Null then
       sprintf """%s = Some(int %s)""" field.AsProperty property
     else
       sprintf """%s = int %s""" field.AsProperty property
   let int16 () =
-    if field.Attribute=Null then
+    if field.Attribute = Null then
        sprintf """%s = Some(int16 %s)""" field.AsProperty property
     else
        sprintf """%s = int16 %s""" field.AsProperty property
   let int64 () =
-    if field.Attribute=Null then
+    if field.Attribute = Null then
       sprintf """%s = Some(int64 %s)""" field.AsProperty property
     else
       sprintf """%s = int64 %s""" field.AsProperty property
   let decimal () =
-    if field.Attribute=Null then
+    if field.Attribute = Null then
       sprintf """%s = Some(decimal %s)""" field.AsProperty property
     else
       sprintf """%s = decimal %s""" field.AsProperty property
   let datetime () =
-    if field.Attribute=Null then
+    if field.Attribute = Null then
       sprintf """%s = Some(System.DateTime.Parse(%s))""" field.AsProperty property
     else
       sprintf """%s = System.DateTime.Parse(%s)""" field.AsProperty property
@@ -472,7 +463,6 @@ let fieldToConvertProperty page (field:Field) =
   | ConfirmPassword -> string ()
   | Dropdown _      -> int16 ()
   | Referenced      -> referenced ()
-
 
 let fakePropertyTemplate (field : Field) =
   let lowered = field.Name.ToLower()

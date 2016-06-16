@@ -51,6 +51,7 @@ let columnAttributesTemplate (field : Field) =
   | Min(min)        -> sprintf "CHECK (%s > %i)" field.AsDBColumn min
   | Max(max)        -> sprintf "CHECK (%s < %i)" field.AsDBColumn max
   | Range(min, max) -> sprintf "CHECK (%i < %s < %i)" min field.AsDBColumn max
+  | Reference(page, required) -> sprintf "todo, add reference %s %b" page required
 
 let columnTemplate namePad typePad (field : Field) =
  sprintf "%s %s %s" (rightPad namePad field.AsDBColumn) (rightPad typePad (columnTypeTemplate field)) (columnAttributesTemplate field)
@@ -128,6 +129,7 @@ let conversionTemplate field =
   | Password        -> "getString"
   | ConfirmPassword -> ""
   | Dropdown (_)    -> "getInt16"
+  | Referenced      -> "getInt64"
 
 let dataReaderPropertyTemplate field =
  sprintf """%s = %s "%s" reader""" field.AsProperty (conversionTemplate field) field.AsDBColumn
@@ -364,6 +366,21 @@ let createQueries (site : Site) =
   |> List.map (createQueriesForPage site)
   |> flatten
 
+let generated_data_access_template connectionString guts =
+  sprintf """module generated_data_access
+
+open generated_types
+open helper_general
+open helper_ado
+open FSharp.Data
+open dsl
+open BCrypt.Net
+
+[<Literal>]
+let connectionString = "%s"
+
+%s""" connectionString guts
+
 let fieldToProperty field =
   match field.FieldType with
   | Id              -> "int64"
@@ -378,11 +395,11 @@ let fieldToProperty field =
   | Password        -> "string"
   | ConfirmPassword -> "string"
   | Dropdown _      -> "int16"
-
+  | Referenced      -> "int64"
 
 let fieldLine (field : Field ) =
   match field.Attribute with
-  | FieldAttribute.Reference( page, required ) -> sprintf """%s : %s""" field.AsProperty page
+  | FieldAttribute.Reference(page, _) -> sprintf """%s : %s""" field.AsProperty page
   | _ -> sprintf """%s : %s""" field.AsProperty (fieldToProperty field)
 
 let fieldToConvertProperty page field =

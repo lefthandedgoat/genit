@@ -137,33 +137,33 @@ let fieldToTestBody (field : Field) =
 let attributeToValidation field page =
   let property = sprintf "%s.%s" page.AsFormVal field.AsProperty
   match field.Attribute with
-  | PK         -> None
-  | Null       -> None
-  | Required   -> Some (sprintf """validate_required "%s" %s""" field.Name property)
-  | Min(min)   -> Some (sprintf """validate_min "%s" %s %i""" field.Name property min)
-  | Max(max)   -> Some (sprintf """validate_max "%s" %s %i""" field.Name property max)
-  | Range(min,max) -> Some (sprintf """validate_range "%s" %s %i %i""" field.Name property min max)
+  | PK                       -> None
+  | Null                     -> None
+  | Required                 -> Some (sprintf """validate_required "%s" %s""" field.Name property)
+  | Min(min)                 -> Some (sprintf """validate_min "%s" %s %i""" field.Name property min)
+  | Max(max)                 -> Some (sprintf """validate_max "%s" %s %i""" field.Name property max)
+  | Range(min,max)           -> Some (sprintf """validate_range "%s" %s %i %i""" field.Name property min max)
   | Reference(page,required) -> Some (sprintf """validate_reference "%s" "%s" %s %b""" page field.Name property required)
 
 let attributeToTestName (field : Field) =
   match field.Attribute with
-  | PK         -> None
-  | Null       -> None
-  | Required   -> Some (sprintf """"%s is required" """ field.Name |> trimEnd)
-  | Min(min)   -> Some (sprintf """"%s must be greater than %i" """ field.Name min |> trimEnd)
-  | Max(max)   -> Some (sprintf """"%s must be less than %i" """ field.Name max |> trimEnd)
+  | PK             -> None
+  | Null           -> None
+  | Required       -> Some (sprintf """"%s is required" """ field.Name |> trimEnd)
+  | Min(min)       -> Some (sprintf """"%s must be greater than %i" """ field.Name min |> trimEnd)
+  | Max(max)       -> Some (sprintf """"%s must be less than %i" """ field.Name max |> trimEnd)
   | Range(min,max) -> Some (sprintf """"%s must be between %i and %i" """ field.Name min max |> trimEnd)
-  | Reference(page,required) -> None
+  | Reference(_,_) -> None
 
 let attributeToTestBody (field : Field) =
   match field.Attribute with
-  | PK         -> None
-  | Null       -> None
-  | Required   -> Some (sprintf """displayed "%s is required" """ field.Name |> trimEnd)
-  | Min(min)   -> Some (sprintf """displayed "%s can not be below %i" """ field.Name min |> trimEnd)
-  | Max(max)   -> Some (sprintf """displayed "%s can not be above %i" """ field.Name max |> trimEnd)
+  | PK             -> None
+  | Null           -> None
+  | Required       -> Some (sprintf """displayed "%s is required" """ field.Name |> trimEnd)
+  | Min(min)       -> Some (sprintf """displayed "%s can not be below %i" """ field.Name min |> trimEnd)
+  | Max(max)       -> Some (sprintf """displayed "%s can not be above %i" """ field.Name max |> trimEnd)
   | Range(min,max) -> Some (sprintf """displayed "%s must be between %i and %i" """ field.Name min max |> trimEnd)
-  | Reference(page,required) -> None
+  | Reference(_,_) -> None
 
 let formatPopulatedEditFields site page (fields : Field list) tabs =
   fields
@@ -859,7 +859,7 @@ let fakeComplexValues (page : Page) =
   let cityStateZip = randomItem citiesSatesZips"
   else ""
 
-let fakeManyDataTemplate site (page: Page) =
+let fakeManyDataTemplate (page: Page) =
   sprintf """let fake_many_%s number =
   [| 1..number |]
   |> Array.map (fun _ -> fake_%s ()) //no parallel cause of RNG
@@ -876,7 +876,7 @@ let fakeDataTemplate site (page : Page) =
   }
 
 %s
- """ page.AsVal (fakeComplexValues page) (fakePropertiesTemplate site page) (fakeManyDataTemplate site page)
+ """ page.AsVal (fakeComplexValues page) (fakePropertiesTemplate site page) (fakeManyDataTemplate page)
 
 let generate (site : Site) =
   let html_results = site.Pages |> List.map pageLinkTemplate |> flatten
