@@ -918,7 +918,7 @@ let generate (site : Site) =
   let fake_data_results = site.Pages |> List.map (fakeDataTemplate site) |> flatten
   let generated_fake_data_result = generated_fake_data_template fake_data_results
 
-  let connectionString = sprintf @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=%s;Integrated Security=True" site.AsDatabase
+  let connectionString = sql.createConnectionString site
   let generated_data_access_result = generated_data_access_template site.Database connectionString (sql.createQueries site)
 
   let serverKey = sprintf """let serverKey = %A""" (Suave.Utils.Crypto.generateKey Suave.Http.HttpRuntime.ServerKeyLength)

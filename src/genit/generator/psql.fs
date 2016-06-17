@@ -15,7 +15,7 @@ DROP USER IF EXISTS {0};
 DROP SCHEMA IF EXISTS {0};
 CREATE SCHEMA {0};
 
-CREATE USER {0} WITH ENCRYPTED PASSWORD 'secure123';
+CREATE USER {0} WITH ENCRYPTED PASSWORD 'NOTsecure123';
 GRANT USAGE ON SCHEMA {0} to {0};
 ALTER DEFAULT PRIVILEGES IN SCHEMA {0} GRANT SELECT ON TABLES TO {0};
 GRANT CONNECT ON DATABASE "{0}" to {0};""", dbname)
@@ -453,3 +453,5 @@ let fieldToPopulatedHtml page (field : Field) =
   | ConfirmPassword   -> iconTemplate "icon_password_text" "lock"
   | Dropdown options  -> sprintf """label_select_selected "%s" %A (Some %s.%s)""" field.Name (zipOptions options) page.AsVal field.AsProperty
   | Referenced -> sprintf """label_select_selected "%s" (zipOptions getMany_%s_Names) (Some %s.%s)""" field.Name (lower field.Name) page.AsVal field.AsProperty
+
+let createConnectionString site = sprintf "Server=127.0.0.1;User Id=%s; Password=NOTsecure123;Database=%s;" site.AsDatabase site.AsDatabase

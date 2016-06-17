@@ -346,3 +346,8 @@ let fieldToPopulatedHtml site page field =
   match site.Database with
   | Postgres  -> psql.fieldToPopulatedHtml page field
   | SQLServer -> mssql.fieldToPopulatedHtml page field
+
+let createConnectionString site =
+  match site.Database with
+  | Postgres  -> psql.createConnectionString site
+  | SQLServer -> mssql.createConnectionString site
