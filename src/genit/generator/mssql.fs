@@ -40,7 +40,6 @@ let columnTypeTemplate field =
   | Dropdown (_)    -> "smallint"
   | Referenced      -> "int"
 
-//http://www.postgresql.org/docs/9.5/static/ddl-constraints.html
 let columnAttributesTemplate (field : Field) =
   match field.Attribute with
   | PK              -> "PRIMARY KEY NOT NULL"
@@ -51,48 +50,15 @@ let columnAttributesTemplate (field : Field) =
   | Range(min, max) -> sprintf "CHECK (%i < %s < %i)" min field.AsDBColumn max
   | Reference(table,required) -> sprintf "REFERENCES [%s] (%s) %s" (to_tableName table) field.AsDBColumn (if required then "NOT NULL" else "NULL")
 
-let columnTemplate namePad typePad (field : Field) =
- sprintf "%s %s %s" (rightPad namePad field.AsDBColumn) (rightPad typePad (columnTypeTemplate field)) (columnAttributesTemplate field)
-
-let createColumns (page : Page) =
-  let maxName = page.Fields |> List.map (fun field -> field.AsDBColumn.Length) |> List.max
-  let maxName = if maxName > 20 then maxName else 20
-  let maxType = page.Fields |> List.map (fun field -> (columnTypeTemplate field).Length) |> List.max
-  let maxType = if maxType > 20 then maxType else 20
-
-  page.Fields
-  |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
-  |> List.map (columnTemplate maxName maxType)
-  |> List.map (pad 1)
-  |> flattenWith ","
-
-let createTableTemplate (dbname : string) (page : Page) =
-  let columns = createColumns page
+let createTableTemplate dbname page columns =
   sprintf """
-CREATE TABLE %s.%s(
+USE %s
+GO
+
+CREATE TABLE %s(
 %s
 );
   """ dbname page.AsTable columns
-
-let shouldICreateTable page =
-  match page.PageMode with
-  | CVELS
-  | CVEL
-  | Create
-  | Edit
-  | View
-  | List
-  | Register    -> true
-  | Login       -> false
-  | Search      -> true
-  | Jumbotron   -> false
-
-let createTableTemplates (site : Site) =
-  site.Pages
-  |> List.filter (fun page -> shouldICreateTable page)
-  |> List.filter (fun page -> page.CreateTable = CreateTable)
-  |> List.map (createTableTemplate site.AsDatabase)
-  |> flatten
 
 let grantPrivileges (site : Site) = System.String.Format("""
   """, site)

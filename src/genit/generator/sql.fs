@@ -20,42 +20,37 @@ CREATE TABLES
 
 *)
 
-let columnTypeTemplate field database =
-  match database with
+let columnTypeTemplate site field =
+  match site.Database with
   | Postgres  -> psql.columnTypeTemplate field
   | SQLServer -> mssql.columnTypeTemplate field
 
 //http://www.postgresql.org/docs/9.5/static/ddl-constraints.html
-let columnAttributesTemplate (field : Field) database =
-  match database with
+let columnAttributesTemplate site field =
+  match site.Database with
   | Postgres  -> psql.columnAttributesTemplate field
   | SQLServer -> mssql.columnAttributesTemplate field
 
-let columnTemplate namePad typePad engine (field : Field)  =
- sprintf "%s %s %s" (rightPad namePad field.AsDBColumn) (rightPad typePad (columnTypeTemplate field engine)) (columnAttributesTemplate field engine)
+let columnTemplate site namePad typePad field =
+ sprintf "%s %s %s" (rightPad namePad field.AsDBColumn) (rightPad typePad (columnTypeTemplate site field)) (columnAttributesTemplate site field)
 
-let createColumns (page : Page) engine =
+let createColumns site page =
   let maxName = page.Fields |> List.map (fun field -> field.AsDBColumn.Length) |> List.max
   let maxName = if maxName > 20 then maxName else 20
-  let maxType = page.Fields |> List.map (fun field -> (columnTypeTemplate field engine).Length) |> List.max
+  let maxType = page.Fields |> List.map (fun field -> (columnTypeTemplate site field).Length) |> List.max
   let maxType = if maxType > 20 then maxType else 20
 
   page.Fields
   |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
-  |> List.map (columnTemplate maxName maxType engine)
+  |> List.map (columnTemplate site maxName maxType)
   |> List.map (pad 1)
   |> flattenWith ","
 
-let createTableTemplate (dbname : string) database (page : Page) =
-  let columns = createColumns page database
-  sprintf """
-USE %s
-GO
-
-CREATE TABLE %s(
-%s
-);
-  """ dbname page.AsTable columns
+let createTableTemplate site page =
+  let columns = createColumns site page
+  match site.Database with
+  | Postgres  -> psql.createTableTemplate site.AsDatabase page columns
+  | SQLServer -> mssql.createTableTemplate site.AsDatabase page columns
 
 let shouldICreateTable page =
   match page.PageMode with
@@ -74,7 +69,7 @@ let createTableTemplates site =
   site.Pages
   |> List.filter (fun page -> shouldICreateTable page)
   |> List.filter (fun page -> page.CreateTable = CreateTable)
-  |> List.map (createTableTemplate site.AsDatabase site.Database)
+  |> List.map (createTableTemplate site)
   |> flatten
 
 let grantPrivileges site =

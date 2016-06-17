@@ -53,48 +53,12 @@ let columnAttributesTemplate (field : Field) =
   | Range(min, max) -> sprintf "CHECK (%i < %s < %i)" min field.AsDBColumn max
   | Reference(page, required) -> sprintf "todo, add reference %s %b" page required
 
-let columnTemplate namePad typePad (field : Field) =
- sprintf "%s %s %s" (rightPad namePad field.AsDBColumn) (rightPad typePad (columnTypeTemplate field)) (columnAttributesTemplate field)
-
-let createColumns (page : Page) =
-  let maxName = page.Fields |> List.map (fun field -> field.AsDBColumn.Length) |> List.max
-  let maxName = if maxName > 20 then maxName else 20
-  let maxType = page.Fields |> List.map (fun field -> (columnTypeTemplate field).Length) |> List.max
-  let maxType = if maxType > 20 then maxType else 20
-
-  page.Fields
-  |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
-  |> List.map (columnTemplate maxName maxType)
-  |> List.map (pad 1)
-  |> flattenWith ","
-
-let createTableTemplate (dbname : string) (page : Page) =
-  let columns = createColumns page
+let createTableTemplate dbname page columns =
   sprintf """
 CREATE TABLE %s.%s(
 %s
 );
   """ dbname page.AsTable columns
-
-let shouldICreateTable page =
-  match page.PageMode with
-  | CVELS
-  | CVEL
-  | Create
-  | Edit
-  | View
-  | List
-  | Register    -> true
-  | Login       -> false
-  | Search      -> true
-  | Jumbotron   -> false
-
-let createTableTemplates (site : Site) =
-  site.Pages
-  |> List.filter (fun page -> shouldICreateTable page)
-  |> List.filter (fun page -> page.CreateTable = CreateTable)
-  |> List.map (createTableTemplate site.AsDatabase)
-  |> flatten
 
 let grantPrivileges (site : Site) =
   sprintf """
