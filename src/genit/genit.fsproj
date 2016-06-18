@@ -70,6 +70,7 @@
     <Compile Include="generator/script.fs" />
     <Compile Include="prunner.fs" />
     <Compile Include="loadGenerator.fs" />
+    <Compile Include="helper_ado.fs" />
     <Compile Include="helper_npgado.fs" />
     <Compile Include="validators.fs" />
     <Compile Include="forms.fs" />
