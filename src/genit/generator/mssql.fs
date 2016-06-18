@@ -332,7 +332,6 @@ let generated_data_access_template connectionString guts =
 open generated_types
 open helper_general
 open helper_ado
-open FSharp.Data
 open dsl
 open BCrypt.Net
 

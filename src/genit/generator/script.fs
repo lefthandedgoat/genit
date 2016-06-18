@@ -5,7 +5,7 @@ open generator
 
 let someSite () =
 
-  db Postgres
+  db SQLServer
 
   site "Bob's Burgers"
 
