@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -70,7 +70,7 @@
     <Compile Include="generator/script.fs" />
     <Compile Include="prunner.fs" />
     <Compile Include="loadGenerator.fs" />
-    <Compile Include="helper_ado.fs" />
+    <Compile Include="helper_npgado.fs" />
     <Compile Include="validators.fs" />
     <Compile Include="forms.fs" />
     <Compile Include="helper_html.fs" />
