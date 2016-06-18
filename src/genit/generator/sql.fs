@@ -104,7 +104,6 @@ let conversionTemplate field =
   | Password        -> "getString"
   | ConfirmPassword -> ""
   | Dropdown (_)    -> "getInt16"
-  | Referenced      -> "getInt64"
 
 let dataReaderPropertyTemplate field =
  sprintf """%s = %s "%s" reader""" field.AsProperty (conversionTemplate field) field.AsDBColumn

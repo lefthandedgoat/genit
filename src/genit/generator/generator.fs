@@ -31,7 +31,6 @@ let fieldToHtml (field : Field) =
   | Password          -> iconTemplate "icon_password_text" "lock"
   | ConfirmPassword   -> iconTemplate "icon_password_text" "lock"
   | Dropdown options  -> sprintf """label_select "%s" %A """ field.Name (zipOptions options) |> trimEnd
-  | Referenced        -> sprintf """label_select "%s" %s """ field.Name (sprintf "(zipOptions getMany_%s_Names)" (lower field.Name)) |> trimEnd
 
 let fieldToPopulatedHtml site page field =
   sql.fieldToPopulatedHtml site page field
@@ -51,7 +50,6 @@ let fieldToStaticHtml page (field : Field) =
   | Password          -> template "label_static"
   | ConfirmPassword   -> template "label_static"
   | Dropdown _        -> sprintf """label_static "%s" %s.%s """ field.Name page.AsVal field.AsProperty
-  | Referenced        -> sprintf """label_static "%s" %s.%s """ field.Name page.AsVal field.AsProperty
 
 let fieldToErroredHtml page (field : Field) =
   let template tag = sprintf """%s "%s" (string %s.%s) errors""" tag field.Name page.AsFormVal field.AsProperty
@@ -69,7 +67,6 @@ let fieldToErroredHtml page (field : Field) =
   | Password          -> iconTemplate "errored_icon_password_text" "lock"
   | ConfirmPassword   -> iconTemplate "errored_icon_password_text" "lock"
   | Dropdown options  -> sprintf """errored_label_select "%s" %A (Some %s.%s) errors""" field.Name (zipOptions options) page.AsFormVal field.AsProperty
-  | Referenced  -> sprintf """errored_label_select "%s" %s (Some %s.%s) errors""" field.Name (sprintf "(zipOptions getMany_%s_Names)" (lower field.Name)) page.AsFormVal field.AsProperty
 
 let fieldToConvertProperty site page field =
   sql.fieldToConvertProperty site page field
@@ -98,7 +95,6 @@ let fieldToValidation (field : Field) page =
   | Password        -> Some (template "validate_password")
   | ConfirmPassword -> confirmPasswordTemplate ()
   | Dropdown _      -> None
-  | Referenced      -> None
 
 let fieldToTestName (field : Field) =
   let template text = sprintf """"%s %s" """ field.Name text |> trimEnd
@@ -115,7 +111,6 @@ let fieldToTestName (field : Field) =
   | Password        -> Some (template "must be between 6 and 100 characters")
   | ConfirmPassword -> Some (template "must be between 6 and 100 characters")
   | Dropdown _      -> None
-  | Referenced      -> None
 
 let fieldToTestBody (field : Field) =
   let template text = sprintf """displayed "%s %s" """ field.Name text |> trimEnd
@@ -132,7 +127,6 @@ let fieldToTestBody (field : Field) =
   | Password        -> Some (template "must be between 6 and 100 characters")
   | ConfirmPassword -> Some (template "must be between 6 and 100 characters")
   | Dropdown _      -> None
-  | Referenced      -> None
 
 let attributeToValidation field page =
   let property = sprintf "%s.%s" page.AsFormVal field.AsProperty
@@ -143,7 +137,6 @@ let attributeToValidation field page =
   | Min(min)                 -> Some (sprintf """validate_min "%s" %s %i""" field.Name property min)
   | Max(max)                 -> Some (sprintf """validate_max "%s" %s %i""" field.Name property max)
   | Range(min,max)           -> Some (sprintf """validate_range "%s" %s %i %i""" field.Name property min max)
-  | Reference(page,required) -> Some (sprintf """validate_reference "%s" "%s" %s %b""" page field.Name property required)
 
 let attributeToTestName (field : Field) =
   match field.Attribute with
@@ -153,7 +146,6 @@ let attributeToTestName (field : Field) =
   | Min(min)       -> Some (sprintf """"%s must be greater than %i" """ field.Name min |> trimEnd)
   | Max(max)       -> Some (sprintf """"%s must be less than %i" """ field.Name max |> trimEnd)
   | Range(min,max) -> Some (sprintf """"%s must be between %i and %i" """ field.Name min max |> trimEnd)
-  | Reference(_,_) -> None
 
 let attributeToTestBody (field : Field) =
   match field.Attribute with
@@ -163,7 +155,6 @@ let attributeToTestBody (field : Field) =
   | Min(min)       -> Some (sprintf """displayed "%s can not be below %i" """ field.Name min |> trimEnd)
   | Max(max)       -> Some (sprintf """displayed "%s can not be above %i" """ field.Name max |> trimEnd)
   | Range(min,max) -> Some (sprintf """displayed "%s must be between %i and %i" """ field.Name min max |> trimEnd)
-  | Reference(_,_) -> None
 
 let formatPopulatedEditFields site page (fields : Field list) tabs =
   fields

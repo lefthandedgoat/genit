@@ -38,7 +38,6 @@ let columnTypeTemplate field =
   | Password        -> "varchar(60)"
   | ConfirmPassword -> ""
   | Dropdown (_)    -> "smallint"
-  | Referenced      -> "int"
 
 let columnAttributesTemplate (field : Field) =
   match field.Attribute with
@@ -48,7 +47,6 @@ let columnAttributesTemplate (field : Field) =
   | Min(min)        -> sprintf "CHECK (%s > %i)" field.AsDBColumn min
   | Max(max)        -> sprintf "CHECK (%s < %i)" field.AsDBColumn max
   | Range(min, max) -> sprintf "CHECK (%i < %s < %i)" min field.AsDBColumn max
-  | Reference(table,required) -> sprintf "REFERENCES [%s] (%s) %s" (to_tableName table) field.AsDBColumn (if required then "NOT NULL" else "NULL")
 
 let createTableTemplate dbname page columns =
   sprintf """
@@ -90,7 +88,6 @@ let readConversionTemplate field =
   | Password        -> ""
   | ConfirmPassword -> ""
   | Dropdown (_)    -> ""
-  | Referenced      -> sprintf "get_%sById" (to_dbColumn field.Name)
 
 let dataReaderPropertyTemplate field =
  sprintf """%s = %s record.%s;""" field.AsProperty (readConversionTemplate field)  field.AsDBColumn
@@ -155,8 +152,6 @@ let insertValues page =
 let insertParamTemplate page field =
   if field.FieldType = Password
   then sprintf """password"""
-  else if field.FieldType = Referenced
-  then sprintf """int %s.%s.%sID""" page.AsVal field.AsProperty field.AsProperty
   else if field.Attribute = Null then
     sprintf """option2Val %s.%s""" page.AsVal field.AsProperty
   else
@@ -193,28 +188,19 @@ let insert_{0} ({0} : %s) =
 UPDATE
 
 *)
-
 let updateColumns page =
   page.Fields
-  |> List.filter (fun field -> field.FieldType <> ConfirmPassword && field.FieldType <> Id)
-  |> List.map (fun field -> sprintf """%s = @%s""" field.AsDBColumn field.AsDBColumn)
+  |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
+  |> List.map (fun field -> sprintf """%s = :%s""" field.AsDBColumn field.AsDBColumn)
   |> List.map (pad 1)
   |> flattenWith ","
 
 let updateParamsTemplate page =
   page.Fields
   |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
-  |> List.map (fun field ->
-    if field.FieldType = Referenced
-      then sprintf """int %s.%s.%sID""" page.AsVal field.AsProperty field.AsProperty
-      else
-        if field.Attribute = Null then
-          sprintf """option2Val %s.%s""" page.AsVal field.AsProperty
-        else
-          sprintf """%s.%s""" page.AsVal field.AsProperty
-  )
+  |> List.map (fun field -> sprintf """|> param "%s" %s.%s""" field.AsDBColumn page.AsVal field.AsProperty)
   |> List.map (pad 1)
-  |> flattenWith ","
+  |> flatten
 
 let updateTemplate _ page =
   let idField = page.Fields |> List.find (fun field -> field.FieldType = Id)
@@ -370,7 +356,6 @@ let fieldToProperty field =
     | Password        -> "string"
     | ConfirmPassword -> "string"
     | Dropdown _      -> "int16"
-    | Referenced      -> "int64"
   if field.Attribute = Null then
     result + " option"
   else
@@ -378,7 +363,6 @@ let fieldToProperty field =
 
 let fieldLine (field : Field ) =
   match field.Attribute with
-  | FieldAttribute.Reference(page, _) -> sprintf """%s : %s""" field.AsProperty page
   | _ -> sprintf """%s : %s""" field.AsProperty (fieldToProperty field)
 
 let fieldToConvertProperty page (field:Field) =
@@ -413,8 +397,6 @@ let fieldToConvertProperty page (field:Field) =
       sprintf """%s = Some(System.DateTime.Parse(%s))""" field.AsProperty property
     else
       sprintf """%s = System.DateTime.Parse(%s)""" field.AsProperty property
-  let referenced () =
-      sprintf """%s = get_%sBySId(%s)""" field.AsProperty (lower field.AsProperty) property
   match field.FieldType with
   | Id              -> int64 ()
   | Text            -> string ()
@@ -428,7 +410,6 @@ let fieldToConvertProperty page (field:Field) =
   | Password        -> string ()
   | ConfirmPassword -> string ()
   | Dropdown _      -> int16 ()
-  | Referenced      -> referenced ()
 
 let fakePropertyTemplate (field : Field) =
   let lowered = field.Name.ToLower()
@@ -473,7 +454,6 @@ let fakePropertyTemplate (field : Field) =
     | Password        -> """"123123" """ |> trimEnd
     | ConfirmPassword -> """"123123" """ |> trimEnd
     | Dropdown _      -> "1s"
-    | Referenced      -> "unbox null"
   if field.Attribute = Null then
     sprintf """%s = Some(%s) """ field.AsProperty value
   else
@@ -500,6 +480,5 @@ let fieldToPopulatedHtml page (field : Field) =
   | Password          -> iconTemplate "icon_password_text" "lock"
   | ConfirmPassword   -> iconTemplate "icon_password_text" "lock"
   | Dropdown options  -> sprintf """label_select_selected "%s" %A (Some %s.%s)""" field.Name (zipOptions options) page.AsVal field.AsProperty
-  | Referenced -> sprintf """label_select_selected "%s" (zipOptions getMany_%s_Names) (Some %s.%s)""" field.Name (lower field.Name) page.AsVal field.AsProperty
 
 let createConnectionString site = sprintf @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=%s;Integrated Security=True" site.AsDatabase

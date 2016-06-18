@@ -40,7 +40,6 @@ let columnTypeTemplate field =
   | Password        -> "varchar(60)"
   | ConfirmPassword -> ""
   | Dropdown (_)    -> "smallint"
-  | Referenced      -> "integer"
 
 //http://www.postgresql.org/docs/9.5/static/ddl-constraints.html
 let columnAttributesTemplate (field : Field) =
@@ -51,7 +50,6 @@ let columnAttributesTemplate (field : Field) =
   | Min(min)        -> sprintf "CHECK (%s > %i)" field.AsDBColumn min
   | Max(max)        -> sprintf "CHECK (%s < %i)" field.AsDBColumn max
   | Range(min, max) -> sprintf "CHECK (%i < %s < %i)" min field.AsDBColumn max
-  | Reference(page, required) -> sprintf "todo, add reference %s %b" page required
 
 let createTableTemplate dbname page columns =
   sprintf """
@@ -93,7 +91,6 @@ let conversionTemplate field =
   | Password        -> "getString"
   | ConfirmPassword -> ""
   | Dropdown (_)    -> "getInt16"
-  | Referenced      -> "getInt64"
 
 let dataReaderPropertyTemplate field =
  sprintf """%s = %s "%s" reader""" field.AsProperty (conversionTemplate field) field.AsDBColumn
@@ -359,11 +356,9 @@ let fieldToProperty field =
   | Password        -> "string"
   | ConfirmPassword -> "string"
   | Dropdown _      -> "int16"
-  | Referenced      -> "int64"
 
 let fieldLine (field : Field ) =
   match field.Attribute with
-  | FieldAttribute.Reference(page, _) -> sprintf """%s : %s""" field.AsProperty page
   | _ -> sprintf """%s : %s""" field.AsProperty (fieldToProperty field)
 
 let fieldToConvertProperty page field =
@@ -374,7 +369,6 @@ let fieldToConvertProperty page field =
   let int64 () = sprintf """%s = int64 %s""" field.AsProperty property
   let double () = sprintf """%s = double %s""" field.AsProperty property
   let datetime () = sprintf """%s = System.DateTime.Parse(%s)""" field.AsProperty property
-  let referenced () = sprintf """%s = get_%sBySId(%s)""" field.AsProperty (lower field.AsProperty) property
   match field.FieldType with
   | Id              -> int64 ()
   | Text            -> string ()
@@ -388,7 +382,6 @@ let fieldToConvertProperty page field =
   | Password        -> string ()
   | ConfirmPassword -> string ()
   | Dropdown _      -> int16 ()
-  | Referenced      -> referenced ()
 
 let fakePropertyTemplate (field : Field) =
   let lowered = field.Name.ToLower()
@@ -433,7 +426,6 @@ let fakePropertyTemplate (field : Field) =
     | Password        -> """"123123" """ |> trimEnd
     | ConfirmPassword -> """"123123" """ |> trimEnd
     | Dropdown _      -> "1s"
-    | Referenced      -> "unbox null"
   sprintf """%s = %s """ field.AsProperty value
 
 let fieldToPopulatedHtml page (field : Field) =
@@ -452,6 +444,5 @@ let fieldToPopulatedHtml page (field : Field) =
   | Password          -> iconTemplate "icon_password_text" "lock"
   | ConfirmPassword   -> iconTemplate "icon_password_text" "lock"
   | Dropdown options  -> sprintf """label_select_selected "%s" %A (Some %s.%s)""" field.Name (zipOptions options) page.AsVal field.AsProperty
-  | Referenced -> sprintf """label_select_selected "%s" (zipOptions getMany_%s_Names) (Some %s.%s)""" field.Name (lower field.Name) page.AsVal field.AsProperty
 
 let createConnectionString site = sprintf "Server=127.0.0.1;User Id=%s; Password=NOTsecure123;Database=%s;" site.AsDatabase site.AsDatabase
