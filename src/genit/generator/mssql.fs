@@ -23,11 +23,14 @@ let createTemplate (dbname : string) =
   String.Format("""
 use master;
 GO
+IF EXISTS(select * from sys.databases where name='{0}')
 ALTER DATABASE {0} SET SINGLE_USER
 GO
+IF EXISTS(select * from sys.databases where name='{0}')
 DROP DATABASE {0}
 GO
-CREATE DATABASE {0};""", dbname )
+CREATE DATABASE {0};
+GO""", dbname )
 
 let initialSetupTemplate (dbname : string) = System.String.Format("""
 
@@ -135,7 +138,7 @@ INSERT
 
 let insertColumns page =
   page.Fields
-  |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
+  |> List.filter (fun field -> field.FieldType <> Id && field.FieldType <> ConfirmPassword)
   |> List.map (fun field -> field.AsDBColumn)
   |> List.map (pad 2)
   |> flattenWith ","
@@ -154,7 +157,7 @@ let passwordTemplate page =
 let insertValues page =
   let format field =
     if field.FieldType = Id
-    then "DEFAULT"
+    then ""
     else sprintf "@%s" field.AsDBColumn
 
   page.Fields
@@ -179,7 +182,7 @@ let insertTemplate site page =
   sprintf """
 let insert_%s (%s : %s) =
   let sql = "
-INSERT INTO %s.%s
+INSERT INTO %s.dbo.%s
   (
 %s
   ) VALUES (
@@ -219,7 +222,7 @@ let updateTemplate site page =
   sprintf """
 let update_%s (%s : %s) =
   let sql = "
-UPDATE %s.%s
+UPDATE %s.dbo.%s
 SET
 %s
 WHERE %s = @%s;
@@ -242,7 +245,7 @@ let tryByIdTemplate site page =
   sprintf """
 let tryById_%s id =
   let sql = "
-SELECT * FROM %s.%s
+SELECT * FROM %s.dbo.%s
 WHERE %s = @%s
 "
   use connection = connection connectionString
@@ -256,8 +259,7 @@ let selectManyTemplate site page =
   sprintf """
 let getMany_%s () =
   let sql = "
-SELECT * FROM %s.%s
-LIMIT 500
+SELECT TOP 500 * FROM %s.dbo.%s
 "
   use connection = connection connectionString
   use command = command connection sql
@@ -271,9 +273,9 @@ let getManyWhere_%s field how value =
   let field = to_sqlserver_dbColumn field
   let search = searchHowToClause how value
   let sql =
-    sprintf "SELECT * FROM %s.%s
+    sprintf "SELECT TOP 500 * FROM %s.dbo.%s
 WHERE lower(%s) LIKE lower(@search)
-LIMIT 500" field
+" field
 
   use connection = connection connectionString
   use command = command connection sql
@@ -292,7 +294,7 @@ let authenticateTemplate site page =
   sprintf """
 let authenticate (%s : %s) =
   let sql = "
-SELECT * FROM %s.Users
+SELECT * FROM %s.dbo.Users
 WHERE email = @email
 "
   use connection = connection connectionString
