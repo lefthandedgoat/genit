@@ -484,4 +484,4 @@ let fieldToPopulatedHtml page (field : Field) =
   | ConfirmPassword   -> iconTemplate "icon_password_text" "lock"
   | Dropdown options  -> sprintf """label_select_selected "%s" %A (Some %s.%s)""" field.Name (zipOptions options) page.AsVal field.AsProperty
 
-let createConnectionString site = sprintf @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=%s;Integrated Security=True" site.AsDatabase
+let createConnectionString site = sprintf @"Data Source=.\SQLEXPRESS;Initial Catalog=%s;Integrated Security=True" site.AsDatabase
