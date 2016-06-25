@@ -59,36 +59,29 @@ type Field =
     AsDBColumn : string
   }
 
-let field name attribute fieldType =
+let field name attribute fieldType database =
   {
     Name = name
     FieldType = fieldType
     Attribute = attribute
     AsProperty = to_property name
-    AsDBColumn = to_dbColumn name
+    AsDBColumn =
+      match database with
+      | Postgres  -> to_postgres_dbColumn name
+      | SQLServer -> to_sqlserver_dbColumn name
   }
 
-let fieldEx name attribute fieldType asProperty asDBColumn =
+let fieldEx name attribute fieldType asProperty asDBColumn database =
   {
     Name = name
     FieldType = fieldType
     Attribute = attribute
     AsProperty = to_property asProperty
-    AsDBColumn = to_dbColumn asDBColumn
+    AsDBColumn =
+      match database with
+      | Postgres  -> to_postgres_dbColumn asDBColumn
+      | SQLServer -> to_sqlserver_dbColumn asDBColumn
   }
-
-let id_pk name = field (sprintf "%s ID" name) PK Id
-let text name attribute = field name attribute Text
-let paragraph name attribute = field name attribute Paragraph
-let number name attribute = field name attribute Number
-let dollar name attribute = field name attribute Decimal
-let date name attribute = field name attribute Date
-let email name = field name Required Email
-let name name attribute = field name attribute Name
-let phone name attribute = field name attribute Phone
-let password name = field name Required Password
-let confirm name = field name Required ConfirmPassword
-let dropdown name options = field name Null (Dropdown(options))
 
 type API =
   {
@@ -140,7 +133,15 @@ let mutable currentSite = defaultSite
 
 let db database = currentSite <- { currentSite with Database = database }
 
-let site name = currentSite <- { currentSite with Name = name; AsDatabase = to_database name }
+let site name =
+  currentSite <-
+    { currentSite with
+        Name = name
+        AsDatabase =
+          match currentSite.Database with
+          | Postgres  -> to_postgres_database name
+          | SQLServer -> to_sqlserver_database name
+    }
 
 let private page_ name pageMode tableName attribute createTable fields =
   let page =
@@ -160,7 +161,10 @@ let private page_ name pageMode tableName attribute createTable fields =
       AsEditHref = to_editHref name
       AsListHref = to_listHref name
       AsSearchHref = to_searchHref name
-      AsTable = to_tableName tableName
+      AsTable =
+        match currentSite.Database with
+        | Postgres  -> to_postgres_tableName tableName
+        | SQLServer -> to_sqlserver_tableName tableName
     }
 
   currentSite <- { currentSite with Pages = currentSite.Pages @ [page] }
@@ -175,6 +179,19 @@ let api name =
     }
 
   currentSite <- { currentSite with APIs = currentSite.APIs @ [api] }
+
+let id_pk name = field (sprintf "%s ID" name) PK Id currentSite.Database
+let text name attribute = field name attribute Text currentSite.Database
+let paragraph name attribute = field name attribute Paragraph currentSite.Database
+let number name attribute = field name attribute Number currentSite.Database
+let dollar name attribute = field name attribute Decimal currentSite.Database
+let date name attribute = field name attribute Date currentSite.Database
+let email name = field name Required Email currentSite.Database
+let name name attribute = field name attribute Name currentSite.Database
+let phone name attribute = field name attribute Phone currentSite.Database
+let password name = field name Required Password currentSite.Database
+let confirm name = field name Required ConfirmPassword currentSite.Database
+let dropdown name options = field name Null (Dropdown(options)) currentSite.Database
 
 //precanned pages
 

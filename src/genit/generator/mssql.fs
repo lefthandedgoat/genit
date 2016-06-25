@@ -268,7 +268,7 @@ LIMIT 500
 let selectManyWhereTemplate site page =
   sprintf """
 let getManyWhere_%s field how value =
-  let field = to_dbColumn field
+  let field = to_sqlserver_dbColumn field
   let search = searchHowToClause how value
   let sql =
     sprintf "SELECT * FROM %s.%s
@@ -292,7 +292,7 @@ let authenticateTemplate site page =
   sprintf """
 let authenticate (%s : %s) =
   let sql = "
-SELECT * FROM %s.users
+SELECT * FROM %s.Users
 WHERE email = :email
 "
   use connection = connection connectionString

@@ -267,7 +267,7 @@ LIMIT 500
 let selectManyWhereTemplate site page =
   sprintf """
 let getManyWhere_%s field how value =
-  let field = to_dbColumn field
+  let field = to_postgres_dbColumn field
   let search = searchHowToClause how value
   let sql =
     sprintf "SELECT * FROM %s.%s
