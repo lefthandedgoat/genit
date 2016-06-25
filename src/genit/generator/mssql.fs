@@ -155,13 +155,10 @@ let passwordTemplate page =
   | None -> ""
 
 let insertValues page =
-  let format field =
-    if field.FieldType = Id
-    then ""
-    else sprintf "@%s" field.AsDBColumn
+  let format field = sprintf "@%s" field.AsDBColumn
 
   page.Fields
-  |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
+  |> List.filter (fun field -> field.FieldType <> Id && field.FieldType <> ConfirmPassword)
   |> List.map format
   |> List.map (pad 2)
   |> flattenWith ","
