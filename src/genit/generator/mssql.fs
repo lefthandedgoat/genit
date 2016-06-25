@@ -44,7 +44,7 @@ CREATE TABLES
 
 let columnTypeTemplate field =
   match field.FieldType with
-  | Id              -> "int IDENTITY (1,1)"
+  | Id              -> "bigint IDENTITY (1,1)"
   | Text            -> "nvarchar(1024)"
   | Paragraph       -> "ntext"
   | Number          -> "int"
@@ -291,13 +291,13 @@ let authenticateTemplate site page =
 let authenticate (%s : %s) =
   let sql = "
 SELECT * FROM %s.dbo.Users
-WHERE email = @email
+WHERE Email = @Email
 "
   use connection = connection connectionString
   use command = command connection sql
   let user =
     command
-    |> param "email" %s.Email
+    |> param "Email" %s.Email
     |> read toLogin
     |> firstOrNone
   match user with
