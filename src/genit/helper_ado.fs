@@ -1,5 +1,6 @@
 module helper_ado
 
+open System.Data
 open System.Data.SqlClient
 
 let firstOrNone s = s |> Seq.tryFind (fun _ -> true)
@@ -29,28 +30,28 @@ let read toFunc (command : SqlCommand) =
   use reader = command.ExecuteReader()
   toFunc reader
 
-let getDouble name (reader : SqlDataReader) =
+let getDouble name (reader : IDataReader) =
   reader.GetDouble(reader.GetOrdinal(name))
 
-let getInt16 name (reader : SqlDataReader) =
+let getInt16 name (reader : IDataReader) =
   reader.GetInt16(reader.GetOrdinal(name))
 
-let getInt32 name (reader : SqlDataReader) =
+let getInt32 name (reader : IDataReader) =
   reader.GetInt32(reader.GetOrdinal(name))
 
-let getInt64 name (reader : SqlDataReader) =
+let getInt64 name (reader : IDataReader) =
   reader.GetInt64(reader.GetOrdinal(name))
 
-let getString name (reader : SqlDataReader) =
+let getString name (reader : IDataReader) =
   reader.GetString(reader.GetOrdinal(name))
 
-let getDateTime name (reader : SqlDataReader) =
+let getDateTime name (reader : IDataReader) =
   reader.GetDateTime(reader.GetOrdinal(name))
 
-let getBool name (reader : SqlDataReader) =
+let getBool name (reader : IDataReader) =
   reader.GetBoolean(reader.GetOrdinal(name))
 
-let getIntArray name (reader : SqlDataReader) =
+let getIntArray name (reader : IDataReader) =
   reader.GetValue(reader.GetOrdinal(name)) :?> int array
 
 let searchHowToClause how value =
