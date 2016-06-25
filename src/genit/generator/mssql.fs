@@ -4,6 +4,21 @@ open dsl
 open helper_general
 open System
 
+let useSome field =
+  match field.FieldType with
+  | Id              -> true
+  | Text            -> false
+  | Paragraph       -> false
+  | Number          -> true
+  | Decimal         -> true
+  | Date            -> true
+  | Phone           -> false
+  | Email           -> false
+  | Name            -> false
+  | Password        -> false
+  | ConfirmPassword -> false
+  | Dropdown _      -> true
+
 let createTemplate (dbname:string) =
   String.Format("""
 use master;
@@ -75,19 +90,23 @@ DATA READERS
 *)
 
 let conversionTemplate field =
-  match field.FieldType with
-  | Id              -> "getInt64"
-  | Text            -> "getString"
-  | Paragraph       -> "getString"
-  | Number          -> "getInt32"
-  | Decimal         -> "getDouble"
-  | Date            -> "getDateTime"
-  | Phone           -> "getString"
-  | Email           -> "getString"
-  | Name            -> "getString"
-  | Password        -> "getString"
-  | ConfirmPassword -> ""
-  | Dropdown (_)    -> "getInt16"
+  let result =
+    match field.FieldType with
+    | Id              -> "getInt64"
+    | Text            -> "getString"
+    | Paragraph       -> "getString"
+    | Number          -> "getInt32"
+    | Decimal         -> "getDouble"
+    | Date            -> "getDateTime"
+    | Phone           -> "getString"
+    | Email           -> "getString"
+    | Name            -> "getString"
+    | Password        -> "getString"
+    | ConfirmPassword -> ""
+    | Dropdown (_)    -> "getInt16"
+  if field.Attribute = Null && useSome field
+  then result + "Option"
+  else result
 
 let dataReaderPropertyTemplate field =
  sprintf """%s = %s "%s" reader""" field.AsProperty (conversionTemplate field) field.AsDBColumn
@@ -344,7 +363,7 @@ let fieldToProperty field =
     | Text            -> "string"
     | Paragraph       -> "string"
     | Number          -> "int"
-    | Decimal         -> "decimal"
+    | Decimal         -> "double"
     | Date            -> "System.DateTime"
     | Phone           -> "string"
     | Email           -> "string"
@@ -377,8 +396,8 @@ let fieldToConvertProperty page (field:Field) =
     else sprintf """%s = int64 %s""" field.AsProperty property
   let decimal () =
     if field.Attribute = Null
-    then sprintf """%s = Some(decimal %s)""" field.AsProperty property
-    else sprintf """%s = decimal %s""" field.AsProperty property
+    then sprintf """%s = Some(double %s)""" field.AsProperty property
+    else sprintf """%s = double %s""" field.AsProperty property
   let datetime () =
     if field.Attribute = Null
     then sprintf """%s = Some(System.DateTime.Parse(%s))""" field.AsProperty property
@@ -432,7 +451,7 @@ let fakePropertyTemplate (field : Field) =
     | Text            -> pickAppropriateText "randomItems 6 words"
     | Paragraph       -> "randomItems 40 words"
     | Number          -> pickAppropriateNumber "random.Next(100)"
-    | Decimal         -> "random.Next(100) |> decimal"
+    | Decimal         -> "random.Next(100) |> double"
     | Date            -> "System.DateTime.Now"
     | Phone           -> """sprintf "%i-%i-%i" (random.Next(200,800)) (random.Next(200,800)) (random.Next(2000,8000))"""
     | Email           -> """sprintf "%s@%s.com" (randomItem words) (randomItem words)"""
@@ -440,13 +459,13 @@ let fakePropertyTemplate (field : Field) =
     | Password        -> """"123123" """ |> trimEnd
     | ConfirmPassword -> """"123123" """ |> trimEnd
     | Dropdown _      -> "1s"
-  if field.Attribute = Null
+  if field.Attribute = Null && useSome field
   then sprintf """%s = Some(%s) """ field.AsProperty value
   else sprintf """%s = %s """ field.AsProperty value
 
 let fieldToPopulatedHtml page (field : Field) =
   let template tag =
-    if field.Attribute = Null
+    if field.Attribute = Null && useSome field
     then sprintf """%s "%s" (option2Val %s.%s) """ tag field.Name page.AsVal field.AsProperty |> trimEnd
     else sprintf """%s "%s" %s.%s """ tag field.Name page.AsVal field.AsProperty |> trimEnd
   let iconTemplate tag icon = sprintf """%s "%s" %s.%s "%s" """ tag field.Name page.AsVal field.AsProperty icon |> trimEnd

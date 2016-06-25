@@ -33,14 +33,38 @@ let read toFunc (command : SqlCommand) =
 let getDouble name (reader : IDataReader) =
   reader.GetDouble(reader.GetOrdinal(name))
 
+let getDoubleOption name (reader : IDataReader) =
+  let ordinal = reader.GetOrdinal(name)
+  if reader.IsDBNull(ordinal)
+  then None
+  else Some <| reader.GetDouble(ordinal)
+
 let getInt16 name (reader : IDataReader) =
   reader.GetInt16(reader.GetOrdinal(name))
+
+let getInt16Option name (reader : IDataReader) =
+  let ordinal = reader.GetOrdinal(name)
+  if reader.IsDBNull(ordinal)
+  then None
+  else Some <| reader.GetInt16(ordinal)
 
 let getInt32 name (reader : IDataReader) =
   reader.GetInt32(reader.GetOrdinal(name))
 
+let getInt32Option name (reader : IDataReader) =
+  let ordinal = reader.GetOrdinal(name)
+  if reader.IsDBNull(ordinal)
+  then None
+  else Some <| reader.GetInt32(ordinal)
+
 let getInt64 name (reader : IDataReader) =
   reader.GetInt64(reader.GetOrdinal(name))
+
+let getInt64Option name (reader : IDataReader) =
+  let ordinal = reader.GetOrdinal(name)
+  if reader.IsDBNull(ordinal)
+  then None
+  else Some <| reader.GetInt64(ordinal)
 
 let getString name (reader : IDataReader) =
   reader.GetString(reader.GetOrdinal(name))
@@ -48,11 +72,20 @@ let getString name (reader : IDataReader) =
 let getDateTime name (reader : IDataReader) =
   reader.GetDateTime(reader.GetOrdinal(name))
 
+let getDateTimeOption name (reader : IDataReader) =
+  let ordinal = reader.GetOrdinal(name)
+  if reader.IsDBNull(ordinal)
+  then None
+  else Some <| reader.GetDateTime(ordinal)
+
 let getBool name (reader : IDataReader) =
   reader.GetBoolean(reader.GetOrdinal(name))
 
-let getIntArray name (reader : IDataReader) =
-  reader.GetValue(reader.GetOrdinal(name)) :?> int array
+let getBoolOption name (reader : IDataReader) =
+  let ordinal = reader.GetOrdinal(name)
+  if reader.IsDBNull(ordinal)
+  then None
+  else Some <| reader.GetBoolean(ordinal)
 
 let searchHowToClause how value =
   match how with
