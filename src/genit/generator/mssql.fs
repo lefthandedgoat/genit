@@ -274,8 +274,7 @@ let getManyWhere_%s field how value =
   let search = searchHowToClause how value
   let sql =
     sprintf "SELECT TOP 500 * FROM %s.dbo.%s
-WHERE lower(%s) LIKE lower(@search)
-" field
+WHERE lower(%s) LIKE lower(@search)" field
 
   use connection = connection connectionString
   use command = command connection sql
