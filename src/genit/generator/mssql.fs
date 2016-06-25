@@ -48,7 +48,7 @@ let columnTypeTemplate field =
   | Text            -> "nvarchar(1024)"
   | Paragraph       -> "ntext"
   | Number          -> "int"
-  | Decimal         -> "decimal(12, 2)"
+  | Decimal         -> "float"
   | Date            -> "datetime"
   | Phone           -> "varchar(15)"
   | Email           -> "varchar(128)"
@@ -166,7 +166,10 @@ let insertValues page =
 let insertParamTemplate page field =
   if field.FieldType = Password
   then sprintf """|> param "%s" password""" field.AsDBColumn
-  else sprintf """|> param "%s" %s.%s""" field.AsDBColumn page.AsVal field.AsProperty
+  else
+    if field.Attribute = Null
+    then sprintf """|> paramOption "%s" %s.%s""" field.AsDBColumn page.AsVal field.AsProperty
+    else sprintf """|> param "%s" %s.%s""" field.AsDBColumn page.AsVal field.AsProperty
 
 let insertParamsTemplate page =
   page.Fields

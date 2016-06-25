@@ -20,6 +20,12 @@ let param (name:string) value (command : SqlCommand) =
   command.Parameters.AddWithValue(name, value) |> ignore
   command
 
+let paramOption (name:string) value (command : SqlCommand) =
+  match value with
+  | None       -> command.Parameters.AddWithValue(name, null) |> ignore
+  | Some value -> command.Parameters.AddWithValue(name, value) |> ignore
+  command
+
 let executeScalar (command : SqlCommand) =
   command.ExecuteScalar()
 
