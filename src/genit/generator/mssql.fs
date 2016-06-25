@@ -19,7 +19,7 @@ let useSome field =
   | ConfirmPassword -> false
   | Dropdown _      -> true
 
-let createTemplate (dbname:string) =
+let createTemplate (dbname : string) =
   String.Format("""
 use master;
 GO
@@ -155,7 +155,7 @@ let insertValues page =
   let format field =
     if field.FieldType = Id
     then "DEFAULT"
-    else sprintf ":%s" field.AsDBColumn
+    else sprintf "@%s" field.AsDBColumn
 
   page.Fields
   |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
@@ -203,7 +203,7 @@ UPDATE
 let updateColumns page =
   page.Fields
   |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
-  |> List.map (fun field -> sprintf """%s = :%s""" field.AsDBColumn field.AsDBColumn)
+  |> List.map (fun field -> sprintf """%s = @%s""" field.AsDBColumn field.AsDBColumn)
   |> List.map (pad 1)
   |> flattenWith ","
 
@@ -222,7 +222,7 @@ let update_%s (%s : %s) =
 UPDATE %s.%s
 SET
 %s
-WHERE %s = :%s;
+WHERE %s = @%s;
 "
   use connection = connection connectionString
   use command = command connection sql
@@ -243,7 +243,7 @@ let tryByIdTemplate site page =
 let tryById_%s id =
   let sql = "
 SELECT * FROM %s.%s
-WHERE %s = :%s
+WHERE %s = @%s
 "
   use connection = connection connectionString
   use command = command connection sql
@@ -272,7 +272,7 @@ let getManyWhere_%s field how value =
   let search = searchHowToClause how value
   let sql =
     sprintf "SELECT * FROM %s.%s
-WHERE lower(%s) LIKE lower(:search)
+WHERE lower(%s) LIKE lower(@search)
 LIMIT 500" field
 
   use connection = connection connectionString
@@ -293,7 +293,7 @@ let authenticateTemplate site page =
 let authenticate (%s : %s) =
   let sql = "
 SELECT * FROM %s.Users
-WHERE email = :email
+WHERE email = @email
 "
   use connection = connection connectionString
   use command = command connection sql
