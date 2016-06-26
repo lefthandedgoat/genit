@@ -32,11 +32,34 @@ let fieldToHtml (field : Field) =
   | ConfirmPassword   -> iconTemplate "icon_password_text" "lock"
   | Dropdown options  -> sprintf """label_select "%s" %A """ field.Name (zipOptions options) |> trimEnd
 
-let fieldToPopulatedHtml site page field =
-  sql.fieldToPopulatedHtml site page field
+let fieldToPopulatedHtml page (field : Field) =
+  let template tag =
+    if field.Attribute = Null && useSome field
+    then sprintf """%s "%s" (option2String %s.%s) """ tag field.Name page.AsVal field.AsProperty |> trimEnd
+    else sprintf """%s "%s" %s.%s """ tag field.Name page.AsVal field.AsProperty |> trimEnd
+  let iconTemplate tag icon = sprintf """%s "%s" %s.%s "%s" """ tag field.Name page.AsVal field.AsProperty icon |> trimEnd
+  match field.FieldType with
+  | Id                -> sprintf """hiddenInput "%s" %s.%s """ field.AsProperty page.AsVal field.AsProperty
+  | Text              -> template "label_text"
+  | Paragraph         -> template "label_textarea"
+  | Number            -> template "label_text"
+  | Decimal           -> template "label_text"
+  | Date              -> template "label_datetime"
+  | Phone             -> template "label_text"
+  | Email             -> iconTemplate "icon_label_text" "envelope"
+  | Name              -> iconTemplate "icon_label_text" "user"
+  | Password          -> iconTemplate "icon_password_text" "lock"
+  | ConfirmPassword   -> iconTemplate "icon_password_text" "lock"
+  | Dropdown options  ->
+    if field.Attribute = Null && useSome field
+    then sprintf """label_select_selected "%s" %A %s.%s""" field.Name (zipOptions options) page.AsVal field.AsProperty
+    else sprintf """label_select_selected "%s" %A (Some %s.%s)""" field.Name (zipOptions options) page.AsVal field.AsProperty
 
 let fieldToStaticHtml page (field : Field) =
-  let template tag = sprintf """%s "%s" %s.%s """ tag field.Name page.AsVal field.AsProperty
+  let template tag =
+    if field.Attribute = Null && useSome field
+    then sprintf """%s "%s" (option2String %s.%s)""" tag field.Name page.AsVal field.AsProperty
+    else sprintf """%s "%s" %s.%s""" tag field.Name page.AsVal field.AsProperty
   match field.FieldType with
   | Id                -> ""
   | Text              -> template "label_static"
@@ -49,7 +72,7 @@ let fieldToStaticHtml page (field : Field) =
   | Name              -> template "label_static"
   | Password          -> template "label_static"
   | ConfirmPassword   -> template "label_static"
-  | Dropdown _        -> sprintf """label_static "%s" %s.%s """ field.Name page.AsVal field.AsProperty
+  | Dropdown _        -> template "label_static"
 
 let fieldToErroredHtml page (field : Field) =
   let template tag = sprintf """%s "%s" (string %s.%s) errors""" tag field.Name page.AsFormVal field.AsProperty
@@ -158,7 +181,7 @@ let attributeToTestBody (field : Field) =
 
 let formatPopulatedEditFields site page (fields : Field list) tabs =
   fields
-  |> List.map (fieldToPopulatedHtml site page)
+  |> List.map (fieldToPopulatedHtml page)
   |> List.map (pad tabs)
   |> List.reduce (fun field1 field2 -> sprintf "%s%s%s" field1 Environment.NewLine field2)
 

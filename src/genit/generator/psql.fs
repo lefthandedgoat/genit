@@ -3,21 +3,6 @@ module psql
 open dsl
 open helper_general
 
-let useSome field =
-  match field.FieldType with
-  | Id              -> true
-  | Text            -> false
-  | Paragraph       -> false
-  | Number          -> true
-  | Decimal         -> true
-  | Date            -> true
-  | Phone           -> false
-  | Email           -> false
-  | Name            -> false
-  | Password        -> false
-  | ConfirmPassword -> false
-  | Dropdown _      -> true
-
 let createTemplate dbname =
   sprintf """
 DROP DATABASE IF EXISTS %s;
@@ -473,25 +458,5 @@ let fakePropertyTemplate (field : Field) =
   if field.Attribute = Null && useSome field
   then sprintf """%s = Some(%s) """ field.AsProperty value
   else sprintf """%s = %s """ field.AsProperty value
-
-let fieldToPopulatedHtml page (field : Field) =
-  let template tag =
-    if field.Attribute = Null && useSome field
-      then sprintf """%s "%s" (option2Val %s.%s) """ tag field.Name page.AsVal field.AsProperty |> trimEnd
-      else sprintf """%s "%s" %s.%s """ tag field.Name page.AsVal field.AsProperty |> trimEnd
-  let iconTemplate tag icon = sprintf """%s "%s" %s.%s "%s" """ tag field.Name page.AsVal field.AsProperty icon |> trimEnd
-  match field.FieldType with
-  | Id                -> sprintf """hiddenInput "%s" %s.%s """ field.AsProperty page.AsVal field.AsProperty
-  | Text              -> template "label_text"
-  | Paragraph         -> template "label_textarea"
-  | Number            -> template "label_text"
-  | Decimal           -> template "label_text"
-  | Date              -> template "label_datetime"
-  | Phone             -> template "label_text"
-  | Email             -> iconTemplate "icon_label_text" "envelope"
-  | Name              -> iconTemplate "icon_label_text" "user"
-  | Password          -> iconTemplate "icon_password_text" "lock"
-  | ConfirmPassword   -> iconTemplate "icon_password_text" "lock"
-  | Dropdown options  -> sprintf """label_select_selected "%s" %A (Some %s.%s)""" field.Name (zipOptions options) page.AsVal field.AsProperty
 
 let createConnectionString site = sprintf "Server=127.0.0.1;User Id=%s; Password=NOTsecure123;Database=%s;" site.AsDatabase site.AsDatabase

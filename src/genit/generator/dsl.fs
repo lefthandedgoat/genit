@@ -283,3 +283,18 @@ let needsViewView = isView
 let needsViewSearch = isSearch
 let needsUITests = isCreateEditHasFields
 let needsDataReader = isNotRegisterJumbotron
+
+let useSome field =
+  match field.FieldType with
+  | Id              -> true
+  | Text            -> false
+  | Paragraph       -> false
+  | Number          -> true
+  | Decimal         -> true
+  | Date            -> true
+  | Phone           -> false
+  | Email           -> false
+  | Name            -> false
+  | Password        -> false
+  | ConfirmPassword -> false
+  | Dropdown _      -> true

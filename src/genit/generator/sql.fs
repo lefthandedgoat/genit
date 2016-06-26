@@ -341,11 +341,6 @@ let fakePropertyTemplate site field =
   | Postgres  -> psql.fakePropertyTemplate field
   | SQLServer -> mssql.fakePropertyTemplate field
 
-let fieldToPopulatedHtml site page field =
-  match site.Database with
-  | Postgres  -> psql.fieldToPopulatedHtml page field
-  | SQLServer -> mssql.fieldToPopulatedHtml page field
-
 let createConnectionString site =
   match site.Database with
   | Postgres  -> psql.createConnectionString site
