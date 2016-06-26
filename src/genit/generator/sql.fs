@@ -36,9 +36,9 @@ let columnTemplate site namePad typePad field =
 
 let createColumns site page =
   let maxName = page.Fields |> List.map (fun field -> field.AsDBColumn.Length) |> List.max
-  let maxName = if maxName > 20 then maxName else 20
+  let maxName = if maxName > 25 then maxName else 25
   let maxType = page.Fields |> List.map (fun field -> (columnTypeTemplate site field).Length) |> List.max
-  let maxType = if maxType > 20 then maxType else 20
+  let maxType = if maxType > 25 then maxType else 25
 
   page.Fields
   |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
