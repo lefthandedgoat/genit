@@ -167,7 +167,7 @@ let insertParamTemplate page field =
   if field.FieldType = Password
   then sprintf """|> param "%s" password""" field.AsDBColumn
   else
-    if useSome field
+    if field.Attribute = Null && useSome field
     then sprintf """|> paramOption "%s" %s.%s""" field.AsDBColumn page.AsVal field.AsProperty
     else sprintf """|> param "%s" %s.%s""" field.AsDBColumn page.AsVal field.AsProperty
 
