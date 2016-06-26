@@ -293,7 +293,10 @@ let fieldsToHeaders (page : Page) =
 
 let fieldsToTd (page : Page) =
     page.Fields
-    |> List.map (fun field -> sprintf """td [ text (string %s.%s) ]""" page.AsVal field.AsProperty)
+    |> List.map (fun field ->
+                   if field.Attribute = Null && useSome field
+                   then sprintf """td [ text (option2String %s.%s) ]""" page.AsVal field.AsProperty
+                   else sprintf """td [ text (string %s.%s) ]""" page.AsVal field.AsProperty)
     |> List.map (pad 4)
     |> flatten
 
