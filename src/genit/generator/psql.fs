@@ -3,6 +3,21 @@ module psql
 open dsl
 open helper_general
 
+let useSome field =
+  match field.FieldType with
+  | Id              -> true
+  | Text            -> false
+  | Paragraph       -> false
+  | Number          -> true
+  | Decimal         -> true
+  | Date            -> true
+  | Phone           -> false
+  | Email           -> false
+  | Name            -> false
+  | Password        -> false
+  | ConfirmPassword -> false
+  | Dropdown _      -> true
+
 let createTemplate dbname =
   sprintf """
 DROP DATABASE IF EXISTS %s;
@@ -78,19 +93,23 @@ DATA READERS
 *)
 
 let conversionTemplate field =
-  match field.FieldType with
-  | Id              -> "getInt64"
-  | Text            -> "getString"
-  | Paragraph       -> "getString"
-  | Number          -> "getInt32"
-  | Decimal         -> "getDouble"
-  | Date            -> "getDateTime"
-  | Phone           -> "getString"
-  | Email           -> "getString"
-  | Name            -> "getString"
-  | Password        -> "getString"
-  | ConfirmPassword -> ""
-  | Dropdown (_)    -> "getInt16"
+  let result =
+    match field.FieldType with
+    | Id              -> "getInt64"
+    | Text            -> "getString"
+    | Paragraph       -> "getString"
+    | Number          -> "getInt32"
+    | Decimal         -> "getDouble"
+    | Date            -> "getDateTime"
+    | Phone           -> "getString"
+    | Email           -> "getString"
+    | Name            -> "getString"
+    | Password        -> "getString"
+    | ConfirmPassword -> ""
+    | Dropdown (_)    -> "getInt16"
+  if field.Attribute = Null && useSome field
+  then result + "Option"
+  else result
 
 let dataReaderPropertyTemplate field =
  sprintf """%s = %s "%s" reader""" field.AsProperty (conversionTemplate field) field.AsDBColumn
@@ -150,7 +169,10 @@ let insertValues page =
 let insertParamTemplate page field =
   if field.FieldType = Password
   then sprintf """|> param "%s" password""" field.AsDBColumn
-  else sprintf """|> param "%s" %s.%s""" field.AsDBColumn page.AsVal field.AsProperty
+  else
+    if field.Attribute = Null && useSome field
+      then sprintf """|> paramOption "%s" %s.%s""" field.AsDBColumn page.AsVal field.AsProperty
+      else sprintf """|> param "%s" %s.%s""" field.AsDBColumn page.AsVal field.AsProperty
 
 let insertParamsTemplate page =
   page.Fields
@@ -196,7 +218,10 @@ let updateColumns page =
 let updateParamsTemplate page =
   page.Fields
   |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
-  |> List.map (fun field -> sprintf """|> param "%s" %s.%s""" field.AsDBColumn page.AsVal field.AsProperty)
+  |> List.map (fun field ->
+               if field.Attribute = Null && useSome field
+               then sprintf """|> paramOption "%s" %s.%s""" field.AsDBColumn page.AsVal field.AsProperty
+               else sprintf """|> param "%s" %s.%s""" field.AsDBColumn page.AsVal field.AsProperty)
   |> List.map (pad 1)
   |> flatten
 
@@ -343,19 +368,23 @@ let connectionString = "%s"
 %s""" connectionString guts
 
 let fieldToProperty field =
-  match field.FieldType with
-  | Id              -> "int64"
-  | Text            -> "string"
-  | Paragraph       -> "string"
-  | Number          -> "int"
-  | Decimal         -> "double"
-  | Date            -> "System.DateTime"
-  | Phone           -> "string"
-  | Email           -> "string"
-  | Name            -> "string"
-  | Password        -> "string"
-  | ConfirmPassword -> "string"
-  | Dropdown _      -> "int16"
+  let result =
+    match field.FieldType with
+    | Id              -> "int64"
+    | Text            -> "string"
+    | Paragraph       -> "string"
+    | Number          -> "int"
+    | Decimal         -> "double"
+    | Date            -> "System.DateTime"
+    | Phone           -> "string"
+    | Email           -> "string"
+    | Name            -> "string"
+    | Password        -> "string"
+    | ConfirmPassword -> "string"
+    | Dropdown _      -> "int16"
+  if field.Attribute = Null && useSome field
+  then result + " option"
+  else result
 
 let fieldLine (field : Field ) =
   match field.Attribute with
@@ -364,17 +393,32 @@ let fieldLine (field : Field ) =
 let fieldToConvertProperty page field =
   let property = sprintf "%s.%s" page.AsFormVal field.AsProperty
   let string () = sprintf """%s = %s""" field.AsProperty property
-  let int () = sprintf """%s = int %s""" field.AsProperty property
-  let int16 () = sprintf """%s = int16 %s""" field.AsProperty property
-  let int64 () = sprintf """%s = int64 %s""" field.AsProperty property
-  let double () = sprintf """%s = double %s""" field.AsProperty property
-  let datetime () = sprintf """%s = System.DateTime.Parse(%s)""" field.AsProperty property
+  let int () =
+    if field.Attribute = Null
+    then sprintf """%s = Some(int %s)""" field.AsProperty property
+    else sprintf """%s = int %s""" field.AsProperty property
+  let int16 () =
+    if field.Attribute = Null
+    then sprintf """%s = Some(int16 %s)""" field.AsProperty property
+    else sprintf """%s = int16 %s""" field.AsProperty property
+  let int64 () =
+    if field.Attribute = Null
+    then sprintf """%s = Some(int64 %s)""" field.AsProperty property
+    else sprintf """%s = int64 %s""" field.AsProperty property
+  let decimal () =
+    if field.Attribute = Null
+    then sprintf """%s = Some(double %s)""" field.AsProperty property
+    else sprintf """%s = double %s""" field.AsProperty property
+  let datetime () =
+    if field.Attribute = Null
+    then sprintf """%s = Some(System.DateTime.Parse(%s))""" field.AsProperty property
+    else sprintf """%s = System.DateTime.Parse(%s)""" field.AsProperty property
   match field.FieldType with
   | Id              -> int64 ()
   | Text            -> string ()
   | Paragraph       -> string ()
   | Number          -> int ()
-  | Decimal         -> double ()
+  | Decimal         -> decimal ()
   | Date            -> datetime ()
   | Email           -> string ()
   | Name            -> string ()
@@ -426,10 +470,15 @@ let fakePropertyTemplate (field : Field) =
     | Password        -> """"123123" """ |> trimEnd
     | ConfirmPassword -> """"123123" """ |> trimEnd
     | Dropdown _      -> "1s"
-  sprintf """%s = %s """ field.AsProperty value
+  if field.Attribute = Null && useSome field
+  then sprintf """%s = Some(%s) """ field.AsProperty value
+  else sprintf """%s = %s """ field.AsProperty value
 
 let fieldToPopulatedHtml page (field : Field) =
-  let template tag = sprintf """%s "%s" %s.%s """ tag field.Name page.AsVal field.AsProperty |> trimEnd
+  let template tag =
+    if field.Attribute = Null && useSome field
+      then sprintf """%s "%s" (option2Val %s.%s) """ tag field.Name page.AsVal field.AsProperty |> trimEnd
+      else sprintf """%s "%s" %s.%s """ tag field.Name page.AsVal field.AsProperty |> trimEnd
   let iconTemplate tag icon = sprintf """%s "%s" %s.%s "%s" """ tag field.Name page.AsVal field.AsProperty icon |> trimEnd
   match field.FieldType with
   | Id                -> sprintf """hiddenInput "%s" %s.%s """ field.AsProperty page.AsVal field.AsProperty

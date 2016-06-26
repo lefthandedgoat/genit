@@ -205,7 +205,7 @@ UPDATE
 *)
 let updateColumns page =
   page.Fields
-  |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
+  |> List.filter (fun field -> field.FieldType <> Id && field.FieldType <> ConfirmPassword)
   |> List.map (fun field -> sprintf """%s = @%s""" field.AsDBColumn field.AsDBColumn)
   |> List.map (pad 1)
   |> flattenWith ","
@@ -375,7 +375,7 @@ let fieldToProperty field =
     | Password        -> "string"
     | ConfirmPassword -> "string"
     | Dropdown _      -> "int16"
-  if field.Attribute = Null && result <> "string"
+  if field.Attribute = Null && useSome field
   then result + " option"
   else result
 
