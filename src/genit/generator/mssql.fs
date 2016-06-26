@@ -213,7 +213,10 @@ let updateColumns page =
 let updateParamsTemplate page =
   page.Fields
   |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
-  |> List.map (fun field -> sprintf """|> param "%s" %s.%s""" field.AsDBColumn page.AsVal field.AsProperty)
+  |> List.map (fun field ->
+               if field.Attribute = Null && useSome field
+               then sprintf """|> paramOption "%s" %s.%s""" field.AsDBColumn page.AsVal field.AsProperty
+               else sprintf """|> param "%s" %s.%s""" field.AsDBColumn page.AsVal field.AsProperty)
   |> List.map (pad 1)
   |> flatten
 
