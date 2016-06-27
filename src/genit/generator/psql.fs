@@ -73,50 +73,6 @@ let createTables guts1 guts2 =
 
 (*
 
-DATA READERS
-
-*)
-
-let conversionTemplate field =
-  let result =
-    match field.FieldType with
-    | Id              -> "getInt64"
-    | Text            -> "getString"
-    | Paragraph       -> "getString"
-    | Number          -> "getInt32"
-    | Decimal         -> "getDouble"
-    | Date            -> "getDateTime"
-    | Phone           -> "getString"
-    | Email           -> "getString"
-    | Name            -> "getString"
-    | Password        -> "getString"
-    | ConfirmPassword -> ""
-    | Dropdown (_)    -> "getInt16"
-  if field.Attribute = Null && useSome field
-  then result + "Option"
-  else result
-
-let dataReaderPropertyTemplate field =
- sprintf """%s = %s "%s" reader""" field.AsProperty (conversionTemplate field) field.AsDBColumn
-
-let dataReaderPropertiesTemplate page =
-  page.Fields
-  |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
-  |> List.map (fun field -> dataReaderPropertyTemplate field)
-  |> List.map (pad 3)
-  |> flatten
-
-let dataReaderTemplate page =
-  sprintf """let to%s (reader : IDataReader) : %s list =
-  [ while reader.Read() do
-    yield {
-%s
-    }
-  ]
-  """ page.AsType page.AsType (dataReaderPropertiesTemplate page)
-
-(*
-
 INSERT
 
 *)
@@ -313,30 +269,6 @@ Everything else
 
 *)
 
-let createQueriesForPage site page =
-  let rec createQueriesForPage pageMode =
-    match pageMode with
-    | CVELS     -> [Create; Edit; List; Search] |> List.map createQueriesForPage |> flatten
-    | CVEL      -> [Create; Edit; List] |> List.map createQueriesForPage |> flatten
-    | Create    -> insertTemplate site page
-    | Edit      -> [updateTemplate site page; tryByIdTemplate site page] |> flatten
-    | View      -> tryByIdTemplate site page
-    | List      -> selectManyTemplate site page
-    | Search    -> selectManyWhereTemplate site page
-    | Register  -> insertTemplate site page
-    | Login     -> authenticateTemplate site page
-    | Jumbotron -> ""
-
-  let queries = createQueriesForPage page.PageMode
-  if needsDataReader page
-  then sprintf "%s%s%s" (dataReaderTemplate page) System.Environment.NewLine queries
-  else queries
-
-let createQueries (site : Site) =
-  site.Pages
-  |> List.map (createQueriesForPage site)
-  |> flatten
-
 let generated_data_access_template connectionString guts =
   sprintf """module generated_data_access
 
@@ -353,112 +285,5 @@ open BCrypt.Net
 let connectionString = "%s"
 
 %s""" connectionString guts
-
-let fieldToProperty field =
-  let result =
-    match field.FieldType with
-    | Id              -> "int64"
-    | Text            -> "string"
-    | Paragraph       -> "string"
-    | Number          -> "int"
-    | Decimal         -> "double"
-    | Date            -> "System.DateTime"
-    | Phone           -> "string"
-    | Email           -> "string"
-    | Name            -> "string"
-    | Password        -> "string"
-    | ConfirmPassword -> "string"
-    | Dropdown _      -> "int16"
-  if field.Attribute = Null && useSome field
-  then result + " option"
-  else result
-
-let fieldLine (field : Field ) =
-  match field.Attribute with
-  | _ -> sprintf """%s : %s""" field.AsProperty (fieldToProperty field)
-
-let fieldToConvertProperty page field =
-  let property = sprintf "%s.%s" page.AsFormVal field.AsProperty
-  let string () = sprintf """%s = %s""" field.AsProperty property
-  let int () =
-    if field.Attribute = Null
-    then sprintf """%s = Some(int %s)""" field.AsProperty property
-    else sprintf """%s = int %s""" field.AsProperty property
-  let int16 () =
-    if field.Attribute = Null
-    then sprintf """%s = Some(int16 %s)""" field.AsProperty property
-    else sprintf """%s = int16 %s""" field.AsProperty property
-  let int64 () =
-    if field.Attribute = Null
-    then sprintf """%s = Some(int64 %s)""" field.AsProperty property
-    else sprintf """%s = int64 %s""" field.AsProperty property
-  let decimal () =
-    if field.Attribute = Null
-    then sprintf """%s = Some(double %s)""" field.AsProperty property
-    else sprintf """%s = double %s""" field.AsProperty property
-  let datetime () =
-    if field.Attribute = Null
-    then sprintf """%s = Some(System.DateTime.Parse(%s))""" field.AsProperty property
-    else sprintf """%s = System.DateTime.Parse(%s)""" field.AsProperty property
-  match field.FieldType with
-  | Id              -> int64 ()
-  | Text            -> string ()
-  | Paragraph       -> string ()
-  | Number          -> int ()
-  | Decimal         -> decimal ()
-  | Date            -> datetime ()
-  | Email           -> string ()
-  | Name            -> string ()
-  | Phone           -> string ()
-  | Password        -> string ()
-  | ConfirmPassword -> string ()
-  | Dropdown _      -> int16 ()
-
-let fakePropertyTemplate (field : Field) =
-  let lowered = field.Name.ToLower()
-  let pickAppropriateText defaultValue =
-    if lowered.Contains("last") && lowered.Contains("name")
-    then "randomItem lastNames"
-    else if lowered.Contains("first") && lowered.Contains("name")
-    then "randomItem firstNames"
-    else if lowered.Contains("name")
-    then """(randomItem firstNames) + " " + (randomItem lastNames)"""
-    else if lowered.Contains("city")
-    then "cityStateZip.City"
-    else if lowered.Contains("state")
-    then "cityStateZip.State"
-    else if lowered.Contains("zip") || lowered.Contains("postal")
-    then "cityStateZip.Zip"
-    else if lowered.Contains("address") || lowered.Contains("street")
-    then """(string (random.Next(100,9999))) + " " + (randomItem streetNames) + " " + (randomItem streetNameSuffixes)"""
-    else defaultValue
-
-  let pickAppropriateNumber defaultValue =
-    defaultValue
-
-  let pickAppropriateName defaultValue =
-    if lowered.Contains("first")
-    then "randomItem firstNames"
-    else if lowered.Contains("last")
-    then "randomItem lastNames"
-    else defaultValue
-
-  let value =
-    match field.FieldType with
-    | Id              -> "-1L"
-    | Text            -> pickAppropriateText "randomItems 6 words"
-    | Paragraph       -> "randomItems 40 words"
-    | Number          -> pickAppropriateNumber "random.Next(100)"
-    | Decimal         -> "random.Next(100) |> double"
-    | Date            -> "System.DateTime.Now"
-    | Phone           -> """sprintf "%i-%i-%i" (random.Next(200,800)) (random.Next(200,800)) (random.Next(2000,8000))"""
-    | Email           -> """sprintf "%s@%s.com" (randomItem words) (randomItem words)"""
-    | Name            -> pickAppropriateName """randomItem names"""
-    | Password        -> """"123123" """ |> trimEnd
-    | ConfirmPassword -> """"123123" """ |> trimEnd
-    | Dropdown _      -> "1s"
-  if field.Attribute = Null && useSome field
-  then sprintf """%s = Some(%s) """ field.AsProperty value
-  else sprintf """%s = %s """ field.AsProperty value
 
 let createConnectionString site = sprintf "Server=127.0.0.1;User Id=%s; Password=NOTsecure123;Database=%s;" site.AsDatabase site.AsDatabase
