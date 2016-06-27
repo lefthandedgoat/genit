@@ -179,7 +179,7 @@ let attributeToTestBody (field : Field) =
   | Max(max)       -> Some (sprintf """displayed "%s can not be above %i" """ field.Name max |> trimEnd)
   | Range(min,max) -> Some (sprintf """displayed "%s must be between %i and %i" """ field.Name min max |> trimEnd)
 
-let formatPopulatedEditFields site page (fields : Field list) tabs =
+let formatPopulatedEditFields page (fields : Field list) tabs =
   fields
   |> List.map (fieldToPopulatedHtml page)
   |> List.map (pad tabs)
@@ -233,7 +233,7 @@ let view_create_errored_%s errors (%s : %s) =
     ]
     scripts.common""" page.AsVal page.AsFormVal page.AsFormType page.Name page.Name (formatErroredFields page page.Fields 5)
 
-let editFormViewTemplate site (page : Page) =
+let editFormViewTemplate (page : Page) =
   sprintf """
 let view_edit_%s (%s : %s) =
   base_html
@@ -246,7 +246,7 @@ let view_edit_%s (%s : %s) =
 %s
         ]
     ]
-    scripts.common""" page.AsVal page.AsVal page.AsType page.Name page.Name (formatPopulatedEditFields site page page.Fields 5)
+    scripts.common""" page.AsVal page.AsVal page.AsType page.Name page.Name (formatPopulatedEditFields page page.Fields 5)
 
 let editErroredFormViewTemplate (page : Page) =
   sprintf """
@@ -483,7 +483,7 @@ let viewTemplate site page =
     | CVELS     -> [Create; View; Edit; List; Search] |> List.map (viewTemplate site page) |> flatten
     | CVEL      -> [Create; View; Edit; List] |> List.map (viewTemplate site page) |> flatten
     | Create    -> [createFormViewTemplate page; createErroredFormViewTemplate page] |> flatten
-    | Edit      -> [editFormViewTemplate site page; editErroredFormViewTemplate page] |> flatten
+    | Edit      -> [editFormViewTemplate page; editErroredFormViewTemplate page] |> flatten
     | View      -> viewFormViewTemplate page
     | List      -> listFormViewTemplate page
     | Search    -> searchFormViewTemplate page

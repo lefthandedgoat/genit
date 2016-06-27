@@ -333,9 +333,11 @@ let createQueries (site : Site) =
 let generated_data_access_template connectionString guts =
   sprintf """module generated_data_access
 
+open System.Data
 open generated_types
 open helper_general
 open helper_ado
+open helper_sqlado
 open System.Data
 open dsl
 open BCrypt.Net

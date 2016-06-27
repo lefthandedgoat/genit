@@ -7,32 +7,13 @@ let firstOrNone s = s |> Seq.tryFind (fun _ -> true)
 
 let boolean (value : string) = System.Convert.ToBoolean(value)
 
-let connection (connectionString : string) =
-  let connection = new SqlConnection(connectionString)
-  connection.Open()
-  connection
-
-let command connection sql =
-  let command = new SqlCommand(sql, connection)
-  command
-
-let param (name:string) value (command : SqlCommand) =
-  command.Parameters.AddWithValue(name, value) |> ignore
-  command
-
-let paramOption (name:string) value (command : SqlCommand) =
-  match value with
-  | None       -> command.Parameters.AddWithValue(name, null) |> ignore
-  | Some value -> command.Parameters.AddWithValue(name, value) |> ignore
-  command
-
-let executeScalar (command : SqlCommand) =
+let executeScalar (command : IDbCommand) =
   command.ExecuteScalar()
 
-let executeNonQuery (command : SqlCommand) =
+let executeNonQuery (command : IDbCommand) =
   command.ExecuteNonQuery() |> ignore
 
-let read toFunc (command : SqlCommand) =
+let read toFunc (command : IDbCommand) =
   use reader = command.ExecuteReader()
   toFunc reader
 
@@ -98,3 +79,54 @@ let searchHowToClause how value =
   | "Equals"      -> value
   | "Begins With" -> sprintf "%s%s" value "%"
   | _             -> value
+
+module helper_npgado =
+
+  open Npgsql
+  open System.Data
+
+  let connection (connectionString : string) =
+    let connection = new NpgsqlConnection(connectionString)
+    connection.Open()
+    connection :> IDbConnection
+
+  let command (connection : IDbConnection) sql =
+    let connection = connection :?> NpgsqlConnection
+    let command = new NpgsqlCommand(sql, connection)
+    command :> IDbCommand
+
+  let param (name:string) value (command : IDbCommand) =
+    let command = command :?> NpgsqlCommand
+    command.Parameters.AddWithValue(name, value) |> ignore
+    command :> IDbCommand
+
+  let paramOption (name:string) value (command : IDbCommand) =
+    let command = command :?> NpgsqlCommand
+    match value with
+    | None       -> command.Parameters.AddWithValue(name, null) |> ignore
+    | Some value -> command.Parameters.AddWithValue(name, value) |> ignore
+    command :> IDbCommand
+
+module helper_sqlado =
+
+  open System.Data
+  open System.Data.SqlClient
+
+  let connection (connectionString : string) =
+    let connection = new SqlConnection(connectionString)
+    connection.Open()
+    connection
+
+  let command connection sql =
+    let command = new SqlCommand(sql, connection)
+    command
+
+  let param (name:string) value (command : SqlCommand) =
+    command.Parameters.AddWithValue(name, value) |> ignore
+    command
+
+  let paramOption (name:string) value (command : SqlCommand) =
+    match value with
+    | None       -> command.Parameters.AddWithValue(name, null) |> ignore
+    | Some value -> command.Parameters.AddWithValue(name, value) |> ignore
+    command
