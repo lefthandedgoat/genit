@@ -952,6 +952,7 @@ let generate (site : Site) =
   write (destination "generated_security.fs") generated_security_result
 
   write (destination "generated_dbname.txt") site.AsDatabase
+  write (destination "generated_dbtype.txt") (sprintf "%A" site.Database)
   write (destination "generated_sql_createdb.sql") generated_sql_createdb_result
   write (destination "generated_sql_initialSetup.sql") generated_sql_initialSetup_result
   write (destination "generated_sql_createTables.sql") generated_sql_createTables_result
