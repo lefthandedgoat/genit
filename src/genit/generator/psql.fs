@@ -107,7 +107,7 @@ let dataReaderPropertiesTemplate page =
   |> flatten
 
 let dataReaderTemplate page =
-  sprintf """let to%s (reader : NpgsqlDataReader) : %s list =
+  sprintf """let to%s (reader : IDataReader) : %s list =
   [ while reader.Read() do
     yield {
 %s
