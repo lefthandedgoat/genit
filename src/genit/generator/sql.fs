@@ -2,7 +2,6 @@ module sql
 
 open dsl
 open helper_general
-open psql
 
 let createTemplate dbname database =
   match database with
@@ -134,68 +133,10 @@ INSERT
 
 *)
 
-let insertColumns page =
-  page.Fields
-  |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
-  |> List.map (fun field -> field.AsDBColumn)
-  |> List.map (pad 2)
-  |> flattenWith ","
-
-let passwordTemplate page =
-  let password = page.Fields |> List.tryFind (fun field -> field.FieldType = Password)
-  match password with
-  | Some(password) ->
-    sprintf """
-  let bCryptScheme = getBCryptScheme currentBCryptScheme
-  let salt = BCrypt.GenerateSalt(bCryptScheme.WorkFactor)
-  let password = BCrypt.HashPassword(%s.%s, salt)
-    """ page.AsVal password.AsProperty
-  | None -> ""
-
-let insertValues page =
-  let format field =
-    if field.FieldType = Id
-    then "DEFAULT"
-    else sprintf ":%s" field.AsDBColumn
-
-  page.Fields
-  |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
-  |> List.map format
-  |> List.map (pad 2)
-  |> flattenWith ","
-
-let insertParamTemplate page field =
-  if field.FieldType = Password
-  then sprintf """|> param "%s" password""" field.AsDBColumn
-  else sprintf """|> param "%s" %s.%s""" field.AsDBColumn page.AsVal field.AsProperty
-
-let insertParamsTemplate page =
-  page.Fields
-  |> List.filter (fun field -> field.FieldType <> Id && field.FieldType <> ConfirmPassword)
-  |> List.map (insertParamTemplate page)
-  |> List.map (pad 1)
-  |> flatten
-
 let insertTemplate site page =
-  let idField = page.Fields |> List.find (fun field -> field.FieldType = Id)
-  sprintf """
-let insert_%s (%s : %s) =
-  let sql = "
-INSERT INTO %s.%s
-  (
-%s
-  ) VALUES (
-%s
-  ) RETURNING %s;
-"
-%s
-  use connection = connection connectionString
-  use command = command connection sql
-  command
-%s
-  |> executeScalar
-  |> string |> int64
-  """ page.AsVal page.AsVal page.AsType site.AsDatabase page.AsTable (insertColumns page) (insertValues page) idField.AsDBColumn (passwordTemplate page) (insertParamsTemplate page)
+  match site.Database with
+  | Postgres  -> psql.insertTemplate site page
+  | SQLServer -> mssql.insertTemplate site page
 
 (*
 
@@ -203,36 +144,10 @@ UPDATE
 
 *)
 
-let updateColumns page =
-  page.Fields
-  |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
-  |> List.map (fun field -> sprintf """%s = :%s""" field.AsDBColumn field.AsDBColumn)
-  |> List.map (pad 1)
-  |> flattenWith ","
-
-let updateParamsTemplate page =
-  page.Fields
-  |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
-  |> List.map (fun field -> sprintf """|> param "%s" %s.%s""" field.AsDBColumn page.AsVal field.AsProperty)
-  |> List.map (pad 1)
-  |> flatten
-
 let updateTemplate site page =
-  let idField = page.Fields |> List.find (fun field -> field.FieldType = Id)
-  sprintf """
-let update_%s (%s : %s) =
-  let sql = "
-UPDATE %s.%s
-SET
-%s
-WHERE %s = :%s;
-"
-  use connection = connection connectionString
-  use command = command connection sql
-  command
-%s
-  |> executeNonQuery
-  """ page.AsVal page.AsVal page.AsType site.AsDatabase page.AsTable (updateColumns page) idField.AsDBColumn idField.AsDBColumn (updateParamsTemplate page)
+  match site.Database with
+  | Postgres  -> psql.updateTemplate site page
+  | SQLServer -> mssql.updateTemplate site page
 
 (*
 
@@ -241,49 +156,19 @@ SELECT
 *)
 
 let tryByIdTemplate site page =
-  let idField = page.Fields |> List.find (fun field -> field.FieldType = Id)
-  sprintf """
-let tryById_%s id =
-  let sql = "
-SELECT * FROM %s.%s
-WHERE %s = :%s
-"
-  use connection = connection connectionString
-  use command = command connection sql
-  command
-  |> param "%s" id
-  |> read to%s
-  |> firstOrNone""" page.AsVal site.AsDatabase page.AsTable idField.AsDBColumn idField.AsDBColumn idField.AsDBColumn page.AsType
+  match site.Database with
+  | Postgres  -> psql.tryByIdTemplate site page
+  | SQLServer -> mssql.tryByIdTemplate site page
 
 let selectManyTemplate site page =
-  sprintf """
-let getMany_%s () =
-  let sql = "
-SELECT * FROM %s.%s
-LIMIT 500
-"
-  use connection = connection connectionString
-  use command = command connection sql
-  command
-  |> read to%s
-  """ page.AsVal site.AsDatabase page.AsTable page.AsType
+  match site.Database with
+  | Postgres  -> psql.selectManyTemplate site page
+  | SQLServer -> mssql.selectManyTemplate site page
 
 let selectManyWhereTemplate site page =
-  sprintf """
-let getManyWhere_%s field how value =
-  let field = to_postgres_dbColumn field
-  let search = searchHowToClause how value
-  let sql =
-    sprintf "SELECT * FROM %s.%s
-WHERE lower(%s) LIKE lower(:search)
-LIMIT 500" field
-
-  use connection = connection connectionString
-  use command = command connection sql
-  command
-  |> param "search" search
-  |> read to%s
-  """ page.AsVal site.AsDatabase page.AsTable "%s" page.AsType
+  match site.Database with
+  | Postgres  -> psql.selectManyWhereTemplate site page
+  | SQLServer -> mssql.selectManyWhereTemplate site page
 
 (*
 
@@ -292,27 +177,9 @@ Authentication
 *)
 
 let authenticateTemplate site page =
-  sprintf """
-let authenticate (%s : %s) =
-  let sql = "
-SELECT * FROM %s.users
-WHERE email = :email
-"
-  use connection = connection connectionString
-  use command = command connection sql
-  let user =
-    command
-    |> param "email" %s.Email
-    |> read toLogin
-    |> firstOrNone
-  match user with
-    | None -> None
-    | Some(user) ->
-      let verified = BCrypt.Verify(%s.Password, user.Password)
-      if verified
-      then Some(user)
-      else None
-  """ page.AsVal page.AsType site.AsDatabase page.AsVal page.AsVal
+  match site.Database with
+  | Postgres  -> psql.authenticateTemplate site page
+  | SQLServer -> mssql.authenticateTemplate site page
 
 (*
 
