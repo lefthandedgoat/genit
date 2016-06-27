@@ -129,17 +129,32 @@ Target "Test" (fun _ -> execProcess "test")
 
 Target "CreateDB" (fun _ ->
   let path template = String.Format(template, System.IO.Path.DirectorySeparatorChar)
-  let dbname = System.IO.File.ReadAllText(path "src{0}genit{0}generated{0}generated_dbname.txt")
+  let dbtype = System.IO.File.ReadAllText(path "src{0}genit{0}generated{0}generated_dbtype.txt")
 
-  let command = "psql"
-  let args = path "-a -f src{0}genit{0}generated{0}generated_sql_createdb.sql"
-  Shell.Exec(command, args) |> ignore
+  if dbtype = "Postgres" then
+    let dbname = System.IO.File.ReadAllText(path "src{0}genit{0}generated{0}generated_dbname.txt")
+    let command = "psql"
+    let args = path "-a -f src{0}genit{0}generated{0}generated_sql_createdb.sql"
+    Shell.Exec(command, args) |> ignore
 
-  let args = path (sprintf "-d %s -a -f src{0}genit{0}generated{0}generated_sql_initialSetup.sql" dbname)
-  Shell.Exec(command, args) |> ignore
+    let args = path (sprintf "-d %s -a -f src{0}genit{0}generated{0}generated_sql_initialSetup.sql" dbname)
+    Shell.Exec(command, args) |> ignore
 
-  let args = path (sprintf "-d %s -a -f src{0}genit{0}generated{0}generated_sql_createTables.sql" dbname)
-  Shell.Exec(command, args) |> ignore
+    let args = path (sprintf "-d %s -a -f src{0}genit{0}generated{0}generated_sql_createTables.sql" dbname)
+    Shell.Exec(command, args) |> ignore
+
+  else if dbtype = "SQLServer" then
+    let command = "sqlcmd"
+    let args = path "-S .\SQLEXPRESS -i src{0}genit{0}generated{0}generated_sql_createdb.sql"
+    Shell.Exec(command, args) |> ignore
+
+    let args = path "-S .\SQLEXPRESS -i src{0}genit{0}generated{0}generated_sql_initialSetup.sql"
+    Shell.Exec(command, args) |> ignore
+
+    let args = path "-S .\SQLEXPRESS -i src{0}genit{0}generated{0}generated_sql_createTables.sql"
+    Shell.Exec(command, args) |> ignore
+
+  else failwith (sprintf "Database type %s is not supported" dbtype)
 )
 
 Target "Help" (fun _ ->
