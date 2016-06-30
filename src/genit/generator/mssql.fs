@@ -17,9 +17,9 @@ GO
 CREATE DATABASE {0};
 GO""", dbname )
 
-let initialSetupTemplate (dbname : string) = System.String.Format("""
+let initialSetupTemplate site = System.String.Format("""
 
-""", dbname)
+""", site.AsDatabase)
 
 (*
 

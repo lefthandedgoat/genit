@@ -7,6 +7,8 @@ let someSite () =
 
   db Postgres
 
+  dbPassword "NOTSecure1234"
+
   site "Bob's Burgers"
 
   basic home

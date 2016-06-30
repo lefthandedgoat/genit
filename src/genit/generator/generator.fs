@@ -932,7 +932,7 @@ let generate (site : Site) =
   let generated_security_result = generated_security_template serverKey
 
   let generated_sql_createdb_result = sql.createTemplate site.AsDatabase site.Database
-  let generated_sql_initialSetup_result = sql.initialSetupTemplate site.AsDatabase site.Database
+  let generated_sql_initialSetup_result = sql.initialSetupTemplate site
   let generated_sql_createTables_result = sql.createTables (sql.createTableTemplates site) (sql.grantPrivileges site)
 
   write (destination "generated_html.fs") generated_html_result

@@ -8,17 +8,17 @@ let createTemplate dbname =
 DROP DATABASE IF EXISTS %s;
 CREATE DATABASE %s;""" dbname dbname
 
-let initialSetupTemplate (dbname : string) = System.String.Format("""
+let initialSetupTemplate site = System.String.Format("""
 DROP OWNED BY {0};
 DROP USER IF EXISTS {0};
 
 DROP SCHEMA IF EXISTS {0};
 CREATE SCHEMA {0};
 
-CREATE USER {0} WITH ENCRYPTED PASSWORD 'NOTsecure123';
+CREATE USER {0} WITH ENCRYPTED PASSWORD '{1}';
 GRANT USAGE ON SCHEMA {0} to {0};
 ALTER DEFAULT PRIVILEGES IN SCHEMA {0} GRANT SELECT ON TABLES TO {0};
-GRANT CONNECT ON DATABASE "{0}" to {0};""", dbname)
+GRANT CONNECT ON DATABASE "{0}" to {0};""", site.AsDatabase, site.DatabasePassword)
 
 (*
 
@@ -286,4 +286,4 @@ let connectionString = "%s"
 
 %s""" connectionString guts
 
-let createConnectionString site = sprintf "Server=127.0.0.1;User Id=%s; Password=NOTsecure123;Database=%s;" site.AsDatabase site.AsDatabase
+let createConnectionString site = sprintf "Server=127.0.0.1;User Id=%s; Password=%s;Database=%s;" site.AsDatabase site.DatabasePassword site.AsDatabase

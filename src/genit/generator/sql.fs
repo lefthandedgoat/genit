@@ -8,10 +8,10 @@ let createTemplate dbname database =
   | Postgres  -> psql.createTemplate dbname
   | SQLServer -> mssql.createTemplate dbname
 
-let initialSetupTemplate dbname database =
-  match database with
-  | Postgres  -> psql.initialSetupTemplate dbname
-  | SQLServer -> mssql.initialSetupTemplate dbname
+let initialSetupTemplate site =
+  match site.Database with
+  | Postgres  -> psql.initialSetupTemplate site
+  | SQLServer -> mssql.initialSetupTemplate site
 
 (*
 

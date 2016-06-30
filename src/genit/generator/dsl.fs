@@ -118,6 +118,7 @@ type Site =
     Pages : Page list
     APIs : API list
     Database : Database
+    DatabasePassword : string
   }
 
 let private defaultSite =
@@ -127,11 +128,14 @@ let private defaultSite =
     Pages = []
     APIs = []
     Database = Postgres
+    DatabasePassword = "NOTsecure123"
   }
 
 let mutable currentSite = defaultSite
 
 let db database = currentSite <- { currentSite with Database = database }
+
+let dbPassword password = currentSite <- { currentSite with DatabasePassword = password }
 
 let site name =
   currentSite <-
