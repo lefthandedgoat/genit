@@ -15,14 +15,6 @@ let destination filename =
   |> (fun path -> path.Replace("bin", "generated"))
   |> (fun path -> System.IO.Path.Combine(path, filename))
 
-let zipOptions (options : string list) =
-  //clean out empty strings, append one at the end
-  let options = options |> List.filter (fun str -> str <> "")
-  let results =
-    List.zip [ 1 .. options.Length ] options
-    |> List.map (fun (i, s) -> string i, s)
-  ["0", ""] @ results
-
 let fieldToHtml (field : Field) =
   let template tag = sprintf """%s "%s" "" """ tag field.Name |> trimEnd
   let iconTemplate tag icon = sprintf """%s "%s" "" "%s" """ tag field.Name icon |> trimEnd
@@ -41,7 +33,10 @@ let fieldToHtml (field : Field) =
   | Dropdown options  -> sprintf """label_select "%s" %A """ field.Name (zipOptions options) |> trimEnd
 
 let fieldToPopulatedHtml page (field : Field) =
-  let template tag = sprintf """%s "%s" %s.%s """ tag field.Name page.AsVal field.AsProperty |> trimEnd
+  let template tag =
+    if field.Attribute = Null && useSome field
+    then sprintf """%s "%s" (option2String %s.%s) """ tag field.Name page.AsVal field.AsProperty |> trimEnd
+    else sprintf """%s "%s" %s.%s """ tag field.Name page.AsVal field.AsProperty |> trimEnd
   let iconTemplate tag icon = sprintf """%s "%s" %s.%s "%s" """ tag field.Name page.AsVal field.AsProperty icon |> trimEnd
   match field.FieldType with
   | Id                -> sprintf """hiddenInput "%s" %s.%s """ field.AsProperty page.AsVal field.AsProperty
@@ -55,10 +50,16 @@ let fieldToPopulatedHtml page (field : Field) =
   | Name              -> iconTemplate "icon_label_text" "user"
   | Password          -> iconTemplate "icon_password_text" "lock"
   | ConfirmPassword   -> iconTemplate "icon_password_text" "lock"
-  | Dropdown options  -> sprintf """label_select_selected "%s" %A (Some %s.%s)""" field.Name (zipOptions options) page.AsVal field.AsProperty
+  | Dropdown options  ->
+    if field.Attribute = Null && useSome field
+    then sprintf """label_select_selected "%s" %A %s.%s""" field.Name (zipOptions options) page.AsVal field.AsProperty
+    else sprintf """label_select_selected "%s" %A (Some %s.%s)""" field.Name (zipOptions options) page.AsVal field.AsProperty
 
 let fieldToStaticHtml page (field : Field) =
-  let template tag = sprintf """%s "%s" %s.%s """ tag field.Name page.AsVal field.AsProperty
+  let template tag =
+    if field.Attribute = Null && useSome field
+    then sprintf """%s "%s" (option2String %s.%s)""" tag field.Name page.AsVal field.AsProperty
+    else sprintf """%s "%s" %s.%s""" tag field.Name page.AsVal field.AsProperty
   match field.FieldType with
   | Id                -> ""
   | Text              -> template "label_static"
@@ -71,7 +72,7 @@ let fieldToStaticHtml page (field : Field) =
   | Name              -> template "label_static"
   | Password          -> template "label_static"
   | ConfirmPassword   -> template "label_static"
-  | Dropdown _        -> sprintf """label_static "%s" %s.%s """ field.Name page.AsVal field.AsProperty
+  | Dropdown _        -> template "label_static"
 
 let fieldToErroredHtml page (field : Field) =
   let template tag = sprintf """%s "%s" (string %s.%s) errors""" tag field.Name page.AsFormVal field.AsProperty
@@ -89,43 +90,6 @@ let fieldToErroredHtml page (field : Field) =
   | Password          -> iconTemplate "errored_icon_password_text" "lock"
   | ConfirmPassword   -> iconTemplate "errored_icon_password_text" "lock"
   | Dropdown options  -> sprintf """errored_label_select "%s" %A (Some %s.%s) errors""" field.Name (zipOptions options) page.AsFormVal field.AsProperty
-
-let fieldToProperty field =
-  match field.FieldType with
-  | Id              -> "int64"
-  | Text            -> "string"
-  | Paragraph       -> "string"
-  | Number          -> "int"
-  | Decimal         -> "double"
-  | Date            -> "System.DateTime"
-  | Phone           -> "string"
-  | Email           -> "string"
-  | Name            -> "string"
-  | Password        -> "string"
-  | ConfirmPassword -> "string"
-  | Dropdown _      -> "int16"
-
-let fieldToConvertProperty page field =
-  let property = sprintf "%s.%s" page.AsFormVal field.AsProperty
-  let string () = sprintf """%s = %s""" field.AsProperty property
-  let int () = sprintf """%s = int %s""" field.AsProperty property
-  let int16 () = sprintf """%s = int16 %s""" field.AsProperty property
-  let int64 () = sprintf """%s = int64 %s""" field.AsProperty property
-  let double () = sprintf """%s = double %s""" field.AsProperty property
-  let datetime () = sprintf """%s = System.DateTime.Parse(%s)""" field.AsProperty property
-  match field.FieldType with
-  | Id              -> int64 ()
-  | Text            -> string ()
-  | Paragraph       -> string ()
-  | Number          -> int ()
-  | Decimal         -> double ()
-  | Date            -> datetime ()
-  | Email           -> string ()
-  | Name            -> string ()
-  | Phone           -> string ()
-  | Password        -> string ()
-  | ConfirmPassword -> string ()
-  | Dropdown _      -> int16 ()
 
 let fieldToValidation (field : Field) page =
   let template validation = sprintf """%s "%s" %s.%s""" validation field.Name page.AsFormVal field.AsProperty
@@ -187,29 +151,29 @@ let fieldToTestBody (field : Field) =
 let attributeToValidation field page =
   let property = sprintf "%s.%s" page.AsFormVal field.AsProperty
   match field.Attribute with
-  | PK         -> None
-  | Null       -> None
-  | Required   -> Some (sprintf """validate_required "%s" %s""" field.Name property)
-  | Min(min)   -> Some (sprintf """validate_min "%s" %s %i""" field.Name property min)
-  | Max(max)   -> Some (sprintf """validate_max "%s" %s %i""" field.Name property max)
-  | Range(min,max) -> Some (sprintf """validate_range "%s" %s %i %i""" field.Name property min max)
+  | PK                       -> None
+  | Null                     -> None
+  | Required                 -> Some (sprintf """validate_required "%s" %s""" field.Name property)
+  | Min(min)                 -> Some (sprintf """validate_min "%s" %s %i""" field.Name property min)
+  | Max(max)                 -> Some (sprintf """validate_max "%s" %s %i""" field.Name property max)
+  | Range(min,max)           -> Some (sprintf """validate_range "%s" %s %i %i""" field.Name property min max)
 
 let attributeToTestName (field : Field) =
   match field.Attribute with
-  | PK         -> None
-  | Null       -> None
-  | Required   -> Some (sprintf """"%s is required" """ field.Name |> trimEnd)
-  | Min(min)   -> Some (sprintf """"%s must be greater than %i" """ field.Name min |> trimEnd)
-  | Max(max)   -> Some (sprintf """"%s must be less than %i" """ field.Name max |> trimEnd)
+  | PK             -> None
+  | Null           -> None
+  | Required       -> Some (sprintf """"%s is required" """ field.Name |> trimEnd)
+  | Min(min)       -> Some (sprintf """"%s must be greater than %i" """ field.Name min |> trimEnd)
+  | Max(max)       -> Some (sprintf """"%s must be less than %i" """ field.Name max |> trimEnd)
   | Range(min,max) -> Some (sprintf """"%s must be between %i and %i" """ field.Name min max |> trimEnd)
 
 let attributeToTestBody (field : Field) =
   match field.Attribute with
-  | PK         -> None
-  | Null       -> None
-  | Required   -> Some (sprintf """displayed "%s is required" """ field.Name |> trimEnd)
-  | Min(min)   -> Some (sprintf """displayed "%s can not be below %i" """ field.Name min |> trimEnd)
-  | Max(max)   -> Some (sprintf """displayed "%s can not be above %i" """ field.Name max |> trimEnd)
+  | PK             -> None
+  | Null           -> None
+  | Required       -> Some (sprintf """displayed "%s is required" """ field.Name |> trimEnd)
+  | Min(min)       -> Some (sprintf """displayed "%s can not be below %i" """ field.Name min |> trimEnd)
+  | Max(max)       -> Some (sprintf """displayed "%s can not be above %i" """ field.Name max |> trimEnd)
   | Range(min,max) -> Some (sprintf """displayed "%s must be between %i and %i" """ field.Name min max |> trimEnd)
 
 let formatPopulatedEditFields page (fields : Field list) tabs =
@@ -326,7 +290,10 @@ let fieldsToHeaders (page : Page) =
 
 let fieldsToTd (page : Page) =
     page.Fields
-    |> List.map (fun field -> sprintf """td [ text (string %s.%s) ]""" page.AsVal field.AsProperty)
+    |> List.map (fun field ->
+                   if field.Attribute = Null && useSome field
+                   then sprintf """td [ text (option2String %s.%s) ]""" page.AsVal field.AsProperty
+                   else sprintf """td [ text (string %s.%s) ]""" page.AsVal field.AsProperty)
     |> List.map (pad 4)
     |> flatten
 
@@ -693,7 +660,7 @@ let api_%s id =
 let propertyTemplate (page : Page) =
   page.Fields
   |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
-  |> List.map (fun field -> sprintf """%s : %s""" field.AsProperty (fieldToProperty field))
+  |> List.map sql.fieldLine
   |> List.map (pad 2)
   |> flatten
 
@@ -703,14 +670,14 @@ let formPropertyTemplate (page : Page) =
   |> List.map (pad 2)
   |> flatten
 
-let converterPropertyTemplate (page : Page) =
+let converterPropertyTemplate page =
   page.Fields
   |> List.filter (fun field -> field.FieldType <> ConfirmPassword)
-  |> List.map (fieldToConvertProperty page)
+  |> List.map (sql.fieldToConvertProperty page)
   |> List.map (pad 2)
   |> flatten
 
-let typeTemplate (page : Page) =
+let typeTemplate page =
   if needsType page |> not then ""
   else
     sprintf """type %s =
@@ -788,7 +755,7 @@ let bundleTemplate (page : Page) =
       page.AsViewHref
       page.AsEditHref
 
-let converterTemplate (page : Page) =
+let converterTemplate page =
   if needsConvert page |> not then ""
   else
     sprintf """let convert_%s (%s : %s) : %s =
@@ -797,7 +764,7 @@ let converterTemplate (page : Page) =
   }
   """ page.AsFormVal page.AsFormVal page.AsFormType page.AsType (converterPropertyTemplate page)
 
-let formTypeTemplate (page : Page) =
+let formTypeTemplate page =
   if needsFormType page |> not then ""
   else
     sprintf """type %s =
@@ -880,55 +847,9 @@ let uitestTemplate (page : Page) =
 %s
     """ (contextTemplate page) (onceTemplate page) tests
 
-//let cityStateZip = randomItem citiesSatesZips
-let fakePropertyTemplate (field : Field) =
-  let lowered = field.Name.ToLower()
-  let pickAppropriateText defaultValue =
-    if lowered.Contains("last") && lowered.Contains("name")
-    then "randomItem lastNames"
-    else if lowered.Contains("first") && lowered.Contains("name")
-    then "randomItem firstNames"
-    else if lowered.Contains("name")
-    then """(randomItem firstNames) + " " + (randomItem lastNames)"""
-    else if lowered.Contains("city")
-    then "cityStateZip.City"
-    else if lowered.Contains("state")
-    then "cityStateZip.State"
-    else if lowered.Contains("zip") || lowered.Contains("postal")
-    then "cityStateZip.Zip"
-    else if lowered.Contains("address") || lowered.Contains("street")
-    then """(string (random.Next(100,9999))) + " " + (randomItem streetNames) + " " + (randomItem streetNameSuffixes)"""
-    else defaultValue
-
-  let pickAppropriateNumber defaultValue =
-    defaultValue
-
-  let pickAppropriateName defaultValue =
-    if lowered.Contains("first")
-    then "randomItem firstNames"
-    else if lowered.Contains("last")
-    then "randomItem lastNames"
-    else defaultValue
-
-  let value =
-    match field.FieldType with
-    | Id              -> "-1L"
-    | Text            -> pickAppropriateText "randomItems 6 words"
-    | Paragraph       -> "randomItems 40 words"
-    | Number          -> pickAppropriateNumber "random.Next(100)"
-    | Decimal         -> "random.Next(100) |> double"
-    | Date            -> "System.DateTime.Now"
-    | Phone           -> """sprintf "%i-%i-%i" (random.Next(200,800)) (random.Next(200,800)) (random.Next(2000,8000))"""
-    | Email           -> """sprintf "%s@%s.com" (randomItem words) (randomItem words)"""
-    | Name            -> pickAppropriateName """randomItem names"""
-    | Password        -> """"123123" """ |> trimEnd
-    | ConfirmPassword -> """"123123" """ |> trimEnd
-    | Dropdown _      -> "1s"
-  sprintf """%s = %s """ field.AsProperty value
-
 let fakePropertiesTemplate (page : Page) =
   page.Fields
-  |> List.map fakePropertyTemplate
+  |> List.map sql.fakePropertyTemplate
   |> List.map (pad 2)
   |> flatten
 
@@ -953,7 +874,7 @@ let fakeManyDataTemplate (page: Page) =
   |> ignore
  """ page.AsVal page.AsVal page.AsVal
 
-let fakeDataTemplate (page : Page) =
+let fakeDataTemplate page =
   if needsFakeData page |> not then ""
   else
     sprintf """let fake_%s () =%s
@@ -1004,14 +925,14 @@ let generate (site : Site) =
   let fake_data_results = site.Pages |> List.map fakeDataTemplate |> flatten
   let generated_fake_data_result = generated_fake_data_template fake_data_results
 
-  let connectionString = sprintf "Server=127.0.0.1;User Id=%s; Password=secure123;Database=%s;" site.AsDatabase site.AsDatabase
-  let generated_data_access_result = generated_data_access_template connectionString (sql.createQueries site)
+  let connectionString = sql.createConnectionString site
+  let generated_data_access_result = generated_data_access_template site.Database connectionString (sql.createQueries site)
 
   let serverKey = sprintf """let serverKey = %A""" (Suave.Utils.Crypto.generateKey Suave.Http.HttpRuntime.ServerKeyLength)
   let generated_security_result = generated_security_template serverKey
 
-  let generated_sql_createdb_result = sql.createTemplate site.AsDatabase
-  let generated_sql_initialSetup_result = sql.initialSetupTemplate site.AsDatabase
+  let generated_sql_createdb_result = sql.createTemplate site.AsDatabase site.Database
+  let generated_sql_initialSetup_result = sql.initialSetupTemplate site.AsDatabase site.Database
   let generated_sql_createTables_result = sql.createTables (sql.createTableTemplates site) (sql.grantPrivileges site)
 
   write (destination "generated_html.fs") generated_html_result
@@ -1031,6 +952,7 @@ let generate (site : Site) =
   write (destination "generated_security.fs") generated_security_result
 
   write (destination "generated_dbname.txt") site.AsDatabase
+  write (destination "generated_dbtype.txt") (sprintf "%A" site.Database)
   write (destination "generated_sql_createdb.sql") generated_sql_createdb_result
   write (destination "generated_sql_initialSetup.sql") generated_sql_initialSetup_result
   write (destination "generated_sql_createTables.sql") generated_sql_createTables_result

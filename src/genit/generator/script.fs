@@ -5,6 +5,8 @@ open generator
 
 let someSite () =
 
+  db Postgres
+
   site "Bob's Burgers"
 
   basic home

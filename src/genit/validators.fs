@@ -67,3 +67,7 @@ let validate_range property value min max =
   else if value < min || value > max
   then Some (property, sprintf "%s must be between %i and %i" property min max)
   else None
+
+let validate_reference _ _ _ _ = //page property value required =
+  //todo?
+  None

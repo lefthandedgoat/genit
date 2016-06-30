@@ -21,8 +21,9 @@ let rightPad upto field = sprintf "%s%s" field (repeat " " (upto - field.Length)
 let clean (value : string) = Regex.Replace(value, "[^0-9a-zA-Z ]+", "")
 let lower (value : string) = value.ToLower()
 let trimEnd (value : string) = value.TrimEnd()
-let upperFirst (value : string) = Char.ToUpper(value.[0]).ToString() + value.Substring(1)
-let lowerFirst (value : string) = Char.ToLower(value.[0]).ToString() + value.Substring(1)
+let upperFirst (value : string) = if value = "" then "" else Char.ToUpper(value.[0]).ToString() + value.Substring(1)
+let lowerFirst (value : string) = if value = "" then "" else Char.ToLower(value.[0]).ToString() + value.Substring(1)
+let upperEach (value : string) = value.Split([|' '|]) |> Array.map upperFirst |> Array.reduce (+)
 let spaceToNothing (value : string) = value.Replace(" ", "")
 let spaceToUnderscore (value : string) = value.Replace(" ", "_")
 let camelCase = spaceToNothing >> lowerFirst
@@ -44,9 +45,12 @@ let to_searchHref = camelCase >> sprintf "/%s/search"
 
 let to_property = typeCase
 
-let to_database = clean >> lower >> spaceToUnderscore
-let to_tableName = clean >> lower >> spaceToUnderscore >> pluralize
-let to_dbColumn = clean >> lower >> spaceToUnderscore
+let to_postgres_database = clean >> lower >> spaceToUnderscore
+let to_sqlserver_database = clean >> upperEach >> spaceToNothing
+let to_postgres_tableName = clean >> lower >> spaceToUnderscore >> pluralize
+let to_sqlserver_tableName = clean >> upperEach >> spaceToNothing >> pluralize
+let to_postgres_dbColumn = clean >> lower >> spaceToUnderscore
+let to_sqlserver_dbColumn = clean >> upperEach >> spaceToNothing
 
 //data_access
 type BCryptScheme =
@@ -106,3 +110,16 @@ type Bundle<'a, 'b> =
     href_view : PrintfFormat<(int64 -> string),unit,string,string,int64>
     href_edit : PrintfFormat<(int64 -> string),unit,string,string,int64>
   }
+
+let option2Val (p:'a option) :'a =
+  match p with
+  | Some(s) -> s
+  | None -> Unchecked.defaultof<'a>
+
+let zipOptions (options : string list) =
+  //clean out empty strings, append one at the end
+  let options = options |> List.filter (fun str -> str <> "")
+  let results =
+    List.zip [ 1 .. options.Length ] options
+    |> List.map (fun (i, s) -> string i, s)
+  ["0", ""] @ results

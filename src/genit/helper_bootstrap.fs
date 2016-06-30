@@ -10,6 +10,10 @@ open helper_html
 *)
 
 let removeSpace (value : string) = value.Replace(" ", "")
+let option2String value : string =
+  match value with
+  | Some(value) -> (value :> obj).ToString()
+  | None -> ""
 
 let icon type' = italic ["class", (sprintf "fa fa-%s" type')] emptyText
 let wrapper inner = divId "cl-wrapper" inner

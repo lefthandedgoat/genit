@@ -4,7 +4,7 @@ nuget FAKE
 nuget Suave
 nuget Suave.Experimental
 nuget canopy
-nuget Npgsql
+nuget Npgsql ~> 3.0.8
 nuget Http.fs
 nuget BCrypt-Official
 nuget FsPickler
