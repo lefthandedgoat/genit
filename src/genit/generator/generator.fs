@@ -230,6 +230,36 @@ let view_create_errored_%s errors (%s : %s) =
     ]
     scripts.common""" page.AsVal page.AsFormVal page.AsFormType page.Name page.Name (formatErroredFields page page.Fields 5)
 
+let generateFormViewTemplate (page : Page) =
+  sprintf """
+let view_generate_%s (%s : %s) =
+  base_html
+    "Generate %s"
+    [
+      base_header brand
+      common_form
+        "Generate %s"
+        [
+%s
+        ]
+    ]
+    scripts.common""" page.AsVal page.AsVal page.AsType page.Name page.Name (formatPopulatedEditFields page page.Fields 5)
+
+let generateErroredFormViewTemplate (page : Page) =
+  sprintf """
+let view_generate_errored_%s errors (%s : %s) =
+  base_html
+    "Generate %s"
+    [
+      base_header brand
+      common_form
+        "Generate %s"
+        [
+%s
+        ]
+    ]
+    scripts.common""" page.AsVal page.AsFormVal page.AsFormType page.Name page.Name (formatErroredFields page page.Fields 5)
+
 let editFormViewTemplate (page : Page) =
   sprintf """
 let view_edit_%s (%s : %s) =
@@ -479,7 +509,7 @@ let viewTemplate site page =
     match pageMode with
     | CVELS     -> [Create; View; Edit; List; Search] |> List.map (viewTemplate site page) |> flatten
     | CVEL      -> [Create; View; Edit; List] |> List.map (viewTemplate site page) |> flatten
-    | Create    -> [createFormViewTemplate page; createErroredFormViewTemplate page] |> flatten
+    | Create    -> [createFormViewTemplate page; createErroredFormViewTemplate page; generateFormViewTemplate page; generateErroredFormViewTemplate page] |> flatten
     | Edit      -> [editFormViewTemplate page; editErroredFormViewTemplate page] |> flatten
     | View      -> viewFormViewTemplate page
     | List      -> listFormViewTemplate page
@@ -516,7 +546,7 @@ let pagePathTemplate (page : Page) =
     match pageMode with
     | CVELS     -> [Create; View; Edit; List; Search] |> List.map (pagePathTemplate page) |> flatten
     | CVEL      -> [Create; View; Edit; List] |> List.map (pagePathTemplate page) |> flatten
-    | Create    -> template "create_" page.AsCreateHref false
+    | Create    -> [template "create_" page.AsCreateHref false; template "generate_" page.AsGenerateHref true] |> flatten
     | Edit      -> template "edit_" page.AsEditHref true
     | View      -> template "view_" page.AsViewHref true
     | List      -> template "list_" page.AsListHref false
@@ -546,7 +576,7 @@ let pageRouteTemplate (page : Page) =
     match pageMode with
     | CVELS     -> [Create; View; Edit; List; Search] |> List.map (pageRouteTemplate page) |> flatten
     | CVEL      -> [Create; View; Edit; List] |> List.map (pageRouteTemplate page) |> flatten
-    | Create    -> template "create_" false
+    | Create    -> [template "create_" false; template "generate_" true] |> flatten
     | Edit      -> template "edit_" true
     | View      -> template "view_" true
     | List      -> template "list_" false
@@ -597,9 +627,16 @@ let %s = GET >=> OK view_jumbo_%s""" page.AsVal page.AsVal
 let create_%s =
   choose
     [
-      GET >=> request (fun req -> createOrGenerateGET req bundle_%s)
+      GET >=> warbler (fun _ -> createGET bundle_%s)
       POST >=> bindToForm %s (fun form -> createPOST form bundle_%s)
-    ]""" page.AsVal page.AsVal page.AsFormVal page.AsVal
+    ]
+
+let generate_%s count =
+  choose
+    [
+      GET >=> warbler (fun _ -> generateGET count bundle_%s)
+      POST >=> bindToForm %s (fun form -> generatePOST form bundle_%s)
+    ]""" page.AsVal page.AsVal page.AsFormVal page.AsVal page.AsVal page.AsVal page.AsFormVal page.AsVal
     | Register    ->
       sprintf """
 let register =
@@ -699,10 +736,12 @@ let bundleUpdateTemplate page = if needsUpdate page then sprintf "Some update_%s
 let bundleViewListTemplate page = if needsViewList page then sprintf "Some view_list_%s" page.AsVal else "None"
 let bundleViewEditTemplate page = if needsViewEdit page then sprintf "Some view_edit_%s" page.AsVal else "None"
 let bundleViewCreateTemplate page = if needsViewCreate page then sprintf "Some view_create_%s" page.AsVal else "None"
+let bundleViewGenerateTemplate page = if needsViewCreate page then sprintf "Some view_generate_%s" page.AsVal else "None"
 let bundleViewViewTemplate page = if needsViewView page then sprintf "Some view_view_%s" page.AsVal else "None"
 let bundleViewSearchTemplate page = if needsViewSearch page then sprintf "Some view_search_%s" page.AsVal else "None"
 let bundleViewEditErroredTemplate page = if needsViewEdit page then sprintf "Some view_edit_errored_%s" page.AsVal else "None"
 let bundleViewCreateErroredTemplate page = if needsViewCreate page then sprintf "Some view_create_errored_%s" page.AsVal else "None"
+let bundleViewGenerateErroredTemplate page = if needsViewCreate page then sprintf "Some view_generate_errored_%s" page.AsVal else "None"
 
 let bundleTemplate (page : Page) =
   if needsBundle page |> not then ""
@@ -721,11 +760,15 @@ let bundleTemplate (page : Page) =
       view_list = %s
       view_edit = %s
       view_create = %s
+      view_generate = %s
       view_view = %s
       view_search = %s
       view_edit_errored = %s
       view_create_errored = %s
+      view_generate_errored = %s
       href_create = "%s"
+      href_generate = "%s"
+      href_list = "%s"
       href_search = "%s"
       href_view = "%s"
       href_edit = "%s"
@@ -746,11 +789,15 @@ let bundleTemplate (page : Page) =
       (bundleViewListTemplate page)
       (bundleViewEditTemplate page)
       (bundleViewCreateTemplate page)
+      (bundleViewGenerateTemplate page)
       (bundleViewViewTemplate page)
       (bundleViewSearchTemplate page)
       (bundleViewEditErroredTemplate page)
       (bundleViewCreateErroredTemplate page)
+      (bundleViewGenerateErroredTemplate page)
       page.AsCreateHref
+      page.AsGenerateHref
+      page.AsListHref
       page.AsSearchHref
       page.AsViewHref
       page.AsEditHref

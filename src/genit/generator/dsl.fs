@@ -104,6 +104,7 @@ type Page =
     AsFormType : string
     AsHref : string
     AsCreateHref : string
+    AsGenerateHref : string
     AsViewHref : string
     AsEditHref : string
     AsListHref : string
@@ -161,6 +162,7 @@ let private page_ name pageMode tableName attribute createTable fields =
       AsFormType = to_formType name
       AsHref = to_href name
       AsCreateHref = to_createHref name
+      AsGenerateHref = to_generateHref name
       AsViewHref = to_viewHref name
       AsEditHref = to_editHref name
       AsListHref = to_listHref name

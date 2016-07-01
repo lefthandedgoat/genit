@@ -37,6 +37,7 @@ let to_formVal = camelCase >> form
 let to_formType = typeCase >> form
 let to_href = camelCase >> sprintf "/%s"
 let to_createHref = camelCase >> sprintf "/%s/create"
+let to_generateHref = camelCase >> (fun page -> sprintf "/%s/generate/%s" page "%i")
 let to_viewHref = camelCase >> (fun page -> sprintf "/%s/view/%s" page "%i")
 let to_apiViewHref = camelCase >> (fun page -> sprintf "/api/%s/view/%s" page "%i")
 let to_editHref = camelCase >> (fun page -> sprintf "/%s/edit/%s" page "%i")
@@ -101,11 +102,15 @@ type Bundle<'a, 'b> =
     view_list : ('a list -> string) option
     view_edit : ('a -> string) option
     view_create : string option
+    view_generate : ('a -> string) option
     view_view : ('a -> string) option
     view_search : (string option -> string option -> string -> 'a list -> string) option
     view_edit_errored : ((string * string) list -> 'b -> string) option
     view_create_errored : ((string * string) list -> 'b -> string) option
+    view_generate_errored : ((string * string) list -> 'b -> string) option
     href_create : string
+    href_generate : string
+    href_list : string
     href_search : string
     href_view : PrintfFormat<(int64 -> string),unit,string,string,int64>
     href_edit : PrintfFormat<(int64 -> string),unit,string,string,int64>

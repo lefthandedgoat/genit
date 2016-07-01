@@ -26,7 +26,7 @@ genit can generate test data according to your specified data types and validati
 
 ![navigate to Create Order page](https://raw.githubusercontent.com/lefthandedgoat/genit/master/docs/img/nav-to-create-order.png?token=AAsQ6S9w_PS2OEWyi2-Yh4AbETBdB7wjks5XQjhKwA%3D%3D)
 
-You should initially see an empty order form. Now, add a query string to the url with `?generate=true` and hit enter. You should see the order form populated with test data.
+You should initially see an empty order form. Now, change the url to `<page>/generate/1` instead of `<page>/create`. You should see the order form populated with test data.
 
 ![Empty Create Order page](https://raw.githubusercontent.com/lefthandedgoat/genit/master/docs/img/empty-create-order.png?token=AAsQ6TNlj_o4PhfGTX5hxJN6YYbtk2RDks5XQjgIwA%3D%3D)
 
@@ -34,7 +34,7 @@ genit generates valid data based on your defined data types and validation rules
 
 ![Create Order page with generated test data](https://raw.githubusercontent.com/lefthandedgoat/genit/master/docs/img/generated-create-order.png?token=AAsQ6f9w2LLaZ4woS3mUix4VnKHvG_r0ks5XQjgswA%3D%3D)
 
-You can generate more than one record by using `?generate=<number>`. genit will generate and insert the requested number of records and redirect you to the `/<page>/list` page.
+You can generate more than one record by using `<page>/generate/<number>`. genit will generate and insert the requested number of records and redirect you to the `/<page>/list` page.
 
 ## Load Testing
 

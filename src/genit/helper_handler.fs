@@ -85,27 +85,6 @@ let editPOST (id : int64) form (bundle : Bundle<_,_>) =
     else
       OK (bundle.view_edit_errored.Value validation form)
 
-let createOrGenerateGET req (bundle : Bundle<_,_>) =
-  if bundle.fake_many.IsNone || bundle.fake_single.IsNone || bundle.view_create.IsNone then
-    OK error_404
-  else
-    if hasQueryString req "generate" && bundle.view_edit.IsSome
-    then
-      let generate = getQueryStringValue req "generate"
-      let parsed, value = System.Int32.TryParse(generate)
-      if parsed && value > 1
-      then
-        bundle.fake_many.Value value
-        if bundle.getMany.IsNone || bundle.view_list.IsNone then
-          OK bundle.href_create
-        else
-          let data = bundle.getMany.Value ()
-          OK <| bundle.view_list.Value data
-      else
-        let data = bundle.fake_single.Value ()
-        OK <| bundle.view_edit.Value data
-    else OK bundle.view_create.Value
-
 let createGET (bundle : Bundle<_,_>) =
   if bundle.view_create.IsNone then
     OK error_404
@@ -126,6 +105,37 @@ let createPOST form (bundle : Bundle<_,_>) =
         FOUND bundle.href_create
     else
       OK (bundle.view_create_errored.Value validation form)
+
+let generateGET (count : int64) (bundle : Bundle<_,_>) =
+  let count = int count
+  if bundle.fake_many.IsNone || bundle.fake_single.IsNone || bundle.view_generate.IsNone then
+    OK error_404
+  else
+    if count > 1
+    then
+      bundle.fake_many.Value count
+      if bundle.getMany.IsNone || bundle.view_list.IsNone then
+        OK bundle.href_generate
+      else
+        FOUND bundle.href_list
+    else
+      let data = bundle.fake_single.Value ()
+      OK <| bundle.view_generate.Value data
+
+let generatePOST form (bundle : Bundle<_,_>) =
+  if bundle.validateForm.IsNone || bundle.convertForm.IsNone || bundle.insert.IsNone || bundle.view_generate_errored.IsNone then
+    OK error_404
+  else
+    let validation = bundle.validateForm.Value form
+    if validation = [] then
+      let converted = bundle.convertForm.Value form
+      let id = bundle.insert.Value converted
+      if bundle.view_view.IsSome then
+        FOUND <| sprintf bundle.href_view id
+      else
+        FOUND bundle.href_generate
+    else
+      OK (bundle.view_generate_errored.Value validation form)
 
 let searchGET req (bundle : Bundle<_,_>) =
   if bundle.getManyWhere.IsNone || bundle.view_search.IsNone then
