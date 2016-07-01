@@ -292,7 +292,7 @@ let view_edit_errored_%s errors (%s : %s) =
 
 let editButtonTemplate (page : Page) idField =
   if isEdit page
-  then sprintf """[ button_small_success (sprintf "%s" %s.%s) [ text "Edit"] ]""" page.AsEditHref page.AsVal idField.AsProperty
+  then sprintf """button_small_success_right (sprintf "%s" %s.%s) [ text "Edit" ]""" page.AsEditHref page.AsVal idField.AsProperty
   else "[]"
 
 let viewFormViewTemplate (page : Page) =

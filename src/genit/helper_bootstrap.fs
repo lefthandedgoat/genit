@@ -28,7 +28,7 @@ let menu_space inner = divClass "menu-space" inner
 let content inner = divClass "content" inner
 let container inner = divClass "container" inner
 let signup_container inner = divClass "sign-up-container" inner
-let form_wrapper inner = divClass "ibox" inner
+let form_wrapper inner = divClass "ibox float-e-margins" inner
 let form_title inner = divClass "ibox-title" inner
 let form_content inner = divClass "ibox-content" inner
 let sidebar_logo inner = divClass "sidebar-logo" inner
@@ -71,12 +71,12 @@ let button_small_plain href inner = aHrefAttr href ["class", "btn btn-sm"] inner
 let button_primary href inner = aHrefAttr href ["class", "btn btn-primary"] inner
 let button_success href inner = aHrefAttr href ["class", "btn btn-success"] inner
 let button_small_success href inner = aHrefAttr href ["class", "btn btn-sm btn-success"] inner
-let button_small_success_right href inner = aHrefAttr href ["class", "btn btn-sm btn-success pull-right"] inner
+let button_small_success_right href inner = aHrefAttr href ["class", "btn btn-sm btn-success m-t-n-xs pull-right"] inner
 let button_danger href inner = aHrefAttr href ["class", "btn btn-danger"] inner
 let button_small_danger href inner = aHrefAttr href ["class", "btn btn-sm btn-danger"] inner
 let button_save = inputAttr [ "value","Save"; "type","submit"; "class","btn btn-success"; ]
 let button_submit = inputAttr [ "value","Submit"; "type","submit"; "class","btn btn-success"; ]
-let button_submit_right = inputAttr [ "value","Submit"; "type","submit"; "class","btn btn-success pull-right"; ]
+let button_submit_right = inputAttr [ "value","Submit"; "type","submit"; "class","btn btn-success m-t-n-xs pull-right"; ]
 let button_run = inputAttr [ "id","run"; "value","Run"; "type","submit"; "class","btn btn-primary"; ]
 let button_login = inputAttr [ "value","Login"; "type","submit"; "class","btn btn-success"; ]
 let button_register = aHrefAttr "/register" [ "class","btn"; ] [ text "Register" ]
@@ -324,7 +324,7 @@ let common_static_form button decription formElements =
   container [
     row [
       form_wrapper [
-        form_title [ h3Inner decription [ pull_right button ] ]
+        form_title [ h3Inner decription [ button ] ]
         form_content [
           div [
             form_horizontal [
