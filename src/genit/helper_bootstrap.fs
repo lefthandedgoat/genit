@@ -20,6 +20,7 @@ let wrapper inner = divId "wrapper" inner
 let pageWrapper inner = divIdClass "page-wrapper" "gray-bg" inner
 let wrapperClass class' inner = divIdClass "cl-wrapper" class' inner
 let wrapperContent inner = divClass "wrapper wrapper-content" inner
+let middle_box inner = divClass "middle-box" inner
 let navbarRow inner = divClass "row border-bottom white-bg" inner
 let sidebar inner = divClass "cl-sidebar" inner
 let toggle inner = divClass "cl-toggle" inner
@@ -127,6 +128,23 @@ let base_html title navbar content scripts =
           pageWrapper [
             navbarRow [ navbar ]
             wrapperContent content
+          ]
+        ]
+      ]
+      scripts
+    ]
+    |> xmlToString
+  sprintf "<!DOCTYPE html>%s" html'
+
+let base_middle_html title navbar content scripts =
+  let html' =
+    html [
+      base_head title
+      bodyClass "top-navigation" [
+        wrapper [
+          pageWrapper [
+            navbarRow [ navbar ]
+            middle_box  content
           ]
         ]
       ]

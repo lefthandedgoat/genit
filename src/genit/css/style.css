@@ -2362,6 +2362,20 @@ label.error {
 .form-control.error {
   border: 1px dotted #cc5965;
 }
+/*Validation 2*/
+.parsley-errors-list {
+  margin-top: 4px;
+  margin-bottom: 0px;
+  padding: 0;
+}
+.parsley-errors-list li {
+  padding: 0;
+  list-style: none;
+  color: #cc0000;
+}
+.parsley-error {
+  border-color: #c00 !important;
+}
 /* ngGrid */
 .gridStyle {
   border: 1px solid #d4d4d4;

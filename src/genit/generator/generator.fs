@@ -422,7 +422,7 @@ let view_search_%s field how value %ss =
 let registerFormViewTemplate (page : Page) =
   sprintf """
 let view_register =
-  base_html
+  base_middle_html
     "%s"
     (base_header brand)
     [
@@ -437,7 +437,7 @@ let view_register =
 let registerErroredFormViewTemplate (page : Page) =
   sprintf """
 let view_errored_register errors (%s : %s) =
-  base_html
+  base_middle_html
     "%s"
     (base_header brand)
     [
@@ -457,7 +457,7 @@ let view_login error email =
     then stand_alone_error "Invalid email or password"
     else emptyText
 
-  base_html
+  base_middle_html
     "Login"
     (base_header brand)
     [
@@ -475,7 +475,7 @@ let view_login error email =
 let loginErroredFormViewTemplate (page : Page) =
   sprintf """
 let view_errored_login errors (%s : %s) =
-  base_html
+  base_middle_html
     "%s"
     (base_header brand)
     [
