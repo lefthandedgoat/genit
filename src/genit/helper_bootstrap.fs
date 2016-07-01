@@ -16,8 +16,11 @@ let option2String value : string =
   | None -> ""
 
 let icon type' = italic ["class", (sprintf "fa fa-%s" type')] emptyText
-let wrapper inner = divId "cl-wrapper" inner
+let wrapper inner = divId "wrapper" inner
+let pageWrapper inner = divIdClass "page-wrapper" "gray-bg" inner
 let wrapperClass class' inner = divIdClass "cl-wrapper" class' inner
+let wrapperContent inner = divClass "wrapper wrapper-content" inner
+let navbarRow inner = divClass "row border-bottom white-bg" inner
 let sidebar inner = divClass "cl-sidebar" inner
 let toggle inner = divClass "cl-toggle" inner
 let navblock inner = divClass "cl-navblock" inner
@@ -25,7 +28,7 @@ let menu_space inner = divClass "menu-space" inner
 let content inner = divClass "content" inner
 let container inner = divClass "container" inner
 let signup_container inner = divClass "sign-up-container" inner
-let mcontent inner = divClass "cl-mcont" inner
+let formContent inner = divClass "ibox" inner
 let sidebar_logo inner = divClass "sidebar-logo" inner
 let logo inner = divClass "logo" inner
 let vnavigation inner = ulAttr ["class", "cl-vnavigation"] inner
@@ -110,6 +113,23 @@ let base_header brand =
       ]
     ]
   ]
+
+let base_html title navbar content scripts =
+  let html' =
+    html [
+      base_head title
+      bodyClass "top-navigation" [
+        wrapper [
+          pageWrapper [
+            navbarRow [ navbar ]
+            wrapperContent content
+          ]
+        ]
+      ]
+      scripts
+    ]
+    |> xmlToString
+  sprintf "<!DOCTYPE html>%s" html'
 
 let form_group_control_label_sm8 label' inner =
   form_group [
@@ -283,7 +303,7 @@ let errored_icon_password_text label' text' icon' errors =
 let common_form decription formElements =
   container [
     row [
-      mcontent [
+      formContent [
         block_flat [
           header [ h3 decription ]
           div [
@@ -299,7 +319,7 @@ let common_form decription formElements =
 let common_static_form button decription formElements =
   container [
     row [
-      mcontent [
+      formContent [
         block_flat [
           header [ h3Inner decription [ pull_right button ] ]
           div [
@@ -315,7 +335,7 @@ let common_static_form button decription formElements =
 let common_register_form decription formElements =
   signup_container [
     divClass "middle-sign-up" [
-      mcontent [
+      formContent [
         block_flat [
           header [ h3 decription ]
           div [

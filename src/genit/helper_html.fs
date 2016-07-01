@@ -103,16 +103,6 @@ let base_head title' =
     cssLink "http://foxythemes.net/preview/products/flatdream/js/bootstrap.datetimepicker/css/bootstrap-datetimepicker.min.css"
   ]
 
-let base_html title content scripts =
-  let html' =
-    html [
-      base_head title
-      body content
-      scripts
-    ]
-    |> xmlToString
-  sprintf "<!DOCTYPE html>%s" html'
-
 let error_html title content scripts =
   let html' =
     html [

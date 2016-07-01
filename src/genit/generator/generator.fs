@@ -205,8 +205,8 @@ let createFormViewTemplate (page : Page) =
 let view_create_%s =
   base_html
     "Create %s"
+    (base_header brand)
     [
-      base_header brand
       common_form
         "Create %s"
         [
@@ -220,8 +220,8 @@ let createErroredFormViewTemplate (page : Page) =
 let view_create_errored_%s errors (%s : %s) =
   base_html
     "Create %s"
+    (base_header brand)
     [
-      base_header brand
       common_form
         "Create %s"
         [
@@ -235,8 +235,8 @@ let generateFormViewTemplate (page : Page) =
 let view_generate_%s (%s : %s) =
   base_html
     "Generate %s"
+    (base_header brand)
     [
-      base_header brand
       common_form
         "Generate %s"
         [
@@ -250,8 +250,8 @@ let generateErroredFormViewTemplate (page : Page) =
 let view_generate_errored_%s errors (%s : %s) =
   base_html
     "Generate %s"
+    (base_header brand)
     [
-      base_header brand
       common_form
         "Generate %s"
         [
@@ -265,8 +265,8 @@ let editFormViewTemplate (page : Page) =
 let view_edit_%s (%s : %s) =
   base_html
     "Edit %s"
+    (base_header brand)
     [
-      base_header brand
       common_form
         "Edit %s"
         [
@@ -280,8 +280,8 @@ let editErroredFormViewTemplate (page : Page) =
 let view_edit_errored_%s errors (%s : %s) =
   base_html
     "Edit %s"
+    (base_header brand)
     [
-      base_header brand
       common_form
         "Edit %s"
         [
@@ -302,8 +302,8 @@ let view_view_%s (%s : %s) =
   let button = %s
   base_html
     "%s"
+    (base_header brand)
     [
-      base_header brand
       common_static_form button
         "%s"
         [
@@ -351,11 +351,11 @@ let view_list_%s %ss =
 
   base_html
     "List %s"
+    (base_header brand)
     [
-      base_header brand
       container [
         row [
-          mcontent [
+          formContent [
             block_flat [
               header [ h3Inner "List %ss" [ %s ] ]
               content [
@@ -388,11 +388,11 @@ let view_search_%s field how value %ss =
 
   base_html
     "Search %s"
+    (base_header brand)
     [
-      base_header brand
       container [
         row [
-          mcontent [
+          formContent [
             block_flat [
               header [
                 h3Inner "Search %ss" [ ]
@@ -426,8 +426,8 @@ let registerFormViewTemplate (page : Page) =
 let view_register =
   base_html
     "%s"
+    (base_header brand)
     [
-      base_header brand
       common_register_form
         "%s"
         [
@@ -441,8 +441,8 @@ let registerErroredFormViewTemplate (page : Page) =
 let view_errored_register errors (%s : %s) =
   base_html
     "%s"
+    (base_header brand)
     [
-      base_header brand
       common_register_form
         "%s"
         [
@@ -461,8 +461,8 @@ let view_login error email =
 
   base_html
     "Login"
+    (base_header brand)
     [
-      base_header brand
       common_register_form
         "Login"
         [
@@ -479,8 +479,8 @@ let loginErroredFormViewTemplate (page : Page) =
 let view_errored_login errors (%s : %s) =
   base_html
     "%s"
+    (base_header brand)
     [
-      base_header brand
       common_register_form
         "%s"
         [
@@ -494,8 +494,8 @@ let jumbotronViewTemplate (site : Site) (page : Page) =
 let view_jumbo_%s =
   base_html
     "%s"
+    (base_header brand)
     [
-      base_header brand
       divClass "container" [
         divClass "jumbotron" [
           h1 (sprintf "Welcome to %s!")
