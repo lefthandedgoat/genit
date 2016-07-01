@@ -334,7 +334,7 @@ let toTrLinkTemplate (page : Page) idField =
 
 let createButtonTemplate (page : Page) =
   if isCreate page
-  then sprintf """pull_right [ button_small_success "%s" [ text "Create"] ]""" page.AsCreateHref
+  then sprintf """button_small_success_right "%s" [ text "Create"]""" page.AsCreateHref
   else ""
 
 let listFormViewTemplate (page : Page) =
@@ -401,7 +401,7 @@ let view_search_%s field how value %ss =
                     inline_label_select_selected "Field" fields field
                     inline_label_select_selected"How" hows how
                     inline_label_text "Value" value
-                    pull_right [ button_submit ]
+                    button_submit_right
                   ]
                 ]
               ]

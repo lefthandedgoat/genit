@@ -40,7 +40,7 @@ let formWithResults description results formElements =
         form_content [
           div [
             form_horizontal [
-              content (formElements @ [form_group [ sm12 [ pull_right [ button_submit ] ] ] ])
+              content (formElements @ [form_group [ sm12 [ button_submit_right ] ] ])
             ]
           ]
         ]

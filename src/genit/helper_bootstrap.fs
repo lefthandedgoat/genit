@@ -71,10 +71,12 @@ let button_small_plain href inner = aHrefAttr href ["class", "btn btn-sm"] inner
 let button_primary href inner = aHrefAttr href ["class", "btn btn-primary"] inner
 let button_success href inner = aHrefAttr href ["class", "btn btn-success"] inner
 let button_small_success href inner = aHrefAttr href ["class", "btn btn-sm btn-success"] inner
+let button_small_success_right href inner = aHrefAttr href ["class", "btn btn-sm btn-success pull-right"] inner
 let button_danger href inner = aHrefAttr href ["class", "btn btn-danger"] inner
 let button_small_danger href inner = aHrefAttr href ["class", "btn btn-sm btn-danger"] inner
 let button_save = inputAttr [ "value","Save"; "type","submit"; "class","btn btn-success"; ]
 let button_submit = inputAttr [ "value","Submit"; "type","submit"; "class","btn btn-success"; ]
+let button_submit_right = inputAttr [ "value","Submit"; "type","submit"; "class","btn btn-success pull-right"; ]
 let button_run = inputAttr [ "id","run"; "value","Run"; "type","submit"; "class","btn btn-primary"; ]
 let button_login = inputAttr [ "value","Login"; "type","submit"; "class","btn btn-success"; ]
 let button_register = aHrefAttr "/register" [ "class","btn"; ] [ text "Register" ]
@@ -310,7 +312,7 @@ let common_form decription formElements =
         form_content [
           div [
             form_horizontal [
-              content (formElements @ [form_group [ sm12 [ pull_right [ button_submit ] ] ] ])
+              content (formElements @ [form_group [ sm12 [ button_submit_right ] ] ])
             ]
           ]
         ]
@@ -342,7 +344,7 @@ let common_register_form decription formElements =
         form_content [
           div [
             form_horizontal [
-              content (formElements @ [form_group [ sm12 [ pull_right [ button_submit ] ] ] ])
+              content (formElements @ [form_group [ sm12 [ button_submit_right ] ] ])
             ]
           ]
         ]
