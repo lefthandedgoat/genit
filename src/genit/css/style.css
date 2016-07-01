@@ -1588,9 +1588,11 @@ table.dataTable thead .sorting_desc_disabled {
 .dataTables_length {
   float: left;
 }
+/*
 .dataTables_filter label {
   margin-right: 5px;
 }
+*/
 .html5buttons {
   float: right;
 }
@@ -8240,4 +8242,12 @@ body.md-skin {
   #page-wrapper {
     margin: 0;
   }
+}
+
+/* more */
+.search-bar {
+  padding-bottom: 10px;
+}
+.search-bar .form-group{
+  padding-right: 10px;
 }

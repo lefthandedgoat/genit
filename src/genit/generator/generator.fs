@@ -395,7 +395,7 @@ let view_search_%s field how value %ss =
           form_wrapper [
             form_title [ h3Inner "Search %ss" [ ] ]
             form_content [
-              div [
+              divClass "search-bar" [
                 form_inline [
                   content [
                     inline_label_select_selected "Field" fields field
