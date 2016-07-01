@@ -94,6 +94,12 @@ Target "CopyBinaries" (fun _ ->
     |>  Seq.iter (fun (fromDir, toDir) -> CopyDir toDir fromDir (fun _ -> true))
 )
 
+Target "CopyAssets" (fun _ ->
+    let target = currentDirectory @@ "/src/genit/bin/Debug/css"
+    let destination = currentDirectory @@ "/src/genit/css"
+    FileHelper.CopyDir target destination (fun _ -> true)
+)
+
 // --------------------------------------------------------------------------------------
 // Clean build results
 
@@ -182,12 +188,15 @@ Target "All" DoNothing
   ==> "Build"
 
 "Build"
+  ==> "CopyAssets"
+
+"Build"
   ==> "Generate"
 
 "Build"
   ==> "CreateDB"
 
-"Build"
+"CopyAssets"
   ==> "RunSite"
 
 "Build"
