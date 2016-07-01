@@ -355,9 +355,9 @@ let view_list_%s %ss =
     [
       container [
         row [
-          formContent [
-            block_flat [
-              header [ h3Inner "List %ss" [ %s ] ]
+          form_wrapper [
+            form_title [ h3Inner "List %ss" [ %s ] ]
+            form_content [
               content [
                 table_bordered_linked_tr
                   [
@@ -392,11 +392,9 @@ let view_search_%s field how value %ss =
     [
       container [
         row [
-          formContent [
-            block_flat [
-              header [
-                h3Inner "Search %ss" [ ]
-              ]
+          form_wrapper [
+            form_title [ h3Inner "Search %ss" [ ] ]
+            form_content [
               div [
                 form_inline [
                   content [

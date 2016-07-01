@@ -35,9 +35,9 @@ let resultsTable (results : Result list) =
 let formWithResults description results formElements =
   container [
     row [
-      formContent [
-        block_flat [
-          header [ h3 description ]
+      form_wrapper [
+        form_title [ h3 description ]
+        form_content [
           div [
             form_horizontal [
               content (formElements @ [form_group [ sm12 [ pull_right [ button_submit ] ] ] ])
@@ -46,7 +46,7 @@ let formWithResults description results formElements =
         ]
       ]
     ]
-    row [ formContent [ resultsTable results ] ]
+    row [ form_wrapper [ resultsTable results ] ]
   ]
 
 let html (data : LoadTest) results =

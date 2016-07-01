@@ -28,7 +28,9 @@ let menu_space inner = divClass "menu-space" inner
 let content inner = divClass "content" inner
 let container inner = divClass "container" inner
 let signup_container inner = divClass "sign-up-container" inner
-let formContent inner = divClass "ibox" inner
+let form_wrapper inner = divClass "ibox" inner
+let form_title inner = divClass "ibox-title" inner
+let form_content inner = divClass "ibox-content" inner
 let sidebar_logo inner = divClass "sidebar-logo" inner
 let logo inner = divClass "logo" inner
 let vnavigation inner = ulAttr ["class", "cl-vnavigation"] inner
@@ -303,9 +305,9 @@ let errored_icon_password_text label' text' icon' errors =
 let common_form decription formElements =
   container [
     row [
-      formContent [
-        block_flat [
-          header [ h3 decription ]
+      form_wrapper [
+        form_title [ h3 decription ]
+        form_content [
           div [
             form_horizontal [
               content (formElements @ [form_group [ sm12 [ pull_right [ button_submit ] ] ] ])
@@ -319,9 +321,9 @@ let common_form decription formElements =
 let common_static_form button decription formElements =
   container [
     row [
-      formContent [
-        block_flat [
-          header [ h3Inner decription [ pull_right button ] ]
+      form_wrapper [
+        form_title [ h3Inner decription [ pull_right button ] ]
+        form_content [
           div [
             form_horizontal [
               content formElements
@@ -335,9 +337,9 @@ let common_static_form button decription formElements =
 let common_register_form decription formElements =
   signup_container [
     divClass "middle-sign-up" [
-      formContent [
-        block_flat [
-          header [ h3 decription ]
+      form_wrapper [
+        form_title [ h3 decription ]
+        form_content [
           div [
             form_horizontal [
               content (formElements @ [form_group [ sm12 [ pull_right [ button_submit ] ] ] ])
