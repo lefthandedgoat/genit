@@ -306,7 +306,7 @@ let fakePropertyTemplate (field : Field) =
     | Paragraph       -> "randomItems 40 words"
     | Number          -> pickAppropriateNumber "random.Next(100)"
     | Decimal         -> "random.Next(100) |> double"
-    | Date            -> "System.DateTime.Now"
+    | Date            -> "System.DateTime.Now.AddDays(random.Next(7) |> float)"
     | Phone           -> """sprintf "%i-%i-%i" (random.Next(200,800)) (random.Next(200,800)) (random.Next(2000,8000))"""
     | Email           -> """sprintf "%s@%s.com" (randomItem words) (randomItem words)"""
     | Name            -> pickAppropriateName """randomItem names"""

@@ -6,7 +6,7 @@ open helper_html
 let jquery_1_11_3_min = """<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>"""
 let bootstrap = """<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>"""
 let datatable_jquery_1_10_9_min = """<script src="//cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>"""
-//todo dont hotlink
+let chartjs_2_1_6_min = """<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.1.6/Chart.min.js"></script>"""
 let datatable_adapter = """<script src="/js/datatables.js"></script>"""
 let bootstrap_datepicker = """<script src="/js/bootstrap-datetimepicker.min.js"></script>"""
 
@@ -40,6 +40,46 @@ let generic_datatable = """
 </script>
 """
 
+let chartjs_onready = """
+<script type="text/javascript">
+  $(document).ready(function(){
+    var lineContext = $("#line");
+
+    var data = {
+      labels: ["January", "February", "March", "April", "May", "June", "July"],
+      datasets: [
+        {
+          label: "My First dataset",
+          fill: false,
+          lineTension: 0.1,
+          backgroundColor: "rgba(75,192,192,0.4)",
+          borderColor: "rgba(75,192,192,1)",
+          borderCapStyle: 'butt',
+          borderDash: [],
+          borderDashOffset: 0.0,
+          borderJoinStyle: 'miter',
+          pointBorderColor: "rgba(75,192,192,1)",
+          pointBackgroundColor: "#fff",
+          pointBorderWidth: 1,
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: "rgba(75,192,192,1)",
+          pointHoverBorderColor: "rgba(220,220,220,1)",
+          pointHoverBorderWidth: 2,
+          pointRadius: 1,
+          pointHitRadius: 10,
+          data: [65, 59, 80, 81, 56, 55, 40],
+        }
+      ]
+    };
+    var lineChart = new Chart(lineContext, {
+      type: 'line',
+      data: data,
+      options: {}
+    });
+  });
+</script>
+"""
+
 let none = emptyText
 
 let common =
@@ -60,5 +100,14 @@ let datatable_bundle =
     bootstrap_datepicker
     generic_onready
     generic_datatable
+  ]
+  |> List.map (fun script -> text script) |> flatten
+
+let chartjs_bundle =
+  [
+    jquery_1_11_3_min
+    bootstrap
+    chartjs_2_1_6_min
+    chartjs_onready
   ]
   |> List.map (fun script -> text script) |> flatten

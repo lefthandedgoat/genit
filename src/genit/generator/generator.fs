@@ -522,16 +522,16 @@ let dashboardViewTemplate (dashboard : Dashboard) =
   sprintf """
 let view_dashboard_%s =
   base_html
-    "%s"
+    "%s Dashboard"
     (base_header brand)
     [
       divClass "container" [
         divClass "jumbotron" [
-          h1 (sprintf "Dashboard for %s!")
+          canvasId "line"
         ]
       ]
     ]
-    scripts.common""" dashboard.AsVal dashboard.Name dashboard.Name
+    scripts.chartjs_bundle""" dashboard.AsVal dashboard.Name
 
 let pageLinkTemplate (page : Page) =
   let template href text = sprintf """li [ aHref "%s" [text "%s"] ]""" href text |> pad 7
