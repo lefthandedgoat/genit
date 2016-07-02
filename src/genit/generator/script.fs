@@ -40,6 +40,8 @@ let someSite () =
 
   api "Order"
 
+  dashboard "Order"
+
   advancedPage "Reserveration" CVELS RequiresLogin
     [
       text  "Name"         Required

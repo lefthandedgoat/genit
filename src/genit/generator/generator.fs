@@ -12,7 +12,7 @@ let destination filename =
   |> UriBuilder
   |> (fun uri -> uri.Path)
   |> IO.Path.GetDirectoryName
-  |> (fun path -> path.Replace("bin", "generated"))
+  |> (fun path -> path + "/src/genit/generated")
   |> (fun path -> System.IO.Path.Combine(path, filename))
 
 let fieldToHtml (field : Field) =
@@ -518,6 +518,21 @@ let viewTemplate site page =
 
   viewTemplate site page page.PageMode
 
+let dashboardViewTemplate (dashboard : Dashboard) =
+  sprintf """
+let view_dashboard_%s =
+  base_html
+    "%s"
+    (base_header brand)
+    [
+      divClass "container" [
+        divClass "jumbotron" [
+          h1 (sprintf "Welcome to %s!")
+        ]
+      ]
+    ]
+    scripts.common""" dashboard.AsVal dashboard.Name dashboard.Name
+
 let pageLinkTemplate (page : Page) =
   let template href text = sprintf """li [ aHref "%s" [text "%s"] ]""" href text |> pad 7
   let rec pageLinkTemplate page pageMode =
@@ -534,6 +549,9 @@ let pageLinkTemplate (page : Page) =
     | Jumbotron -> template "/" page.Name
 
   pageLinkTemplate page page.PageMode
+
+let dashboardLinkTemplate (dashboard : Dashboard) =
+  sprintf """li [ aHref "%s" [text "%s Dashboard"] ]""" dashboard.AsViewHref dashboard.Name |> pad 7
 
 let pagePathTemplate (page : Page) =
   let template extra href withId =
@@ -557,6 +575,9 @@ let pagePathTemplate (page : Page) =
 
 let apiPathTemplate (api : API) =
   sprintf """let path_api_%s : Int64Path = "%s" """ api.AsVal api.AsViewHref |> trimEnd
+
+let dashboardPathTemplate (dashboard : Dashboard) =
+  sprintf """let path_dashboard_%s = "%s" """ dashboard.AsVal dashboard.AsViewHref |> trimEnd
 
 let pageRouteTemplate (page : Page) =
   let template extra withId =
@@ -587,6 +608,9 @@ let pageRouteTemplate (page : Page) =
 
 let apiRouteTemplate (api : API) =
   sprintf """pathScan path_api_%s api_%s""" api.AsVal api.AsVal |> pad 2
+
+let dashboardRouteTemplate (dashboard : Dashboard) =
+  sprintf """path path_dashboard_%s >=> dashboard_%s""" dashboard.AsVal dashboard.AsVal |> pad 2
 
 let pageHandlerTemplate page =
   let rec pageHandlerTemplate page pageMode =
@@ -691,6 +715,14 @@ let api_%s id =
          let serializer = FsPickler.CreateJsonSerializer(indent = true)
          Writers.setMimeType "application/json"
          >=> OK (serializer.PickleToString(data)))""" api.AsVal api.AsVal
+
+let dashboardHandlerTemplate (dashboard : Dashboard) =
+  sprintf """
+let dashboard_%s =
+  choose
+    [
+      GET >=> warbler (fun _ -> OK view_dashboard_%s)
+    ]""" dashboard.AsVal dashboard.AsVal
 
 let propertyTemplate (page : Page) =
   page.Fields
@@ -932,14 +964,19 @@ let fakeDataTemplate page =
 
 let generate (site : Site) =
   let html_results = site.Pages |> List.map pageLinkTemplate |> flatten
-  let generated_html_result = generated_html_template html_results
+  let dashboard_html_results = site.Dashboards |> List.map dashboardLinkTemplate |> flatten
+  let all_html_results = [html_results; dashboard_html_results] |> flatten
+  let generated_html_result = generated_html_template all_html_results
 
   let views_results = site.Pages |> List.map (viewTemplate site) |> flatten
-  let generated_views_result = generated_views_template site.Name views_results
+  let dashboard_view_results = site.Dashboards |> List.map dashboardViewTemplate |> flatten
+  let all_view_results = [views_results; dashboard_view_results] |> flatten
+  let generated_views_result = generated_views_template site.Name all_view_results
 
   let page_handlers = site.Pages |> List.map pageHandlerTemplate |> flatten
   let api_handlers = site.APIs |> List.map apiHandlerTemplate |> flatten
-  let handler_results = [page_handlers; api_handlers] |> flatten
+  let dashboard_handlers = site.Dashboards |> List.map dashboardHandlerTemplate |> flatten
+  let handler_results = [page_handlers; api_handlers; dashboard_handlers] |> flatten
   let generated_handlers_result = generated_handlers_template handler_results
 
   let forms_results = site.Pages |> List.map formTypeTemplate |> flatten
@@ -953,10 +990,13 @@ let generate (site : Site) =
 
   let page_paths = site.Pages |> List.map pagePathTemplate |> flatten
   let api_paths = site.APIs |> List.map apiPathTemplate |> flatten
-  let paths_results = [page_paths; api_paths] |> flatten
+  let dashboard_paths = site.Dashboards |> List.map dashboardPathTemplate |> flatten
+  let paths_results = [page_paths; api_paths; dashboard_paths] |> flatten
+
   let page_routes = site.Pages |> List.map pageRouteTemplate |> flatten
   let api_routes = site.APIs |> List.map apiRouteTemplate |> flatten
-  let routes_results = [page_routes; api_routes] |> flatten
+  let dashboard_routes = site.Dashboards |> List.map dashboardRouteTemplate |> flatten
+  let routes_results = [page_routes; api_routes; dashboard_routes] |> flatten
   let generated_paths_result = generated_paths_template paths_results routes_results
 
   let validations_results = site.Pages |> List.map validationTemplate |> flatten

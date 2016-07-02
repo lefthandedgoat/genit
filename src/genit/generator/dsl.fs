@@ -91,6 +91,14 @@ type API =
     AsViewHref : string
   }
 
+type Dashboard =
+  {
+    Name : string
+    AsVal : string
+    AsType : string
+    AsViewHref : string
+  }
+
 type Page =
   {
     Name : string
@@ -118,6 +126,7 @@ type Site =
     AsDatabase : string
     Pages : Page list
     APIs : API list
+    Dashboards : Dashboard list
     Database : Database
     DatabasePassword : string
   }
@@ -128,6 +137,7 @@ let private defaultSite =
     AsDatabase = ""
     Pages = []
     APIs = []
+    Dashboards = []
     Database = Postgres
     DatabasePassword = "NOTsecure123"
   }
@@ -185,6 +195,17 @@ let api name =
     }
 
   currentSite <- { currentSite with APIs = currentSite.APIs @ [api] }
+
+let dashboard name =
+  let dashboard : Dashboard =
+    {
+      Name = name
+      AsViewHref = to_dashboardViewHref name
+      AsVal = to_val name
+      AsType = to_type name
+    }
+
+  currentSite <- { currentSite with Dashboards = currentSite.Dashboards @ [dashboard] }
 
 let id_pk name = field (sprintf "%s ID" name) PK Id currentSite.Database
 let text name attribute = field name attribute Text currentSite.Database
