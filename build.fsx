@@ -43,9 +43,8 @@ let tags = "f# load testing"
 let solutionFile  = "genit.sln"
 
 // Pattern specifying assemblies to be tested using NUnit
-let exe = "src/genit/bin/Debug/"
+let exe = currentDirectory @@ "/bin/"
 
-let executingDir = __SOURCE_DIRECTORY__
 // --------------------------------------------------------------------------------------
 // END TODO: The rest of the file includes standard build steps
 // --------------------------------------------------------------------------------------
@@ -89,15 +88,23 @@ Target "AssemblyInfo" (fun _ ->
 // But keeps a subdirectory structure for each project in the
 // src folder to support multiple project outputs
 Target "CopyBinaries" (fun _ ->
-    !! "**/*.??proj"
-    |>  Seq.map (fun f -> ((System.IO.Path.GetDirectoryName f) @@ "bin/Debug", "bin" @@ (System.IO.Path.GetFileNameWithoutExtension f)))
-    |>  Seq.iter (fun (fromDir, toDir) -> CopyDir toDir fromDir (fun _ -> true))
+    let target = currentDirectory @@ "/bin"
+    let source = currentDirectory @@ "/src/genit/bin/Debug"
+    FileHelper.CopyDir target source (fun _ -> true)
 )
 
 Target "CopyAssets" (fun _ ->
-    let target = currentDirectory @@ "/src/genit/bin/Debug/css"
-    let destination = currentDirectory @@ "/src/genit/css"
-    FileHelper.CopyDir target destination (fun _ -> true)
+    let target = currentDirectory @@ "/bin/css"
+    let source = currentDirectory @@ "/src/genit/css"
+    FileHelper.CopyDir target source (fun _ -> true)
+
+    let target = currentDirectory @@ "/bin/js"
+    let source = currentDirectory @@ "/src/genit/js"
+    FileHelper.CopyDir target source (fun _ -> true)
+
+    let target = currentDirectory @@ "/bin/fonts"
+    let source = currentDirectory @@ "/src/genit/fonts"
+    FileHelper.CopyDir target source (fun _ -> true)
 )
 
 // --------------------------------------------------------------------------------------
@@ -188,22 +195,20 @@ Target "All" DoNothing
   ==> "Build"
 
 "Build"
-  ==> "CopyAssets"
-
-"Build"
-  ==> "Generate"
-
-"Build"
-  ==> "CreateDB"
-
-"CopyAssets"
-  ==> "RunSite"
-
-"Build"
-  ==> "Test"
-
-"Build"
   ==> "CopyBinaries"
   ==> "Bin"
+
+"Bin"
+  ==> "Generate"
+
+"Bin"
+  ==> "CreateDB"
+
+"Bin"
+  ==> "Test"
+
+"Bin"
+  ==> "CopyAssets"
+  ==> "RunSite"
 
 RunTargetOrDefault "Help"

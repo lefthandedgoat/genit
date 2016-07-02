@@ -27,7 +27,7 @@ let routes =
     (generated_paths.generated_routes @
     [
       path "/loadtest" >=> loadtest
-      pathRegex "(.*)\.(css|png|gif|js|ico|woff|tff)" >=> Files.browseHome
+      Files.browseHome
     ])
 
 let args = System.Environment.GetCommandLineArgs()
