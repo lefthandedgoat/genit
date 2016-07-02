@@ -1,5 +1,6 @@
 module generated_views
 
+open dsl
 open Suave.Html
 open helper_html
 open helper_bootstrap

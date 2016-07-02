@@ -265,6 +265,15 @@ WHERE email = :email
 
 (*
 
+Graphs
+
+*)
+
+let graphTemplate items =
+  ""
+
+(*
+
 Everything else
 
 *)

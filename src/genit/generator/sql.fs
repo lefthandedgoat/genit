@@ -183,6 +183,17 @@ let authenticateTemplate site page =
 
 (*
 
+Graphs
+
+*)
+
+let graphTemplate site items =
+  match site.Database with
+  | Postgres  -> psql.graphTemplate items
+  | SQLServer -> "" //todo
+
+(*
+
 Everything else
 
 *)

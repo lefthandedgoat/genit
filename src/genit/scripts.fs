@@ -1,7 +1,9 @@
 module scripts
 
-open Suave.Html
+open dsl
 open helper_html
+open helper_general
+open Suave.Html
 
 let jquery_1_11_3_min = """<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>"""
 let bootstrap = """<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>"""
@@ -40,46 +42,6 @@ let generic_datatable = """
 </script>
 """
 
-let chartjs_onready = """
-<script type="text/javascript">
-  $(document).ready(function(){
-    var lineContext = $("#line");
-
-    var data = {
-      labels: ["January", "February", "March", "April", "May", "June", "July"],
-      datasets: [
-        {
-          label: "My First dataset",
-          fill: false,
-          lineTension: 0.1,
-          backgroundColor: "rgba(75,192,192,0.4)",
-          borderColor: "rgba(75,192,192,1)",
-          borderCapStyle: 'butt',
-          borderDash: [],
-          borderDashOffset: 0.0,
-          borderJoinStyle: 'miter',
-          pointBorderColor: "rgba(75,192,192,1)",
-          pointBackgroundColor: "#fff",
-          pointBorderWidth: 1,
-          pointHoverRadius: 5,
-          pointHoverBackgroundColor: "rgba(75,192,192,1)",
-          pointHoverBorderColor: "rgba(220,220,220,1)",
-          pointHoverBorderWidth: 2,
-          pointRadius: 1,
-          pointHitRadius: 10,
-          data: [65, 59, 80, 81, 56, 55, 40],
-        }
-      ]
-    };
-    var lineChart = new Chart(lineContext, {
-      type: 'line',
-      data: data,
-      options: {}
-    });
-  });
-</script>
-"""
-
 let none = emptyText
 
 let common =
@@ -103,11 +65,78 @@ let datatable_bundle =
   ]
   |> List.map (fun script -> text script) |> flatten
 
-let chartjs_bundle =
+(*
+
+Charting
+
+*)
+
+let contextTemplate item =
+  let template type' index = sprintf """var %sContext%i = $("#%s%i");""" type' index type' index |> pad 2
+  match item.ChartType with
+  | Line -> template "line" item.Index
+  | Pie  -> template "pie" item.Index
+  | Bar  -> template "bar" item.Index
+
+let chartInstanceTemplate item =
+  let template type' index =
+    sprintf """
+    var %sChart%i = new Chart(%sContext%i, {
+      type: '%s',
+      data: data,
+      options: {}
+    });""" type' index type' index type'
+  match item.ChartType with
+  | Line -> template "line" item.Index
+  | Pie  -> template "pie" item.Index
+  | Bar  -> template "bar" item.Index
+
+let chartTemplate item =
+  sprintf """
+%s
+    var data = {
+      labels: %s,
+      datasets: [
+        {
+          label: "%s",
+          fill: false,
+          lineTension: 0.1,
+          backgroundColor: "rgba(26,179,148,0.5)",
+          borderColor: "rgba(26,179,148,0.7)",
+          borderCapStyle: 'butt',
+          borderDash: [],
+          borderDashOffset: 0.0,
+          borderJoinStyle: 'miter',
+          pointBorderColor: "rgba(75,192,192,1)",
+          pointBackgroundColor: "#fff",
+          pointBorderWidth: 1,
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: "rgba(26,179,148,0.7)",
+          pointHoverBorderColor: "rgba(26,179,148,1)",
+          pointHoverBorderWidth: 2,
+          pointRadius: 1,
+          pointHitRadius: 10,
+          data: %s,
+        }
+      ]
+    };
+%s
+  """ (contextTemplate item) """["January", "February", "March", "April", "May", "June", "July"]""" item.Field "[65, 59, 80, 81, 56, 55, 40]" (chartInstanceTemplate item)
+
+let chartjs_onready items =
+  sprintf """
+<script type="text/javascript">
+  $(document).ready(function(){
+%s
+  });
+</script>
+""" (items |> List.map chartTemplate |> helper_general.flatten)
+
+let chartjs_bundle charts =
   [
     jquery_1_11_3_min
     bootstrap
     chartjs_2_1_6_min
-    chartjs_onready
+    chartjs_onready charts
   ]
   |> List.map (fun script -> text script) |> flatten
