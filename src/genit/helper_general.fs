@@ -40,6 +40,7 @@ let to_createHref = camelCase >> sprintf "/%s/create"
 let to_generateHref = camelCase >> (fun page -> sprintf "/%s/generate/%s" page "%i")
 let to_viewHref = camelCase >> (fun page -> sprintf "/%s/view/%s" page "%i")
 let to_apiViewHref = camelCase >> (fun page -> sprintf "/api/%s/view/%s" page "%i")
+let to_dashboardViewHref = camelCase >> (fun page -> sprintf "/%s/dashboard" page)
 let to_editHref = camelCase >> (fun page -> sprintf "/%s/edit/%s" page "%i")
 let to_listHref = camelCase >> sprintf "/%s/list"
 let to_searchHref = camelCase >> sprintf "/%s/search"
