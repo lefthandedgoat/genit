@@ -35,25 +35,25 @@ let resultsTable (results : Result list) =
 let formWithResults description results formElements =
   container [
     row [
-      mcontent [
-        block_flat [
-          header [ h3 description ]
+      form_wrapper [
+        form_title [ h3 description ]
+        form_content [
           div [
             form_horizontal [
-              content (formElements @ [form_group [ sm12 [ pull_right [ button_submit ] ] ] ])
+              content (formElements @ [form_group [ sm12 [ button_submit_right ] ] ])
             ]
           ]
         ]
       ]
     ]
-    row [ mcontent [ resultsTable results ] ]
+    row [ form_wrapper [ resultsTable results ] ]
   ]
 
 let html (data : LoadTest) results =
   base_html
     "Load Test"
+    (base_header "Load Test")
     [
-      base_header "Load Test"
       formWithResults "Load Test" results [
         label_text "URI" data.URI
         label_text "Number of Requests" (string data.NumberofRequests)

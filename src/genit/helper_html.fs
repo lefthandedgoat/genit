@@ -97,21 +97,11 @@ let base_head title' =
     cssLink "http://fonts.googleapis.com/css?family=Raleway:300,200,100"
     link
     title title'
-    cssLink "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
+    cssLink "/css/bootstrap.min.css"
     cssLink "https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"
-    cssLink "http://turtletest.com/css/style.css"
+    cssLink "/css/style.css"
     cssLink "http://foxythemes.net/preview/products/flatdream/js/bootstrap.datetimepicker/css/bootstrap-datetimepicker.min.css"
   ]
-
-let base_html title content scripts =
-  let html' =
-    html [
-      base_head title
-      body content
-      scripts
-    ]
-    |> xmlToString
-  sprintf "<!DOCTYPE html>%s" html'
 
 let error_html title content scripts =
   let html' =

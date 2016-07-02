@@ -205,8 +205,8 @@ let createFormViewTemplate (page : Page) =
 let view_create_%s =
   base_html
     "Create %s"
+    (base_header brand)
     [
-      base_header brand
       common_form
         "Create %s"
         [
@@ -220,8 +220,8 @@ let createErroredFormViewTemplate (page : Page) =
 let view_create_errored_%s errors (%s : %s) =
   base_html
     "Create %s"
+    (base_header brand)
     [
-      base_header brand
       common_form
         "Create %s"
         [
@@ -235,8 +235,8 @@ let generateFormViewTemplate (page : Page) =
 let view_generate_%s (%s : %s) =
   base_html
     "Generate %s"
+    (base_header brand)
     [
-      base_header brand
       common_form
         "Generate %s"
         [
@@ -250,8 +250,8 @@ let generateErroredFormViewTemplate (page : Page) =
 let view_generate_errored_%s errors (%s : %s) =
   base_html
     "Generate %s"
+    (base_header brand)
     [
-      base_header brand
       common_form
         "Generate %s"
         [
@@ -265,8 +265,8 @@ let editFormViewTemplate (page : Page) =
 let view_edit_%s (%s : %s) =
   base_html
     "Edit %s"
+    (base_header brand)
     [
-      base_header brand
       common_form
         "Edit %s"
         [
@@ -280,8 +280,8 @@ let editErroredFormViewTemplate (page : Page) =
 let view_edit_errored_%s errors (%s : %s) =
   base_html
     "Edit %s"
+    (base_header brand)
     [
-      base_header brand
       common_form
         "Edit %s"
         [
@@ -292,7 +292,7 @@ let view_edit_errored_%s errors (%s : %s) =
 
 let editButtonTemplate (page : Page) idField =
   if isEdit page
-  then sprintf """[ button_small_success (sprintf "%s" %s.%s) [ text "Edit"] ]""" page.AsEditHref page.AsVal idField.AsProperty
+  then sprintf """button_small_success_right (sprintf "%s" %s.%s) [ text "Edit" ]""" page.AsEditHref page.AsVal idField.AsProperty
   else "[]"
 
 let viewFormViewTemplate (page : Page) =
@@ -302,8 +302,8 @@ let view_view_%s (%s : %s) =
   let button = %s
   base_html
     "%s"
+    (base_header brand)
     [
-      base_header brand
       common_static_form button
         "%s"
         [
@@ -334,7 +334,7 @@ let toTrLinkTemplate (page : Page) idField =
 
 let createButtonTemplate (page : Page) =
   if isCreate page
-  then sprintf """pull_right [ button_small_success "%s" [ text "Create"] ]""" page.AsCreateHref
+  then sprintf """button_small_success_right "%s" [ text "Create"]""" page.AsCreateHref
   else ""
 
 let listFormViewTemplate (page : Page) =
@@ -351,13 +351,13 @@ let view_list_%s %ss =
 
   base_html
     "List %s"
+    (base_header brand)
     [
-      base_header brand
       container [
         row [
-          mcontent [
-            block_flat [
-              header [ h3Inner "List %ss" [ %s ] ]
+          form_wrapper [
+            form_title [ h3Inner "List %ss" [ %s ] ]
+            form_content [
               content [
                 table_bordered_linked_tr
                   [
@@ -388,22 +388,20 @@ let view_search_%s field how value %ss =
 
   base_html
     "Search %s"
+    (base_header brand)
     [
-      base_header brand
       container [
         row [
-          mcontent [
-            block_flat [
-              header [
-                h3Inner "Search %ss" [ ]
-              ]
-              div [
+          form_wrapper [
+            form_title [ h3Inner "Search %ss" [ ] ]
+            form_content [
+              divClass "search-bar" [
                 form_inline [
                   content [
                     inline_label_select_selected "Field" fields field
                     inline_label_select_selected"How" hows how
                     inline_label_text "Value" value
-                    pull_right [ button_submit ]
+                    button_submit_right
                   ]
                 ]
               ]
@@ -424,10 +422,10 @@ let view_search_%s field how value %ss =
 let registerFormViewTemplate (page : Page) =
   sprintf """
 let view_register =
-  base_html
+  base_middle_html
     "%s"
+    (base_header brand)
     [
-      base_header brand
       common_register_form
         "%s"
         [
@@ -439,10 +437,10 @@ let view_register =
 let registerErroredFormViewTemplate (page : Page) =
   sprintf """
 let view_errored_register errors (%s : %s) =
-  base_html
+  base_middle_html
     "%s"
+    (base_header brand)
     [
-      base_header brand
       common_register_form
         "%s"
         [
@@ -459,10 +457,10 @@ let view_login error email =
     then stand_alone_error "Invalid email or password"
     else emptyText
 
-  base_html
+  base_middle_html
     "Login"
+    (base_header brand)
     [
-      base_header brand
       common_register_form
         "Login"
         [
@@ -477,10 +475,10 @@ let view_login error email =
 let loginErroredFormViewTemplate (page : Page) =
   sprintf """
 let view_errored_login errors (%s : %s) =
-  base_html
+  base_middle_html
     "%s"
+    (base_header brand)
     [
-      base_header brand
       common_register_form
         "%s"
         [
@@ -494,8 +492,8 @@ let jumbotronViewTemplate (site : Site) (page : Page) =
 let view_jumbo_%s =
   base_html
     "%s"
+    (base_header brand)
     [
-      base_header brand
       divClass "container" [
         divClass "jumbotron" [
           h1 (sprintf "Welcome to %s!")

@@ -16,8 +16,12 @@ let option2String value : string =
   | None -> ""
 
 let icon type' = italic ["class", (sprintf "fa fa-%s" type')] emptyText
-let wrapper inner = divId "cl-wrapper" inner
+let wrapper inner = divId "wrapper" inner
+let pageWrapper inner = divIdClass "page-wrapper" "gray-bg" inner
 let wrapperClass class' inner = divIdClass "cl-wrapper" class' inner
+let wrapperContent inner = divClass "wrapper wrapper-content" inner
+let middle_box inner = divClass "middle-box" inner
+let navbarRow inner = divClass "row border-bottom white-bg" inner
 let sidebar inner = divClass "cl-sidebar" inner
 let toggle inner = divClass "cl-toggle" inner
 let navblock inner = divClass "cl-navblock" inner
@@ -25,7 +29,9 @@ let menu_space inner = divClass "menu-space" inner
 let content inner = divClass "content" inner
 let container inner = divClass "container" inner
 let signup_container inner = divClass "sign-up-container" inner
-let mcontent inner = divClass "cl-mcont" inner
+let form_wrapper inner = divClass "ibox float-e-margins" inner
+let form_title inner = divClass "ibox-title" inner
+let form_content inner = divClass "ibox-content" inner
 let sidebar_logo inner = divClass "sidebar-logo" inner
 let logo inner = divClass "logo" inner
 let vnavigation inner = ulAttr ["class", "cl-vnavigation"] inner
@@ -66,10 +72,12 @@ let button_small_plain href inner = aHrefAttr href ["class", "btn btn-sm"] inner
 let button_primary href inner = aHrefAttr href ["class", "btn btn-primary"] inner
 let button_success href inner = aHrefAttr href ["class", "btn btn-success"] inner
 let button_small_success href inner = aHrefAttr href ["class", "btn btn-sm btn-success"] inner
+let button_small_success_right href inner = aHrefAttr href ["class", "btn btn-sm btn-success m-t-n-xs pull-right"] inner
 let button_danger href inner = aHrefAttr href ["class", "btn btn-danger"] inner
 let button_small_danger href inner = aHrefAttr href ["class", "btn btn-sm btn-danger"] inner
 let button_save = inputAttr [ "value","Save"; "type","submit"; "class","btn btn-success"; ]
 let button_submit = inputAttr [ "value","Submit"; "type","submit"; "class","btn btn-success"; ]
+let button_submit_right = inputAttr [ "value","Submit"; "type","submit"; "class","btn btn-success pull-right"; ]
 let button_run = inputAttr [ "id","run"; "value","Run"; "type","submit"; "class","btn btn-primary"; ]
 let button_login = inputAttr [ "value","Login"; "type","submit"; "class","btn btn-success"; ]
 let button_register = aHrefAttr "/register" [ "class","btn"; ] [ text "Register" ]
@@ -110,6 +118,40 @@ let base_header brand =
       ]
     ]
   ]
+
+let base_html title navbar content scripts =
+  let html' =
+    html [
+      base_head title
+      bodyClass "top-navigation" [
+        wrapper [
+          pageWrapper [
+            navbarRow [ navbar ]
+            wrapperContent content
+          ]
+        ]
+      ]
+      scripts
+    ]
+    |> xmlToString
+  sprintf "<!DOCTYPE html>%s" html'
+
+let base_middle_html title navbar content scripts =
+  let html' =
+    html [
+      base_head title
+      bodyClass "top-navigation" [
+        wrapper [
+          pageWrapper [
+            navbarRow [ navbar ]
+            middle_box  content
+          ]
+        ]
+      ]
+      scripts
+    ]
+    |> xmlToString
+  sprintf "<!DOCTYPE html>%s" html'
 
 let form_group_control_label_sm8 label' inner =
   form_group [
@@ -283,12 +325,12 @@ let errored_icon_password_text label' text' icon' errors =
 let common_form decription formElements =
   container [
     row [
-      mcontent [
-        block_flat [
-          header [ h3 decription ]
+      form_wrapper [
+        form_title [ h3 decription ]
+        form_content [
           div [
             form_horizontal [
-              content (formElements @ [form_group [ sm12 [ pull_right [ button_submit ] ] ] ])
+              content (formElements @ [form_group [ sm12 [ button_submit_right ] ] ])
             ]
           ]
         ]
@@ -299,9 +341,9 @@ let common_form decription formElements =
 let common_static_form button decription formElements =
   container [
     row [
-      mcontent [
-        block_flat [
-          header [ h3Inner decription [ pull_right button ] ]
+      form_wrapper [
+        form_title [ h3Inner decription [ button ] ]
+        form_content [
           div [
             form_horizontal [
               content formElements
@@ -315,12 +357,12 @@ let common_static_form button decription formElements =
 let common_register_form decription formElements =
   signup_container [
     divClass "middle-sign-up" [
-      mcontent [
-        block_flat [
-          header [ h3 decription ]
+      form_wrapper [
+        form_title [ h3 decription ]
+        form_content [
           div [
             form_horizontal [
-              content (formElements @ [form_group [ sm12 [ pull_right [ button_submit ] ] ] ])
+              content (formElements @ [form_group [ sm12 [ button_submit_right ] ] ])
             ]
           ]
         ]
