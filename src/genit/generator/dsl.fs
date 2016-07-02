@@ -24,19 +24,6 @@ type PageAttribute =
   | Standard
   | RequiresLogin
 
-type ChartType =
-  | Line
-  | Bar
-  | Pie
-
-type ColumnSize =
-  | Full
-  | ThreeQuarters
-  | TwoThirds
-  | Half
-  | Third
-  | Quarter
-
 type CreateTable =
   | CreateTable
   | DoNotCreateTable
@@ -104,13 +91,33 @@ type API =
     AsViewHref : string
   }
 
+type ChartType =
+  | Line
+  | Bar
+  | Pie
+
+type ColumnSize =
+  | Full
+  | ThreeQuarters
+  | TwoThirds
+  | Half
+  | Third
+  | Quarter
+
+type DashboardItem =
+  {
+    Field : string
+    ChartType : ChartType
+    ColumnSize : ColumnSize
+    Index : int
+  }
+
 type Dashboard =
   {
     Name : string
     AsVal : string
-    AsType : string
     AsViewHref : string
-    Fields : (ChartType * string * ColumnSize) list
+    Items : DashboardItem list
   }
 
 type Page =
@@ -210,21 +217,21 @@ let api name =
 
   currentSite <- { currentSite with APIs = currentSite.APIs @ [api] }
 
-let dashboard name fields =
+let dashboard name items =
+  let items = items |> List.mapi (fun index item -> { item with Index = index })
   let dashboard : Dashboard =
     {
       Name = name
       AsViewHref = to_dashboardViewHref name
       AsVal = to_val name
-      AsType = to_type name
-      Fields = fields
+      Items = items
     }
 
   currentSite <- { currentSite with Dashboards = currentSite.Dashboards @ [dashboard] }
 
-let line field columnSize = Line, field, columnSize
-let bar field columnSize = Bar, field, columnSize
-let pie field columnSize = Pie, field, columnSize
+let line field columnSize = { Field = field; ChartType = Line; ColumnSize = columnSize; Index = 0 }
+let bar field columnSize =  { Field = field; ChartType = Bar;  ColumnSize = columnSize; Index = 0 }
+let pie field columnSize =  { Field = field; ChartType = Pie;  ColumnSize = columnSize; Index = 0 }
 
 let id_pk name = field (sprintf "%s ID" name) PK Id currentSite.Database
 let text name attribute = field name attribute Text currentSite.Database

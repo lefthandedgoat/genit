@@ -518,6 +518,16 @@ let viewTemplate site page =
 
   viewTemplate site page page.PageMode
 
+let dashboardChartTemplate items =
+  let template type' index = sprintf """canvasId "%s%i" """ type' index |> trimEnd |> pad 4
+  let dashboardChartTemplate item =
+    match item.ChartType with
+    | Line -> template "line" item.Index
+    | Pie  -> template "pie" item.Index
+    | Bar  -> template "bar" item.Index
+
+  items |> List.map dashboardChartTemplate |> flatten
+
 let dashboardViewTemplate (dashboard : Dashboard) =
   sprintf """
 let view_dashboard_%s =
@@ -526,12 +536,10 @@ let view_dashboard_%s =
     (base_header brand)
     [
       divClass "container" [
-        divClass "jumbotron" [
-          canvasId "line"
-        ]
+%s
       ]
     ]
-    scripts.chartjs_bundle""" dashboard.AsVal dashboard.Name
+    scripts.chartjs_bundle""" dashboard.AsVal dashboard.Name (dashboardChartTemplate dashboard.Items)
 
 let pageLinkTemplate (page : Page) =
   let template href text = sprintf """li [ aHref "%s" [text "%s"] ]""" href text |> pad 7
