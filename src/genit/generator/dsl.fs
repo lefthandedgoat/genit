@@ -24,6 +24,19 @@ type PageAttribute =
   | Standard
   | RequiresLogin
 
+type ChartType =
+  | Line
+  | Bar
+  | Pie
+
+type ColumnSize =
+  | Full
+  | ThreeQuarters
+  | TwoThirds
+  | Half
+  | Third
+  | Quarter
+
 type CreateTable =
   | CreateTable
   | DoNotCreateTable
@@ -97,6 +110,7 @@ type Dashboard =
     AsVal : string
     AsType : string
     AsViewHref : string
+    Fields : (ChartType * string * ColumnSize) list
   }
 
 type Page =
@@ -196,16 +210,21 @@ let api name =
 
   currentSite <- { currentSite with APIs = currentSite.APIs @ [api] }
 
-let dashboard name =
+let dashboard name fields =
   let dashboard : Dashboard =
     {
       Name = name
       AsViewHref = to_dashboardViewHref name
       AsVal = to_val name
       AsType = to_type name
+      Fields = fields
     }
 
   currentSite <- { currentSite with Dashboards = currentSite.Dashboards @ [dashboard] }
+
+let line field columnSize = Line, field, columnSize
+let bar field columnSize = Bar, field, columnSize
+let pie field columnSize = Pie, field, columnSize
 
 let id_pk name = field (sprintf "%s ID" name) PK Id currentSite.Database
 let text name attribute = field name attribute Text currentSite.Database
