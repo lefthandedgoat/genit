@@ -527,7 +527,7 @@ let view_dashboard_%s =
     [
       divClass "container" [
         divClass "jumbotron" [
-          h1 (sprintf "Welcome to %s!")
+          h1 (sprintf "Dashboard for %s!")
         ]
       ]
     ]
