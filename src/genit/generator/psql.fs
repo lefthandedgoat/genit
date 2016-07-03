@@ -269,8 +269,33 @@ Graphs
 
 *)
 
-let graphTemplate items =
-  ""
+let chartDataTemplate site (dashboard : Dashboard) =
+  let chartSelectTemplate = """
+SELECT
+  to_char(delivery_date, 'day') as description
+  , count(*) as count
+FROM bobs_burgers.orders
+GROUP BY
+  to_char(delivery_date, 'day')
+  """
+  let chartDataTemplate chart =
+    let page = site.Pages |> List.find (fun page -> page.Name = dashboard.Name)
+    let field = page.Fields |> List.find (fun field -> field.Name = chart.Field)
+    match field.FieldType with
+    | Id                -> ""
+    | Text              -> ""
+    | Paragraph         -> ""
+    | Number            -> ""
+    | Decimal           -> ""
+    | Date              -> ""
+    | Phone             -> ""
+    | Email             -> ""
+    | Name              -> ""
+    | Password          -> ""
+    | ConfirmPassword   -> ""
+    | Dropdown options  -> ""
+
+  dashboard.Charts |> List.map chartDataTemplate |> flatten
 
 (*
 

@@ -518,19 +518,19 @@ let viewTemplate site page =
 
   viewTemplate site page page.PageMode
 
-let dashboardItemTemplate items =
-  let dashboardItemTemplate item = sprintf """{ Field = "%s"; ChartType = %A; ColumnSize = %A; Index = %i }""" item.Field item.ChartType item.ColumnSize item.Index |> pad 3
-  items |> List.map dashboardItemTemplate |> flatten
+let dashboardItemTemplate charts =
+  let dashboardItemTemplate chart = sprintf """{ Field = "%s"; ChartType = %A; ColumnSize = %A; Index = %i }""" chart.Field chart.ChartType chart.ColumnSize chart.Index |> pad 3
+  charts |> List.map dashboardItemTemplate |> flatten
 
 let dashboardChartTemplate (dashboard : Dashboard) =
   let template type' index = sprintf """chart_wrapper "%s" [ canvasId "%s%i" ]""" dashboard.Name type' index |> pad 4
-  let dashboardChartTemplate item =
-    match item.ChartType with
-    | Line -> template "line" item.Index
-    | Pie  -> template "pie" item.Index
-    | Bar  -> template "bar" item.Index
+  let dashboardChartTemplate chart =
+    match chart.ChartType with
+    | Line -> template "line" chart.Index
+    | Pie  -> template "pie" chart.Index
+    | Bar  -> template "bar" chart.Index
 
-  dashboard.Items |> List.map dashboardChartTemplate |> flatten
+  dashboard.Charts |> List.map dashboardChartTemplate |> flatten
 
 let dashboardViewTemplate (dashboard : Dashboard) =
   sprintf """
@@ -548,7 +548,7 @@ let view_dashboard_%s =
 %s
       ]
     ]
-    (scripts.chartjs_bundle items)""" dashboard.AsVal (dashboardItemTemplate dashboard.Items) dashboard.Name (dashboardChartTemplate dashboard)
+    (scripts.chartjs_bundle items)""" dashboard.AsVal (dashboardItemTemplate dashboard.Charts) dashboard.Name (dashboardChartTemplate dashboard)
 
 let pageLinkTemplate (page : Page) =
   let template href text = sprintf """li [ aHref "%s" [text "%s"] ]""" href text |> pad 7

@@ -187,9 +187,9 @@ Graphs
 
 *)
 
-let graphTemplate site items =
+let chartDataTemplate site dashboard =
   match site.Database with
-  | Postgres  -> psql.graphTemplate items
+  | Postgres  -> psql.chartDataTemplate site dashboard
   | SQLServer -> "" //todo
 
 (*
