@@ -265,6 +265,16 @@ Everything else
 let generated_data_access_template connectionString guts =
   sprintf """module generated_data_access
 
+let toChartData (reader : IDataReader) : ChartData =
+  let temp =
+    [ while reader.Read() do
+      yield getString "description" reader, getInt32 "count" reader
+    ]
+  {
+    Descriptions = temp |> List.map (fun data -> fst data)
+    Data =  temp |> List.map (fun data -> snd data)
+  }
+
 open System.Data
 open generated_types
 open helper_general

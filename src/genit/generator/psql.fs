@@ -315,6 +315,16 @@ open Npgsql
 open dsl
 open BCrypt.Net
 
+let toChartData (reader : IDataReader) : ChartData =
+  let temp =
+    [ while reader.Read() do
+      yield getString "description" reader, getInt32 "count" reader
+    ]
+  {
+    Descriptions = temp |> List.map (fun data -> fst data)
+    Data =  temp |> List.map (fun data -> snd data)
+  }
+
 [<Literal>]
 let connectionString = "%s"
 
