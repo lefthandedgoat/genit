@@ -518,10 +518,6 @@ let viewTemplate site page =
 
   viewTemplate site page page.PageMode
 
-let dashboardItemTemplate charts =
-  let dashboardItemTemplate chart = sprintf """{ Field = "%s"; ChartType = %A; ColumnSize = %A; Index = %i }""" chart.Field chart.ChartType chart.ColumnSize chart.Index |> pad 3
-  charts |> List.map dashboardItemTemplate |> flatten
-
 let dashboardChartTemplate (dashboard : Dashboard) =
   let template type' index = sprintf """chart_wrapper "%s" [ canvasId "%s%i" ]""" dashboard.Name type' index |> pad 4
   let dashboardChartTemplate chart =
@@ -534,12 +530,7 @@ let dashboardChartTemplate (dashboard : Dashboard) =
 
 let dashboardViewTemplate (dashboard : Dashboard) =
   sprintf """
-let view_dashboard_%s =
-  let items =
-    [
-%s
-    ]
-
+let view_dashboard_%s data =
   base_html
     "%s Dashboard"
     (base_header brand)
@@ -548,7 +539,7 @@ let view_dashboard_%s =
 %s
       ]
     ]
-    (scripts.chartjs_bundle items)""" dashboard.AsVal (dashboardItemTemplate dashboard.Charts) dashboard.Name (dashboardChartTemplate dashboard)
+    (scripts.chartjs_bundle data)""" dashboard.AsVal dashboard.Name (dashboardChartTemplate dashboard)
 
 let pageLinkTemplate (page : Page) =
   let template href text = sprintf """li [ aHref "%s" [text "%s"] ]""" href text |> pad 7
@@ -733,13 +724,23 @@ let api_%s id =
          Writers.setMimeType "application/json"
          >=> OK (serializer.PickleToString(data)))""" api.AsVal api.AsVal
 
+let dashboardItemTemplate charts =
+  let dashboardItemTemplate chart = sprintf """{ Field = "%s"; ChartType = %A; ColumnSize = %A; Index = %i }""" chart.Field chart.ChartType chart.ColumnSize chart.Index |> pad 6
+  charts |> List.map dashboardItemTemplate |> flatten
+
 let dashboardHandlerTemplate (dashboard : Dashboard) =
   sprintf """
 let dashboard_%s =
   choose
     [
-      GET >=> warbler (fun _ -> OK view_dashboard_%s)
-    ]""" dashboard.AsVal dashboard.AsVal
+      GET >=> warbler (fun _ ->
+        let data =
+          [
+%s
+          ]
+
+        OK <| view_dashboard_%s data)
+    ]""" dashboard.AsVal (dashboardItemTemplate dashboard.Charts) dashboard.AsVal
 
 let propertyTemplate (page : Page) =
   page.Fields

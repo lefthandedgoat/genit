@@ -43,7 +43,6 @@ let base_header brand =
 let generated_views_template brand guts =
   sprintf """module generated_views
 
-open dsl
 open Suave.Html
 open helper_html
 open helper_bootstrap
@@ -83,6 +82,7 @@ let generated_routes =
 let generated_handlers_template guts =
   sprintf """module generated_handlers
 
+open dsl
 open System.Web
 open Suave
 open Suave.Authentication
