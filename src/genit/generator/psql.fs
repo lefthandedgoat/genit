@@ -270,14 +270,27 @@ Graphs
 *)
 
 let chartDataTemplate site (dashboard : Dashboard) =
-  let chartSelectTemplate = """
+  let chataDataAccessTemplate page field query =
+    sprintf """
+let get_chart_%s_%s () =
+  let sql = "
+%s
+  "
+  use connection = connection connectionString
+  use command = command connection sql
+  command
+  |> read toChartData""" page.AsVal field.AsDBColumn query
+
+  let chartDateSelectTemplate page (field : Field) =
+    sprintf """
 SELECT
-  to_char(delivery_date, 'day') as description
+  to_char(%s, 'day') as description
   , count(*) as count
-FROM bobs_burgers.orders
+FROM %s.%s
 GROUP BY
-  to_char(delivery_date, 'day')
-  """
+  to_char(%s, 'day')
+  """ field.AsDBColumn site.AsDatabase page.AsTable field.AsDBColumn
+
   let chartDataTemplate chart =
     let page = site.Pages |> List.find (fun page -> page.Name = dashboard.Name)
     let field = page.Fields |> List.find (fun field -> field.Name = chart.Field)
@@ -287,15 +300,15 @@ GROUP BY
     | Paragraph         -> ""
     | Number            -> ""
     | Decimal           -> ""
-    | Date              -> ""
+    | Date              -> chartDateSelectTemplate page field |> chataDataAccessTemplate page field
     | Phone             -> ""
     | Email             -> ""
     | Name              -> ""
     | Password          -> ""
     | ConfirmPassword   -> ""
-    | Dropdown options  -> ""
+    | Dropdown _        -> ""
 
-  dashboard.Charts |> List.map chartDataTemplate |> flatten
+  dashboard.Charts |> List.map chartDataTemplate |> List.distinct |> flatten
 
 (*
 

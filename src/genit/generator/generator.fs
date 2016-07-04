@@ -724,11 +724,15 @@ let api_%s id =
          Writers.setMimeType "application/json"
          >=> OK (serializer.PickleToString(data)))""" api.AsVal api.AsVal
 
-let dashboardItemTemplate charts =
-  let dashboardItemTemplate chart = sprintf """{ Field = "%s"; ChartType = %A; ColumnSize = %A; Index = %i }""" chart.Field chart.ChartType chart.ColumnSize chart.Index |> pad 6
-  charts |> List.map dashboardItemTemplate |> flatten
+let dashboardItemTemplate site (dashboard : Dashboard) =
+  let dashboardItemTemplate chart =
+    let page = site.Pages |> List.find (fun page -> page.Name = dashboard.Name)
+    let field = page.Fields |> List.find (fun field -> field.Name = chart.Field)
+    sprintf """get_chart_%s_%s (), { Field = "%s"; ChartType = %A; ColumnSize = %A; Index = %i }""" page.AsVal field.AsDBColumn chart.Field chart.ChartType chart.ColumnSize chart.Index |> pad 6
 
-let dashboardHandlerTemplate (dashboard : Dashboard) =
+  dashboard.Charts |> List.map dashboardItemTemplate |> flatten
+
+let dashboardHandlerTemplate site (dashboard : Dashboard) =
   sprintf """
 let dashboard_%s =
   choose
@@ -740,7 +744,7 @@ let dashboard_%s =
           ]
 
         OK <| view_dashboard_%s data)
-    ]""" dashboard.AsVal (dashboardItemTemplate dashboard.Charts) dashboard.AsVal
+    ]""" dashboard.AsVal (dashboardItemTemplate site dashboard) dashboard.AsVal
 
 let propertyTemplate (page : Page) =
   page.Fields
@@ -993,7 +997,7 @@ let generate (site : Site) =
 
   let page_handlers = site.Pages |> List.map pageHandlerTemplate |> flatten
   let api_handlers = site.APIs |> List.map apiHandlerTemplate |> flatten
-  let dashboard_handlers = site.Dashboards |> List.map dashboardHandlerTemplate |> flatten
+  let dashboard_handlers = site.Dashboards |> List.map (dashboardHandlerTemplate site) |> flatten
   let handler_results = [page_handlers; api_handlers; dashboard_handlers] |> flatten
   let generated_handlers_result = generated_handlers_template handler_results
 

@@ -220,6 +220,9 @@ let createQueriesForPage site page =
 let createQueries site =
   site.Pages
   |> List.map (createQueriesForPage site)
+  |> List.append
+     (site.Dashboards
+      |> List.map (chartDataTemplate site))
   |> flatten
 
 let fieldToProperty field =

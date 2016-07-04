@@ -91,7 +91,19 @@ let chartInstanceTemplate item =
   | Pie  -> template "pie" item.Index
   | Bar  -> template "bar" item.Index
 
-let chartTemplate item =
+let formatDescriptions descriptions =
+  descriptions
+  |> List.map trimEnd
+  |> List.reduce (sprintf """%s","%s""")
+  |> fun reduced -> sprintf """["%s"]""" reduced
+
+let formatData (data : int list) =
+  data
+  |> List.map string
+  |> List.reduce (sprintf "%s, %s")
+  |> fun reduced -> "[" + reduced + "]"
+
+let chartTemplate (chartData, chart) =
   sprintf """
 %s
     var data = {
@@ -121,7 +133,7 @@ let chartTemplate item =
       ]
     };
 %s
-  """ (contextTemplate item) """["January", "February", "March", "April", "May", "June", "July"]""" item.Field "[65, 59, 80, 81, 56, 55, 40]" (chartInstanceTemplate item)
+  """ (contextTemplate chart) (formatDescriptions chartData.Descriptions) chart.Field (formatData chartData.Data) (chartInstanceTemplate chart)
 
 let chartjs_onready items =
   sprintf """
