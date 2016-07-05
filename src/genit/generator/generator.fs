@@ -109,7 +109,7 @@ let fieldToValidation (field : Field) page =
   | Number          -> Some (template "validate_integer")
   | Decimal         -> Some (template "validate_double")
   | Date            -> Some (template "validate_datetime")
-  | Phone           -> None //parsePhone?
+  | Phone           -> Some (template "validate_phone")
   | Email           -> Some (template "validate_email")
   | Name            -> None
   | Password        -> Some (template "validate_password")
