@@ -339,4 +339,4 @@ let connectionString = "%s"
 
 %s""" connectionString guts
 
-let createConnectionString site = sprintf @"Data Source=.\SQLEXPRESS;Initial Catalog=%s;Integrated Security=True" site.AsDatabase
+let createConnectionString site = sprintf @"Data Source=(localDB)\MSSQLLocalDB;Initial Catalog=%s;Integrated Security=True" site.AsDatabase
