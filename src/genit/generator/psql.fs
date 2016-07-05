@@ -265,7 +265,7 @@ WHERE email = :email
 
 (*
 
-Graphs
+Charts
 
 *)
 

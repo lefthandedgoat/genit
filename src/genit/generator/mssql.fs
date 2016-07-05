@@ -258,12 +258,71 @@ WHERE Email = @Email
 
 (*
 
+Graphs
+
+*)
+
+let chartDataTemplate site (dashboard : Dashboard) =
+  let chataDataAccessTemplate page field query =
+    sprintf """
+let get_chart_%s_%s () =
+  let sql = "
+%s
+  "
+  use connection = connection connectionString
+  use command = command connection sql
+  command
+  |> read toChartData""" page.AsVal field.AsDBColumn query
+
+  let chartSelectTemplate page (field : Field) sqlFunction =
+    let functionedField = sprintf sqlFunction field.AsDBColumn
+    sprintf """
+SELECT
+  %s as description
+  , count(*) as count
+FROM %s.dbo.%s
+GROUP BY
+  %s
+  """ functionedField site.AsDatabase page.AsTable functionedField
+
+  let chartDataTemplate chart =
+    let page = site.Pages |> List.find (fun page -> page.Name = dashboard.Name)
+    let field = page.Fields |> List.find (fun field -> field.Name = chart.Field)
+    let template sqlFunction = chartSelectTemplate page field sqlFunction |> chataDataAccessTemplate page field
+
+    match field.FieldType with
+    | Id                -> template "Convert(varchar(100), %s)"
+    | Text              -> template "%s"
+    | Paragraph         -> template "%s"
+    | Number            -> template "Convert(varchar(100), %s)"
+    | Decimal           -> template "Convert(varchar(100), %s)"
+    | Date              -> template "DateName(dw, DatePart(WEEKDAY, %s))"
+    | Phone             -> template "%s"
+    | Email             -> template "%s"
+    | Name              -> template "%s"
+    | Password          -> template "%s"
+    | ConfirmPassword   -> template "%s"
+    | Dropdown _        -> template "%s"
+
+  dashboard.Charts |> List.map chartDataTemplate |> List.distinct |> flatten
+
+(*
+
 Everything else
 
 *)
 
 let generated_data_access_template connectionString guts =
   sprintf """module generated_data_access
+
+open System.Data
+open generated_types
+open helper_general
+open helper_ado
+open helper_sqlado
+open System.Data
+open dsl
+open BCrypt.Net
 
 let toChartData (reader : IDataReader) : ChartData =
   let temp =
@@ -274,15 +333,6 @@ let toChartData (reader : IDataReader) : ChartData =
     Descriptions = temp |> List.map (fun data -> fst data)
     Data =  temp |> List.map (fun data -> snd data)
   }
-
-open System.Data
-open generated_types
-open helper_general
-open helper_ado
-open helper_sqlado
-open System.Data
-open dsl
-open BCrypt.Net
 
 [<Literal>]
 let connectionString = "%s"

@@ -190,7 +190,7 @@ Graphs
 let chartDataTemplate site dashboard =
   match site.Database with
   | Postgres  -> psql.chartDataTemplate site dashboard
-  | SQLServer -> "" //todo
+  | SQLServer -> mssql.chartDataTemplate site dashboard
 
 (*
 
