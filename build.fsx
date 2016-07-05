@@ -158,13 +158,13 @@ Target "CreateDB" (fun _ ->
 
   else if dbtype = "SQLServer" then
     let command = "sqlcmd"
-    let args = path "-S .\SQLEXPRESS -i src{0}genit{0}generated{0}generated_sql_createdb.sql"
+    let args = path "-S (localDB)\MSSQLLocalDB -i src{0}genit{0}generated{0}generated_sql_createdb.sql"
     Shell.Exec(command, args) |> ignore
 
-    let args = path "-S .\SQLEXPRESS -i src{0}genit{0}generated{0}generated_sql_initialSetup.sql"
+    let args = path "-S (localDB)\MSSQLLocalDB -i src{0}genit{0}generated{0}generated_sql_initialSetup.sql"
     Shell.Exec(command, args) |> ignore
 
-    let args = path "-S .\SQLEXPRESS -i src{0}genit{0}generated{0}generated_sql_createTables.sql"
+    let args = path "-S (localDB)\MSSQLLocalDB -i src{0}genit{0}generated{0}generated_sql_createTables.sql"
     Shell.Exec(command, args) |> ignore
 
   else failwith (sprintf "Database type %s is not supported" dbtype)
