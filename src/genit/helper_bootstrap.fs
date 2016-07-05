@@ -95,6 +95,7 @@ let dropdown_toggle inner = aHrefAttr "#" ["class","dropdown-toggle"; "data-togg
 let dropdown_menu inner = ulClass "dropdown-menu" inner
 let caret = spanClass "caret" [emptyText]
 let jumbotron inner = divClass "jumbotron" inner
+let chart_wrapper title inner = divClass "ibox float-e-margins" [ divClass "ibox-title" [ text title ]; divClass "ibox-content" inner ]
 
 let textEmtpyForNone text' = match text' with Some(t) -> t | None -> ""
 

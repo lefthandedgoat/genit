@@ -82,6 +82,7 @@ let generated_routes =
 let generated_handlers_template guts =
   sprintf """module generated_handlers
 
+open dsl
 open System.Web
 open Suave
 open Suave.Authentication
@@ -121,7 +122,6 @@ let generated_forms_template guts =
 open Suave.Model.Binding
 open Suave.Form
 open generated_types
-open generated_data_access
 
 %s""" guts
 

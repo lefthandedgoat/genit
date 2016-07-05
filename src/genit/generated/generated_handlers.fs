@@ -1,5 +1,6 @@
 module generated_handlers
 
+open dsl
 open System.Web
 open Suave
 open Suave.Authentication

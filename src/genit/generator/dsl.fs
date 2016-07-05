@@ -91,12 +91,38 @@ type API =
     AsViewHref : string
   }
 
+type ChartType =
+  | Line
+  | Bar
+  | Pie
+
+type ColumnSize =
+  | Full
+  | ThreeQuarters
+  | TwoThirds
+  | Half
+  | Third
+  | Quarter
+
+type Chart =
+  {
+    Field : string
+    ChartType : ChartType
+    Index : int
+  }
+
+type ChartData =
+  {
+    Descriptions : string list
+    Data : int list
+  }
+
 type Dashboard =
   {
     Name : string
     AsVal : string
-    AsType : string
     AsViewHref : string
+    Charts : Chart list
   }
 
 type Page =
@@ -196,16 +222,21 @@ let api name =
 
   currentSite <- { currentSite with APIs = currentSite.APIs @ [api] }
 
-let dashboard name =
+let dashboard name charts =
+  let charts = charts |> List.mapi (fun index item -> { item with Index = index })
   let dashboard : Dashboard =
     {
       Name = name
       AsViewHref = to_dashboardViewHref name
       AsVal = to_val name
-      AsType = to_type name
+      Charts = charts
     }
 
   currentSite <- { currentSite with Dashboards = currentSite.Dashboards @ [dashboard] }
+
+let line field = { Field = field; ChartType = Line; Index = 0 }
+let bar field =  { Field = field; ChartType = Bar;  Index = 0 }
+let pie field =  { Field = field; ChartType = Pie;  Index = 0 }
 
 let id_pk name = field (sprintf "%s ID" name) PK Id currentSite.Database
 let text name attribute = field name attribute Text currentSite.Database

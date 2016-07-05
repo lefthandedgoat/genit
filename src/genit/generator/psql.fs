@@ -265,6 +265,56 @@ WHERE email = :email
 
 (*
 
+Charts
+
+*)
+
+let chartDataTemplate site (dashboard : Dashboard) =
+  let chataDataAccessTemplate page field query =
+    sprintf """
+let get_chart_%s_%s () =
+  let sql = "
+%s
+  "
+  use connection = connection connectionString
+  use command = command connection sql
+  command
+  |> read toChartData""" page.AsVal field.AsDBColumn query
+
+  let chartSelectTemplate page (field : Field) sqlFunction =
+    let functionedField = sprintf sqlFunction field.AsDBColumn
+    sprintf """
+SELECT
+  %s as description
+  , count(*) as count
+FROM %s.%s
+GROUP BY
+  %s
+  """ functionedField site.AsDatabase page.AsTable functionedField
+
+  let chartDataTemplate chart =
+    let page = site.Pages |> List.find (fun page -> page.Name = dashboard.Name)
+    let field = page.Fields |> List.find (fun field -> field.Name = chart.Field)
+    let template sqlFunction = chartSelectTemplate page field sqlFunction |> chataDataAccessTemplate page field
+
+    match field.FieldType with
+    | Id                -> template "%s"
+    | Text              -> template "%s"
+    | Paragraph         -> template "%s"
+    | Number            -> template "%s"
+    | Decimal           -> template "%s"
+    | Date              -> template "to_char(%s, 'day')"
+    | Phone             -> template "%s"
+    | Email             -> template "%s"
+    | Name              -> template "%s"
+    | Password          -> template "%s"
+    | ConfirmPassword   -> template "%s"
+    | Dropdown _        -> template "%s"
+
+  dashboard.Charts |> List.map chartDataTemplate |> List.distinct |> flatten
+
+(*
+
 Everything else
 
 *)
@@ -280,6 +330,16 @@ open helper_npgado
 open Npgsql
 open dsl
 open BCrypt.Net
+
+let toChartData (reader : IDataReader) : ChartData =
+  let temp =
+    [ while reader.Read() do
+      yield getString "description" reader, getInt32 "count" reader
+    ]
+  {
+    Descriptions = temp |> List.map (fun data -> fst data)
+    Data =  temp |> List.map (fun data -> snd data)
+  }
 
 [<Literal>]
 let connectionString = "%s"

@@ -102,9 +102,9 @@ Target "CopyAssets" (fun _ ->
     let source = currentDirectory @@ "/src/genit/js"
     FileHelper.CopyDir target source (fun _ -> true)
 
-    let target = currentDirectory @@ "/bin/fonts"
-    let source = currentDirectory @@ "/src/genit/fonts"
-    FileHelper.CopyDir target source (fun _ -> true)
+    //let target = currentDirectory @@ "/bin/fonts"
+    //let source = currentDirectory @@ "/src/genit/fonts"
+    //FileHelper.CopyDir target source (fun _ -> true)
 )
 
 // --------------------------------------------------------------------------------------

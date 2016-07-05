@@ -41,6 +41,11 @@ let someSite () =
   api "Order"
 
   dashboard "Order"
+    [
+      line "Delivery Date"
+      bar  "State"
+      pie  "Tip"
+    ]
 
   advancedPage "Reserveration" CVELS RequiresLogin
     [

@@ -1,12 +1,14 @@
 module scripts
 
-open Suave.Html
+open dsl
 open helper_html
+open helper_general
+open Suave.Html
 
 let jquery_1_11_3_min = """<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>"""
 let bootstrap = """<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>"""
 let datatable_jquery_1_10_9_min = """<script src="//cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>"""
-//todo dont hotlink
+let chartjs_2_1_6_min = """<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.1.6/Chart.min.js"></script>"""
 let datatable_adapter = """<script src="/js/datatables.js"></script>"""
 let bootstrap_datepicker = """<script src="/js/bootstrap-datetimepicker.min.js"></script>"""
 
@@ -60,5 +62,97 @@ let datatable_bundle =
     bootstrap_datepicker
     generic_onready
     generic_datatable
+  ]
+  |> List.map (fun script -> text script) |> flatten
+
+(*
+
+Charting
+
+*)
+
+let contextTemplate item =
+  let template type' index = sprintf """var %sContext%i = $("#%s%i");""" type' index type' index |> pad 2
+  match item.ChartType with
+  | Line -> template "line" item.Index
+  | Pie  -> template "pie" item.Index
+  | Bar  -> template "bar" item.Index
+
+let chartInstanceTemplate item =
+  let template type' index =
+    sprintf """
+    var %sChart%i = new Chart(%sContext%i, {
+      type: '%s',
+      data: data,
+      options: {}
+    });""" type' index type' index type'
+  match item.ChartType with
+  | Line -> template "line" item.Index
+  | Pie  -> template "pie" item.Index
+  | Bar  -> template "bar" item.Index
+
+let formatDescriptions descriptions =
+  if descriptions = [] then ""
+  else
+    descriptions
+    |> List.map trimEnd
+    |> List.reduce (sprintf """%s","%s""")
+    |> fun reduced -> sprintf """["%s"]""" reduced
+
+let formatData (data : int list) =
+  if data = [] then ""
+  else
+    data
+    |> List.map string
+    |> List.reduce (sprintf "%s, %s")
+    |> fun reduced -> "[" + reduced + "]"
+
+let chartTemplate (chartData, chart) =
+  sprintf """
+%s
+    var data = {
+      labels: %s,
+      datasets: [
+        {
+          label: "%s",
+          fill: false,
+          lineTension: 0.1,
+          backgroundColor: "rgba(26,179,148,0.5)",
+          borderColor: "rgba(26,179,148,0.7)",
+          borderCapStyle: 'butt',
+          borderDash: [],
+          borderDashOffset: 0.0,
+          borderJoinStyle: 'miter',
+          pointBorderColor: "rgba(75,192,192,1)",
+          pointBackgroundColor: "#fff",
+          pointBorderWidth: 1,
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: "rgba(26,179,148,0.7)",
+          pointHoverBorderColor: "rgba(26,179,148,1)",
+          pointHoverBorderWidth: 2,
+          pointRadius: 1,
+          pointHitRadius: 10,
+          data: %s,
+        }
+      ]
+    };
+%s
+  """ (contextTemplate chart) (formatDescriptions chartData.Descriptions) chart.Field (formatData chartData.Data) (chartInstanceTemplate chart)
+
+let chartjs_onready items =
+  sprintf """
+<script type="text/javascript">
+  $(document).ready(function(){
+%s
+  });
+</script>
+""" (items |> List.map chartTemplate |> helper_general.flatten)
+
+let chartjs_bundle charts =
+  [
+    jquery_1_11_3_min
+    bootstrap
+    chartjs_2_1_6_min
+    chartjs_onready charts
   ]
   |> List.map (fun script -> text script) |> flatten

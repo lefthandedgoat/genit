@@ -518,20 +518,28 @@ let viewTemplate site page =
 
   viewTemplate site page page.PageMode
 
+let dashboardChartTemplate (dashboard : Dashboard) =
+  let template type' index = sprintf """chart_wrapper "%s" [ canvasId "%s%i" ]""" dashboard.Name type' index |> pad 4
+  let dashboardChartTemplate chart =
+    match chart.ChartType with
+    | Line -> template "line" chart.Index
+    | Pie  -> template "pie" chart.Index
+    | Bar  -> template "bar" chart.Index
+
+  dashboard.Charts |> List.map dashboardChartTemplate |> flatten
+
 let dashboardViewTemplate (dashboard : Dashboard) =
   sprintf """
-let view_dashboard_%s =
+let view_dashboard_%s data =
   base_html
-    "%s"
+    "%s Dashboard"
     (base_header brand)
     [
       divClass "container" [
-        divClass "jumbotron" [
-          h1 (sprintf "Dashboard for %s!")
-        ]
+%s
       ]
     ]
-    scripts.common""" dashboard.AsVal dashboard.Name dashboard.Name
+    (scripts.chartjs_bundle data)""" dashboard.AsVal dashboard.Name (dashboardChartTemplate dashboard)
 
 let pageLinkTemplate (page : Page) =
   let template href text = sprintf """li [ aHref "%s" [text "%s"] ]""" href text |> pad 7
@@ -716,13 +724,27 @@ let api_%s id =
          Writers.setMimeType "application/json"
          >=> OK (serializer.PickleToString(data)))""" api.AsVal api.AsVal
 
-let dashboardHandlerTemplate (dashboard : Dashboard) =
+let dashboardItemTemplate site (dashboard : Dashboard) =
+  let dashboardItemTemplate chart =
+    let page = site.Pages |> List.find (fun page -> page.Name = dashboard.Name)
+    let field = page.Fields |> List.find (fun field -> field.Name = chart.Field)
+    sprintf """get_chart_%s_%s (), { Field = "%s"; ChartType = %A; Index = %i }""" page.AsVal field.AsDBColumn chart.Field chart.ChartType chart.Index |> pad 6
+
+  dashboard.Charts |> List.map dashboardItemTemplate |> flatten
+
+let dashboardHandlerTemplate site (dashboard : Dashboard) =
   sprintf """
 let dashboard_%s =
   choose
     [
-      GET >=> warbler (fun _ -> OK view_dashboard_%s)
-    ]""" dashboard.AsVal dashboard.AsVal
+      GET >=> warbler (fun _ ->
+        let data =
+          [
+%s
+          ]
+
+        OK <| view_dashboard_%s data)
+    ]""" dashboard.AsVal (dashboardItemTemplate site dashboard) dashboard.AsVal
 
 let propertyTemplate (page : Page) =
   page.Fields
@@ -975,7 +997,7 @@ let generate (site : Site) =
 
   let page_handlers = site.Pages |> List.map pageHandlerTemplate |> flatten
   let api_handlers = site.APIs |> List.map apiHandlerTemplate |> flatten
-  let dashboard_handlers = site.Dashboards |> List.map dashboardHandlerTemplate |> flatten
+  let dashboard_handlers = site.Dashboards |> List.map (dashboardHandlerTemplate site) |> flatten
   let handler_results = [page_handlers; api_handlers; dashboard_handlers] |> flatten
   let generated_handlers_result = generated_handlers_template handler_results
 
