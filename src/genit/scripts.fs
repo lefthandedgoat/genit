@@ -92,16 +92,20 @@ let chartInstanceTemplate item =
   | Bar  -> template "bar" item.Index
 
 let formatDescriptions descriptions =
-  descriptions
-  |> List.map trimEnd
-  |> List.reduce (sprintf """%s","%s""")
-  |> fun reduced -> sprintf """["%s"]""" reduced
+  if descriptions = [] then ""
+  else
+    descriptions
+    |> List.map trimEnd
+    |> List.reduce (sprintf """%s","%s""")
+    |> fun reduced -> sprintf """["%s"]""" reduced
 
 let formatData (data : int list) =
-  data
-  |> List.map string
-  |> List.reduce (sprintf "%s, %s")
-  |> fun reduced -> "[" + reduced + "]"
+  if data = [] then ""
+  else
+    data
+    |> List.map string
+    |> List.reduce (sprintf "%s, %s")
+    |> fun reduced -> "[" + reduced + "]"
 
 let chartTemplate (chartData, chart) =
   sprintf """

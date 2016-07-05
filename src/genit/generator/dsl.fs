@@ -108,7 +108,6 @@ type Chart =
   {
     Field : string
     ChartType : ChartType
-    ColumnSize : ColumnSize
     Index : int
   }
 
@@ -235,9 +234,9 @@ let dashboard name charts =
 
   currentSite <- { currentSite with Dashboards = currentSite.Dashboards @ [dashboard] }
 
-let line field columnSize = { Field = field; ChartType = Line; ColumnSize = columnSize; Index = 0 }
-let bar field columnSize =  { Field = field; ChartType = Bar;  ColumnSize = columnSize; Index = 0 }
-let pie field columnSize =  { Field = field; ChartType = Pie;  ColumnSize = columnSize; Index = 0 }
+let line field = { Field = field; ChartType = Line; Index = 0 }
+let bar field =  { Field = field; ChartType = Bar;  Index = 0 }
+let pie field =  { Field = field; ChartType = Pie;  Index = 0 }
 
 let id_pk name = field (sprintf "%s ID" name) PK Id currentSite.Database
 let text name attribute = field name attribute Text currentSite.Database

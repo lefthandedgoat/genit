@@ -728,7 +728,7 @@ let dashboardItemTemplate site (dashboard : Dashboard) =
   let dashboardItemTemplate chart =
     let page = site.Pages |> List.find (fun page -> page.Name = dashboard.Name)
     let field = page.Fields |> List.find (fun field -> field.Name = chart.Field)
-    sprintf """get_chart_%s_%s (), { Field = "%s"; ChartType = %A; ColumnSize = %A; Index = %i }""" page.AsVal field.AsDBColumn chart.Field chart.ChartType chart.ColumnSize chart.Index |> pad 6
+    sprintf """get_chart_%s_%s (), { Field = "%s"; ChartType = %A; Index = %i }""" page.AsVal field.AsDBColumn chart.Field chart.ChartType chart.Index |> pad 6
 
   dashboard.Charts |> List.map dashboardItemTemplate |> flatten
 

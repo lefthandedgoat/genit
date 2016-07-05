@@ -42,9 +42,9 @@ let someSite () =
 
   dashboard "Order"
     [
-      line "Delivery Date" Full
-      bar  "Delivery Date" Full
-      pie  "Delivery Date" Full
+      line "Delivery Date"
+      bar  "State"
+      pie  "Tip"
     ]
 
   advancedPage "Reserveration" CVELS RequiresLogin

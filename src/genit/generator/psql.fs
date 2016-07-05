@@ -281,32 +281,35 @@ let get_chart_%s_%s () =
   command
   |> read toChartData""" page.AsVal field.AsDBColumn query
 
-  let chartDateSelectTemplate page (field : Field) =
+  let chartSelectTemplate page (field : Field) sqlFunction =
+    let functionedField = sprintf sqlFunction field.AsDBColumn
     sprintf """
 SELECT
-  to_char(%s, 'day') as description
+  %s as description
   , count(*) as count
 FROM %s.%s
 GROUP BY
-  to_char(%s, 'day')
-  """ field.AsDBColumn site.AsDatabase page.AsTable field.AsDBColumn
+  %s
+  """ functionedField site.AsDatabase page.AsTable functionedField
 
   let chartDataTemplate chart =
     let page = site.Pages |> List.find (fun page -> page.Name = dashboard.Name)
     let field = page.Fields |> List.find (fun field -> field.Name = chart.Field)
+    let template sqlFunction = chartSelectTemplate page field sqlFunction |> chataDataAccessTemplate page field
+
     match field.FieldType with
-    | Id                -> ""
-    | Text              -> ""
-    | Paragraph         -> ""
-    | Number            -> ""
-    | Decimal           -> ""
-    | Date              -> chartDateSelectTemplate page field |> chataDataAccessTemplate page field
-    | Phone             -> ""
-    | Email             -> ""
-    | Name              -> ""
-    | Password          -> ""
-    | ConfirmPassword   -> ""
-    | Dropdown _        -> ""
+    | Id                -> template "%s"
+    | Text              -> template "%s"
+    | Paragraph         -> template "%s"
+    | Number            -> template "%s"
+    | Decimal           -> template "%s"
+    | Date              -> template "to_char(%s, 'day')"
+    | Phone             -> template "%s"
+    | Email             -> template "%s"
+    | Name              -> template "%s"
+    | Password          -> template "%s"
+    | ConfirmPassword   -> template "%s"
+    | Dropdown _        -> template "%s"
 
   dashboard.Charts |> List.map chartDataTemplate |> List.distinct |> flatten
 
