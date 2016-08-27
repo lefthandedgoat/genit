@@ -17,10 +17,16 @@ let someSite () =
 
   basic login
 
+  page "Employee" CVELS
+    [
+      text      "Name"                 Required
+      text      "Title"                Required
+      email     "Email"
+    ]
+
   page "Self" CVELS
     [
-      text      "First Name"           Required
-      text      "Last Name"            Required
+      text      "Name"                 Required
       text      "Title"                Required
       email     "Email"
       text      "Position Objective 1" Required

@@ -1,0 +1,11 @@
+
+DROP OWNED BY defi_pays;
+DROP USER IF EXISTS defi_pays;
+
+DROP SCHEMA IF EXISTS defi_pays;
+CREATE SCHEMA defi_pays;
+
+CREATE USER defi_pays WITH ENCRYPTED PASSWORD 'NOTSecure1234';
+GRANT USAGE ON SCHEMA defi_pays to defi_pays;
+ALTER DEFAULT PRIVILEGES IN SCHEMA defi_pays GRANT SELECT ON TABLES TO defi_pays;
+GRANT CONNECT ON DATABASE "defi_pays" to defi_pays;

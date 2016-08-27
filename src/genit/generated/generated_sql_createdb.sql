@@ -1,0 +1,3 @@
+
+DROP DATABASE IF EXISTS defi_pays;
+CREATE DATABASE defi_pays;
