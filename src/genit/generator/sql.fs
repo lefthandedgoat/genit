@@ -97,6 +97,7 @@ let conversionTemplate field =
     | Paragraph       -> "getString"
     | Number          -> "getInt32"
     | Decimal         -> "getDouble"
+    | Boolean         -> "getBool"
     | Date            -> "getDateTime"
     | Phone           -> "getString"
     | Email           -> "getString"
@@ -233,6 +234,7 @@ let fieldToProperty field =
     | Paragraph       -> "string"
     | Number          -> "int"
     | Decimal         -> "double"
+    | Boolean         -> "bool"
     | Date            -> "System.DateTime"
     | Phone           -> "string"
     | Email           -> "string"
@@ -266,6 +268,10 @@ let fieldToConvertProperty page field =
     if field.Attribute = Null
     then sprintf """%s = Some(double %s)""" field.AsProperty property
     else sprintf """%s = double %s""" field.AsProperty property
+  let bool () =
+    if field.Attribute = Null
+    then sprintf """%s = Some(%s |> System.Boolean.Parse)""" field.AsProperty property
+    else sprintf """%s = %s |> System.Boolean.Parse""" field.AsProperty property
   let datetime () =
     if field.Attribute = Null
     then sprintf """%s = Some(System.DateTime.Parse(%s))""" field.AsProperty property
@@ -276,6 +282,7 @@ let fieldToConvertProperty page field =
   | Paragraph       -> string ()
   | Number          -> int ()
   | Decimal         -> decimal ()
+  | Boolean         -> bool ()
   | Date            -> datetime ()
   | Email           -> string ()
   | Name            -> string ()
@@ -320,6 +327,7 @@ let fakePropertyTemplate (field : Field) =
     | Paragraph       -> "randomItems 40 words"
     | Number          -> pickAppropriateNumber "random.Next(100)"
     | Decimal         -> "random.Next(10) |> double"
+    | Boolean         -> "true"
     | Date            -> "System.DateTime.Now.AddDays(random.Next(7) |> float)"
     | Phone           -> """sprintf "%i-%i-%i" (random.Next(200,800)) (random.Next(200,800)) (random.Next(2000,8000))"""
     | Email           -> """sprintf "%s@%s.com" (randomItem words) (randomItem words)"""

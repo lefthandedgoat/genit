@@ -34,6 +34,7 @@ type FieldType =
   | Paragraph
   | Number
   | Decimal
+  | Boolean
   | Date
   | Phone
   | Email
@@ -242,6 +243,7 @@ let id_pk name = field (sprintf "%s ID" name) PK Id currentSite.Database
 let text name attribute = field name attribute Text currentSite.Database
 let paragraph name attribute = field name attribute Paragraph currentSite.Database
 let number name attribute = field name attribute Number currentSite.Database
+let boolean name = field name Required Boolean currentSite.Database
 let dollar name attribute = field name attribute Decimal currentSite.Database
 let date name attribute = field name attribute Date currentSite.Database
 let email name = field name Required Email currentSite.Database
@@ -349,6 +351,7 @@ let useSome field =
   | Paragraph       -> false
   | Number          -> true
   | Decimal         -> true
+  | Boolean         -> true
   | Date            -> true
   | Phone           -> false
   | Email           -> false

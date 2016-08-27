@@ -30,6 +30,7 @@ let someSite () =
       text      "City"          Null
       text      "State"         Null
       text      "Zip"           Null
+      boolean   "Free Delivery"
       dropdown  "Free Soda"     Required
         [
           "Cola"

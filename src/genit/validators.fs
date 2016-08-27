@@ -48,6 +48,12 @@ let validate_double property value =
   then Some (property, sprintf "%s is not a valid number (decimal)" property)
   else None
 
+let validate_bool property value =
+  let parsed, _ = System.Boolean.TryParse(value)
+  if not parsed
+  then Some (property, sprintf "%s is not a valid bool" property)
+  else None
+
 let validate_datetime property value =
   let parsed, _ = System.DateTime.TryParse(value)
   if not parsed

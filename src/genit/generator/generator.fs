@@ -24,6 +24,7 @@ let fieldToHtml (field : Field) =
   | Paragraph         -> template "label_textarea"
   | Number            -> template "label_text"
   | Decimal           -> template "label_text"
+  | Boolean           -> sprintf """label_select "%s" [ ("",""); ("True","Yes"); ("False","No") ]""" field.Name
   | Date              -> template "label_datetime"
   | Phone             -> template "label_text"
   | Email             -> iconTemplate "icon_label_text" "envelope"
@@ -44,6 +45,10 @@ let fieldToPopulatedHtml page (field : Field) =
   | Paragraph         -> template "label_textarea"
   | Number            -> template "label_text"
   | Decimal           -> template "label_text"
+  | Boolean           ->
+    if field.Attribute = Null && useSome field
+    then sprintf """label_select_selected "%s" [ ("",""); ("True","Yes"); ("False","No") ] %s.%s""" field.Name page.AsVal field.AsProperty
+    else sprintf """label_select_selected "%s" [ ("",""); ("True","Yes"); ("False","No") ] (Some %s.%s)""" field.Name page.AsVal field.AsProperty
   | Date              -> template "label_datetime"
   | Phone             -> template "label_text"
   | Email             -> iconTemplate "icon_label_text" "envelope"
@@ -66,6 +71,7 @@ let fieldToStaticHtml page (field : Field) =
   | Paragraph         -> template "label_static"
   | Number            -> template "label_static"
   | Decimal           -> template "label_static"
+  | Boolean           -> template "label_static"
   | Date              -> template "label_static"
   | Phone             -> template "label_static"
   | Email             -> template "label_static"
@@ -83,6 +89,7 @@ let fieldToErroredHtml page (field : Field) =
   | Paragraph         -> template "errored_label_textarea"
   | Number            -> template "errored_label_text"
   | Decimal           -> template "errored_label_text"
+  | Boolean           -> sprintf """errored_label_select "%s" [ ("",""); ("true","Yes"); ("false","No") ] (Some %s.%s) errors""" field.Name page.AsFormVal field.AsProperty
   | Date              -> template "errored_label_datetime"
   | Phone             -> template "errored_label_text"
   | Email             -> iconTemplate "errored_icon_label_text" "envelope"
@@ -108,6 +115,7 @@ let fieldToValidation (field : Field) page =
   | Paragraph       -> None
   | Number          -> Some (template "validate_integer")
   | Decimal         -> Some (template "validate_double")
+  | Boolean         -> Some (template "validate_bool")
   | Date            -> Some (template "validate_datetime")
   | Phone           -> Some (template "validate_phone")
   | Email           -> Some (template "validate_email")
@@ -124,6 +132,7 @@ let fieldToTestName (field : Field) =
   | Paragraph       -> None
   | Number          -> Some (template "must be a valid integer")
   | Decimal         -> Some (template "must be a valid double")
+  | Boolean         -> Some (template "must be a valid bool")
   | Date            -> Some (template "must be a valid date")
   | Email           -> Some (template "must be a valid email")
   | Name            -> None
@@ -140,6 +149,7 @@ let fieldToTestBody (field : Field) =
   | Paragraph       -> None
   | Number          -> Some (template "is not a valid number (int)")
   | Decimal         -> Some (template "is not a valid number (decimal)")
+  | Boolean         -> Some (template "is not a valid bool")
   | Date            -> Some (template "is not a valid date")
   | Email           -> Some (template "is not a valid email")
   | Name            -> None
