@@ -15,7 +15,7 @@ let flattenWith delimeter values = onlyIfValues values (List.reduce (fun value1 
 
 let concat values = onlyIfValues values (List.reduce (fun value1 value2 -> sprintf "%s %s" value1 value2))
 
-let repeat (value : string) times = [1..times] |> List.map (fun _ -> value) |> List.reduce (+)
+let repeat (value : string) times = if times <= 0 then "" else [1..times] |> List.map (fun _ -> value) |> List.reduce (+)
 let pad tabs field = sprintf "%s%s" (repeat "  " tabs) field
 let rightPad upto field = sprintf "%s%s" field (repeat " " (upto - field.Length))
 let clean (value : string) = Regex.Replace(value, "[^0-9a-zA-Z ]+", "")
