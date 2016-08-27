@@ -9,6 +9,11 @@ let validate_required property value =
   then Some (property, sprintf "%s is required" property)
   else None
 
+let validate_required_dropdown property value =
+  if String.IsNullOrWhiteSpace value || value = "0"
+  then Some (property, sprintf "%s is required" property)
+  else None
+
 let validate_equal property1 property2 value1 value2  =
   if value1 <> value2
   then Some (property2, sprintf "%s must be the same as %s" property2 property1)

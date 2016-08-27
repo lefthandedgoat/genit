@@ -249,7 +249,7 @@ let name name attribute = field name attribute Name currentSite.Database
 let phone name attribute = field name attribute Phone currentSite.Database
 let password name = field name Required Password currentSite.Database
 let confirm name = field name Required ConfirmPassword currentSite.Database
-let dropdown name options = field name Null (Dropdown(options)) currentSite.Database
+let dropdown name attribute options = field name attribute (Dropdown(options)) currentSite.Database
 
 //precanned pages
 

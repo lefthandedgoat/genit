@@ -150,10 +150,14 @@ let fieldToTestBody (field : Field) =
 
 let attributeToValidation field page =
   let property = sprintf "%s.%s" page.AsFormVal field.AsProperty
+  let required field =
+    match field.FieldType with
+    | Dropdown(_) -> Some (sprintf """validate_required_dropdown "%s" %s""" field.Name property)
+    | _           -> Some (sprintf """validate_required "%s" %s""" field.Name property)
   match field.Attribute with
   | PK                       -> None
   | Null                     -> None
-  | Required                 -> Some (sprintf """validate_required "%s" %s""" field.Name property)
+  | Required                 -> required field
   | Min(min)                 -> Some (sprintf """validate_min "%s" %s %i""" field.Name property min)
   | Max(max)                 -> Some (sprintf """validate_max "%s" %s %i""" field.Name property max)
   | Range(min,max)           -> Some (sprintf """validate_range "%s" %s %i %i""" field.Name property min max)
