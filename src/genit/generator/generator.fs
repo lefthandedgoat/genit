@@ -166,6 +166,7 @@ let attributeToValidation field page =
     | _           -> Some (sprintf """validate_required "%s" %s""" field.Name property)
   match field.Attribute with
   | PK                       -> None
+  | FK(_)                    -> None
   | Null                     -> None
   | Required                 -> required field
   | Min(min)                 -> Some (sprintf """validate_min "%s" %s %i""" field.Name property min)
@@ -175,6 +176,7 @@ let attributeToValidation field page =
 let attributeToTestName (field : Field) =
   match field.Attribute with
   | PK             -> None
+  | FK(_)          -> None
   | Null           -> None
   | Required       -> Some (sprintf """"%s is required" """ field.Name |> trimEnd)
   | Min(min)       -> Some (sprintf """"%s must be greater than %i" """ field.Name min |> trimEnd)
@@ -184,6 +186,7 @@ let attributeToTestName (field : Field) =
 let attributeToTestBody (field : Field) =
   match field.Attribute with
   | PK             -> None
+  | FK(_)          -> None
   | Null           -> None
   | Required       -> Some (sprintf """displayed "%s is required" """ field.Name |> trimEnd)
   | Min(min)       -> Some (sprintf """displayed "%s can not be below %i" """ field.Name min |> trimEnd)
@@ -307,7 +310,7 @@ let view_edit_errored_%s errors (%s : %s) =
 let editButtonTemplate (page : Page) idField =
   if isEdit page
   then sprintf """button_small_success_right (sprintf "%s" %s.%s) [ text "Edit" ]""" page.AsEditHref page.AsVal idField.AsProperty
-  else "[]"
+  else "emptyText"
 
 let viewFormViewTemplate (page : Page) =
   let idField = page.Fields |> List.find (fun field -> field.FieldType = Id)

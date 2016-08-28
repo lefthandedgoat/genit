@@ -39,6 +39,12 @@ let someSite () =
         ]
     ]
 
+  page "Order Item" CVEL
+    [
+      text      "Name"          Required
+      fk        "Order"
+    ]
+
   api "Order"
 
   dashboard "Order"

@@ -43,9 +43,15 @@ let columnTypeTemplate field =
   | Dropdown (_)    -> "smallint"
 
 //http://www.postgresql.org/docs/9.5/static/ddl-constraints.html
-let columnAttributesTemplate (field : Field) =
+let columnAttributesTemplate (field : Field) (site : Site) =
+  let otherPage name = site.Pages |> List.find (fun page -> page.Name = name)
+  let pk otherPage = otherPage.Fields |> List.find (fun field -> field.Attribute = PK)
   match field.Attribute with
   | PK              -> "PRIMARY KEY NOT NULL"
+  | FK(page)        ->
+      let otherPage = otherPage page
+      let pk = pk otherPage
+      sprintf "REFERENCES %s.%s (%s)" site.AsDatabase otherPage.AsTable pk.AsDBColumn
   | Null            -> "NULL"
   | Required        -> "NOT NULL"
   | Min(min)        -> sprintf "CHECK (%s > %i)" field.AsDBColumn min

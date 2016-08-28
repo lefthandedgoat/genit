@@ -27,8 +27,8 @@ let columnTypeTemplate site field =
 //http://www.postgresql.org/docs/9.5/static/ddl-constraints.html
 let columnAttributesTemplate site field =
   match site.Database with
-  | Postgres  -> psql.columnAttributesTemplate field
-  | SQLServer -> mssql.columnAttributesTemplate field
+  | Postgres  -> psql.columnAttributesTemplate field site
+  | SQLServer -> mssql.columnAttributesTemplate field site
 
 let columnTemplate site namePad typePad field =
  sprintf "%s %s %s" (rightPad namePad field.AsDBColumn) (rightPad typePad (columnTypeTemplate site field)) (columnAttributesTemplate site field)
