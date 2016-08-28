@@ -56,7 +56,7 @@ let columnAttributesTemplate (field : Field) (site : Site) =
   | Required        -> "NOT NULL"
   | Min(min)        -> sprintf "CHECK (%s > %i)" field.AsDBColumn min
   | Max(max)        -> sprintf "CHECK (%s < %i)" field.AsDBColumn max
-  | Range(min, max) -> sprintf "CHECK (%i < %s and %s < %i)" min field.AsDBColumn field.AsDBColumn max
+  | Range(min, max) -> sprintf "CHECK (%i <= %s and %s <= %i)" min field.AsDBColumn field.AsDBColumn max
 
 let createTableTemplate dbname page columns =
   sprintf """
