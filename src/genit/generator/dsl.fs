@@ -32,6 +32,7 @@ type FieldType =
   | Id
   | Text
   | Paragraph
+  | Int64
   | Number
   | Decimal
   | Boolean
@@ -241,7 +242,7 @@ let bar field =  { Field = field; ChartType = Bar;  Index = 0 }
 let pie field =  { Field = field; ChartType = Pie;  Index = 0 }
 
 let id_pk name = field (sprintf "%s ID" name) PK Id currentSite.Database
-let fk page = field (sprintf "%s FK" page) (FK(page)) Number currentSite.Database
+let fk page = field (sprintf "%s FK" page) (FK(page)) Int64 currentSite.Database
 let text name attribute = field name attribute Text currentSite.Database
 let paragraph name attribute = field name attribute Paragraph currentSite.Database
 let number name attribute = field name attribute Number currentSite.Database
@@ -351,6 +352,7 @@ let useSome field =
   | Id              -> true
   | Text            -> false
   | Paragraph       -> false
+  | Int64           -> true
   | Number          -> true
   | Decimal         -> true
   | Boolean         -> true

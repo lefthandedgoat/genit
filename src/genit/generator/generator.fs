@@ -22,6 +22,7 @@ let fieldToHtml (field : Field) =
   | Id                -> sprintf """hiddenInput "%s" "-1" """ field.AsProperty |> trimEnd
   | Text              -> template "label_text"
   | Paragraph         -> template "label_textarea"
+  | Int64             -> template "label_text"
   | Number            -> template "label_text"
   | Decimal           -> template "label_text"
   | Boolean           -> sprintf """label_select "%s" [ ("",""); ("True","Yes"); ("False","No") ]""" field.Name
@@ -43,6 +44,7 @@ let fieldToPopulatedHtml page (field : Field) =
   | Id                -> sprintf """hiddenInput "%s" %s.%s """ field.AsProperty page.AsVal field.AsProperty
   | Text              -> template "label_text"
   | Paragraph         -> template "label_textarea"
+  | Int64             -> template "label_text"
   | Number            -> template "label_text"
   | Decimal           -> template "label_text"
   | Boolean           ->
@@ -69,6 +71,7 @@ let fieldToStaticHtml page (field : Field) =
   | Id                -> ""
   | Text              -> template "label_static"
   | Paragraph         -> template "label_static"
+  | Int64             -> template "label_static"
   | Number            -> template "label_static"
   | Decimal           -> template "label_static"
   | Boolean           -> template "label_static"
@@ -87,6 +90,7 @@ let fieldToErroredHtml page (field : Field) =
   | Id                -> sprintf """hiddenInput "%s" %s.%s """ field.AsProperty page.AsFormVal field.AsProperty
   | Text              -> template "errored_label_text"
   | Paragraph         -> template "errored_label_textarea"
+  | Int64             -> template "errored_label_text"
   | Number            -> template "errored_label_text"
   | Decimal           -> template "errored_label_text"
   | Boolean           -> sprintf """errored_label_select "%s" [ ("",""); ("true","Yes"); ("false","No") ] (Some %s.%s) errors""" field.Name page.AsFormVal field.AsProperty
@@ -113,6 +117,7 @@ let fieldToValidation (field : Field) page =
   | Id              -> None
   | Text            -> None
   | Paragraph       -> None
+  | Int64           -> Some (template "validate_integer")
   | Number          -> Some (template "validate_integer")
   | Decimal         -> Some (template "validate_double")
   | Boolean         -> Some (template "validate_bool")
@@ -130,6 +135,7 @@ let fieldToTestName (field : Field) =
   | Id              -> None
   | Text            -> None
   | Paragraph       -> None
+  | Int64           -> Some (template "must be a valid integer")
   | Number          -> Some (template "must be a valid integer")
   | Decimal         -> Some (template "must be a valid double")
   | Boolean         -> Some (template "must be a valid bool")
@@ -147,6 +153,7 @@ let fieldToTestBody (field : Field) =
   | Id              -> None
   | Text            -> None
   | Paragraph       -> None
+  | Int64           -> Some (template "is not a valid number (int)")
   | Number          -> Some (template "is not a valid number (int)")
   | Decimal         -> Some (template "is not a valid number (decimal)")
   | Boolean         -> Some (template "is not a valid bool")

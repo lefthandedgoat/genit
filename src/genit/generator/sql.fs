@@ -95,6 +95,7 @@ let conversionTemplate field =
     | Id              -> "getInt64"
     | Text            -> "getString"
     | Paragraph       -> "getString"
+    | Int64           -> "getInt64"
     | Number          -> "getInt32"
     | Decimal         -> "getDouble"
     | Boolean         -> "getBool"
@@ -232,6 +233,7 @@ let fieldToProperty field =
     | Id              -> "int64"
     | Text            -> "string"
     | Paragraph       -> "string"
+    | Int64           -> "int64"
     | Number          -> "int"
     | Decimal         -> "double"
     | Boolean         -> "bool"
@@ -280,6 +282,7 @@ let fieldToConvertProperty page field =
   | Id              -> int64 ()
   | Text            -> string ()
   | Paragraph       -> string ()
+  | Int64           -> int64 ()
   | Number          -> int ()
   | Decimal         -> decimal ()
   | Boolean         -> bool ()
@@ -325,6 +328,7 @@ let fakePropertyTemplate (field : Field) =
     | Id              -> "-1L"
     | Text            -> pickAppropriateText "randomItems 6 words"
     | Paragraph       -> "randomItems 40 words"
+    | Int64           -> pickAppropriateNumber "random.Next(100) |> int64"
     | Number          -> pickAppropriateNumber "random.Next(100)"
     | Decimal         -> "random.Next(10) |> double"
     | Boolean         -> "true"
